@@ -1,0 +1,5 @@
+{
+  "status": "failed",
+  "step": 201,
+  "error": "Non-finite training loss. Reduce learning rate and inspect the data."
+}
