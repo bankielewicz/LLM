@@ -1,0 +1,384 @@
+{
+  "method": "Source, generated HTML structure, mathematical palette contrast, and file hashes. No browser rendering or UI interaction.",
+  "views": [
+    {
+      "view": "home",
+      "ids_unique": true,
+      "controls_labelled": true,
+      "local_links_exist": true
+    },
+    {
+      "view": "roadmap",
+      "ids_unique": true,
+      "controls_labelled": true,
+      "local_links_exist": true
+    },
+    {
+      "view": "lesson-00",
+      "ids_unique": true,
+      "controls_labelled": true,
+      "local_links_exist": true
+    },
+    {
+      "view": "lesson-01",
+      "ids_unique": true,
+      "controls_labelled": true,
+      "local_links_exist": true
+    },
+    {
+      "view": "lesson-02",
+      "ids_unique": true,
+      "controls_labelled": true,
+      "local_links_exist": true
+    },
+    {
+      "view": "lesson-03",
+      "ids_unique": true,
+      "controls_labelled": true,
+      "local_links_exist": true
+    },
+    {
+      "view": "lesson-04",
+      "ids_unique": true,
+      "controls_labelled": true,
+      "local_links_exist": true
+    },
+    {
+      "view": "lesson-05",
+      "ids_unique": true,
+      "controls_labelled": true,
+      "local_links_exist": true
+    },
+    {
+      "view": "lesson-06",
+      "ids_unique": true,
+      "controls_labelled": true,
+      "local_links_exist": true
+    },
+    {
+      "view": "lesson-07",
+      "ids_unique": true,
+      "controls_labelled": true,
+      "local_links_exist": true
+    },
+    {
+      "view": "lesson-08",
+      "ids_unique": true,
+      "controls_labelled": true,
+      "local_links_exist": true
+    },
+    {
+      "view": "lesson-09",
+      "ids_unique": true,
+      "controls_labelled": true,
+      "local_links_exist": true
+    },
+    {
+      "view": "lesson-10",
+      "ids_unique": true,
+      "controls_labelled": true,
+      "local_links_exist": true
+    },
+    {
+      "view": "lesson-11",
+      "ids_unique": true,
+      "controls_labelled": true,
+      "local_links_exist": true
+    },
+    {
+      "view": "lesson-12",
+      "ids_unique": true,
+      "controls_labelled": true,
+      "local_links_exist": true
+    },
+    {
+      "view": "explore-tokenizer",
+      "ids_unique": true,
+      "controls_labelled": true,
+      "local_links_exist": true
+    },
+    {
+      "view": "explore-prediction",
+      "ids_unique": true,
+      "controls_labelled": true,
+      "local_links_exist": true
+    },
+    {
+      "view": "explore-attention",
+      "ids_unique": true,
+      "controls_labelled": true,
+      "local_links_exist": true
+    },
+    {
+      "view": "explore-shapes",
+      "ids_unique": true,
+      "controls_labelled": true,
+      "local_links_exist": true
+    },
+    {
+      "view": "results",
+      "ids_unique": true,
+      "controls_labelled": true,
+      "local_links_exist": true
+    },
+    {
+      "view": "notebook",
+      "ids_unique": true,
+      "controls_labelled": true,
+      "local_links_exist": true
+    },
+    {
+      "view": "capstone",
+      "ids_unique": true,
+      "controls_labelled": true,
+      "local_links_exist": true
+    },
+    {
+      "view": "labs",
+      "ids_unique": true,
+      "controls_labelled": true,
+      "local_links_exist": true
+    },
+    {
+      "view": "checkpoints",
+      "ids_unique": true,
+      "controls_labelled": true,
+      "local_links_exist": true
+    },
+    {
+      "view": "glossary",
+      "ids_unique": true,
+      "controls_labelled": true,
+      "local_links_exist": true
+    },
+    {
+      "view": "reference-VALIDATION.md",
+      "ids_unique": true,
+      "controls_labelled": true,
+      "local_links_exist": true
+    },
+    {
+      "view": "reference-START_HERE.md",
+      "ids_unique": true,
+      "controls_labelled": true,
+      "local_links_exist": true
+    },
+    {
+      "view": "reference-REVIEW.md",
+      "ids_unique": true,
+      "controls_labelled": true,
+      "local_links_exist": true
+    },
+    {
+      "view": "reference-reference/GLOSSARY.md",
+      "ids_unique": true,
+      "controls_labelled": true,
+      "local_links_exist": true
+    },
+    {
+      "view": "reference-reference/TROUBLESHOOTING.md",
+      "ids_unique": true,
+      "controls_labelled": true,
+      "local_links_exist": true
+    },
+    {
+      "view": "reference-reference/SOURCES.md",
+      "ids_unique": true,
+      "controls_labelled": true,
+      "local_links_exist": true
+    },
+    {
+      "view": "reference-labs/WORKBOOK.md",
+      "ids_unique": true,
+      "controls_labelled": true,
+      "local_links_exist": true
+    },
+    {
+      "view": "reference-design/INTERACTION_CONTRACT.md",
+      "ids_unique": true,
+      "controls_labelled": true,
+      "local_links_exist": true
+    },
+    {
+      "view": "reference-design/CLAUDE_DESIGN_PROMPT.md",
+      "ids_unique": true,
+      "controls_labelled": true,
+      "local_links_exist": true
+    }
+  ],
+  "contrast": [
+    {
+      "theme": "light",
+      "foreground": "ink",
+      "background": "bg",
+      "ratio": 11.98
+    },
+    {
+      "theme": "light",
+      "foreground": "ink",
+      "background": "surface",
+      "ratio": 12.75
+    },
+    {
+      "theme": "light",
+      "foreground": "muted",
+      "background": "bg",
+      "ratio": 5.35
+    },
+    {
+      "theme": "light",
+      "foreground": "muted",
+      "background": "surface",
+      "ratio": 5.69
+    },
+    {
+      "theme": "light",
+      "foreground": "muted",
+      "background": "sidebar",
+      "ratio": 5.02
+    },
+    {
+      "theme": "light",
+      "foreground": "accent",
+      "background": "surface",
+      "ratio": 6.49
+    },
+    {
+      "theme": "light",
+      "foreground": "accent",
+      "background": "soft",
+      "ratio": 5.62
+    },
+    {
+      "theme": "light",
+      "foreground": "teal",
+      "background": "teal-bg",
+      "ratio": 5.89
+    },
+    {
+      "theme": "light",
+      "foreground": "amber",
+      "background": "amber-bg",
+      "ratio": 6.09
+    },
+    {
+      "theme": "light",
+      "foreground": "vector",
+      "background": "vector-bg",
+      "ratio": 5.79
+    },
+    {
+      "theme": "light",
+      "foreground": "weight",
+      "background": "weight-bg",
+      "ratio": 5.52
+    },
+    {
+      "theme": "light",
+      "foreground": "target",
+      "background": "target-bg",
+      "ratio": 5.39
+    },
+    {
+      "theme": "light",
+      "foreground": "chart-train",
+      "background": "surface",
+      "ratio": 6.49
+    },
+    {
+      "theme": "light",
+      "foreground": "chart-val",
+      "background": "surface",
+      "ratio": 6.84
+    },
+    {
+      "theme": "dark",
+      "foreground": "ink",
+      "background": "bg",
+      "ratio": 14.26
+    },
+    {
+      "theme": "dark",
+      "foreground": "ink",
+      "background": "surface",
+      "ratio": 12.5
+    },
+    {
+      "theme": "dark",
+      "foreground": "muted",
+      "background": "bg",
+      "ratio": 8.89
+    },
+    {
+      "theme": "dark",
+      "foreground": "muted",
+      "background": "surface",
+      "ratio": 7.79
+    },
+    {
+      "theme": "dark",
+      "foreground": "muted",
+      "background": "sidebar",
+      "ratio": 8.38
+    },
+    {
+      "theme": "dark",
+      "foreground": "accent",
+      "background": "surface",
+      "ratio": 8.54
+    },
+    {
+      "theme": "dark",
+      "foreground": "accent",
+      "background": "soft",
+      "ratio": 6.37
+    },
+    {
+      "theme": "dark",
+      "foreground": "teal",
+      "background": "teal-bg",
+      "ratio": 7.66
+    },
+    {
+      "theme": "dark",
+      "foreground": "amber",
+      "background": "amber-bg",
+      "ratio": 7.45
+    },
+    {
+      "theme": "dark",
+      "foreground": "vector",
+      "background": "vector-bg",
+      "ratio": 7.99
+    },
+    {
+      "theme": "dark",
+      "foreground": "weight",
+      "background": "weight-bg",
+      "ratio": 8.15
+    },
+    {
+      "theme": "dark",
+      "foreground": "target",
+      "background": "target-bg",
+      "ratio": 7.59
+    },
+    {
+      "theme": "dark",
+      "foreground": "chart-train",
+      "background": "surface",
+      "ratio": 8.54
+    },
+    {
+      "theme": "dark",
+      "foreground": "chart-val",
+      "background": "surface",
+      "ratio": 9.65
+    }
+  ],
+  "minimum_text_contrast": 5.02,
+  "original_files_unchanged": 43,
+  "download_files_byte_identical": 43,
+  "browser_visual_keyboard_screenreader_200percent_zoom": "NOT_TESTED: admin-enforced browser policy",
+  "reduced_motion": "CSS suppression and absence of autoplay checked; OS behavior NOT_TESTED"
+}
