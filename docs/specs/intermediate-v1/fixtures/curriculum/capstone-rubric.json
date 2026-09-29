@@ -1,0 +1,22 @@
+{
+  "format": "llm-foundations-capstone-rubric-v1",
+  "allowed_scores": [0,5,10],
+  "meets_rule": {"objective_gates_required":true,"minimum_total":80,"maximum_zero_rows":0},
+  "labels": {
+    "self": "Self-reviewed",
+    "independent": "Independently reviewed"
+  },
+  "prohibited_claims": ["certified","graduated as an intermediate user","model is generally useful","course caused learning"],
+  "rows": [
+    {"id":"problem_framing","title":"Problem framing","anchors":{"0":"Missing or contradictory.","5":"Goal stated; operational choice weakly linked.","10":"Goal, operation, metric, and failure condition form one testable question."}},
+    {"id":"data_custody","title":"Data custody","anchors":{"0":"Source or split absent.","5":"Identity present; leakage or permission limits incomplete.","10":"Identity, permission, grouping, leakage checks, and limits are linked to artifacts."}},
+    {"id":"baseline","title":"Baseline","anchors":{"0":"Missing or changed silently.","5":"Baseline present; comparison controls incomplete.","10":"Frozen identity, settings, outputs, and digest evidence support direct comparison."}},
+    {"id":"candidate_control","title":"Candidate control","anchors":{"0":"Multiple unexplained changes.","5":"Adapter named; one control or lineage gap.","10":"Adapter change is isolated and full lineage and settings are accounted for."}},
+    {"id":"operation_distinction","title":"Training and operation distinction","anchors":{"0":"Confuses tokenizer, weights, resume, or inference.","5":"Correct labels with incomplete state explanation.","10":"Correctly explains every used operation and which persisted state it changes."}},
+    {"id":"evaluation_discipline","title":"Evaluation discipline","anchors":{"0":"Test influences selection or claim exceeds metric.","5":"Selection is valid; uncertainty or error analysis is thin.","10":"Validation selection, sealed test, slice results, failures, and uncertainty bound the claim."}},
+    {"id":"diagnosis","title":"Diagnosis","anchors":{"0":"Missing or invented cause.","5":"Observed failure cited; next action generic.","10":"Evidence separates symptom from cause hypotheses and proposes a discriminating bounded test."}},
+    {"id":"reproducibility","title":"Reproducibility","anchors":{"0":"Artifacts missing or unusable.","5":"Main run reproducible; environment or settings gap.","10":"Another qualified user can identify data, model, settings, lineage, metrics, and bundle."}},
+    {"id":"reuse_safety","title":"Reuse and safety","anchors":{"0":"Bundle unchecked or source overwritten.","5":"Bundle validates; reuse or tamper evidence incomplete.","10":"Clean import and reuse, duplicate policy, tamper rejection, and source preservation are demonstrated."}},
+    {"id":"claim_quality","title":"Claim quality","anchors":{"0":"Makes broad quality or efficacy claim.","5":"Includes a limitation but unsupported positive wording.","10":"Every positive claim cites evidence and explicit non-claims cover data, model, and evaluation scope."}}
+  ]
+}

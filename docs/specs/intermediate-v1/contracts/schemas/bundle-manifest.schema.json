@@ -1,0 +1,28 @@
+{
+  "$schema":"https://json-schema.org/draft/2020-12/schema",
+  "$id":"bundle-manifest.schema.json",
+  "type":"object",
+  "additionalProperties":false,
+  "required":["format","schema_version","edition","bundle_mode","source","exported_at","dependency_closure_complete","contains_resume_state","checkpoint_exports","omissions","entries","payload_sha256"],
+  "properties":{
+    "format":{"const":"llm-foundations-bundle-v1"},
+    "schema_version":{"const":1},
+    "edition":{"const":"intermediate-v1"},
+    "bundle_mode":{"enum":["thin","full"]},
+    "source":{"type":"object","additionalProperties":false,"required":["installation_id","app_version"],"properties":{"installation_id":{"$ref":"common.schema.json#/$defs/id"},"app_version":{"type":"string","minLength":1,"maxLength":40}}},
+    "exported_at":{"$ref":"common.schema.json#/$defs/time"},
+    "dependency_closure_complete":{"const":true},
+    "contains_resume_state":{"type":"boolean"},
+    "checkpoint_exports":{"type":"array","maxItems":100,"items":{"$ref":"#/$defs/checkpointExport"}},
+    "omissions":{"type":"array","maxItems":10000,"items":{"$ref":"#/$defs/omission"}},
+    "entries":{"type":"array","maxItems":10000,"items":{"$ref":"#/$defs/entry"}},
+    "payload_sha256":{"$ref":"common.schema.json#/$defs/sha256"}
+  },
+  "allOf":[{"if":{"properties":{"bundle_mode":{"const":"thin"}}},"then":{"properties":{"contains_resume_state":{"const":false},"checkpoint_exports":{"items":{"$ref":"#/$defs/thinCheckpointExport"}}}}}],
+  "$defs":{
+    "checkpointExport":{"type":"object","additionalProperties":false,"required":["original_checkpoint_id","portability","contains_resume_state"],"properties":{"original_checkpoint_id":{"type":"string","minLength":1,"maxLength":120},"portability":{"enum":["metadata_only","inference_only","resume"]},"contains_resume_state":{"type":"boolean"}},"allOf":[{"if":{"properties":{"portability":{"const":"resume"}}},"then":{"properties":{"contains_resume_state":{"const":true}}},"else":{"properties":{"contains_resume_state":{"const":false}}}}]},
+    "thinCheckpointExport":{"type":"object","additionalProperties":false,"required":["original_checkpoint_id","portability","contains_resume_state"],"properties":{"original_checkpoint_id":{"type":"string","minLength":1,"maxLength":120},"portability":{"const":"metadata_only"},"contains_resume_state":{"const":false}}},
+    "omission":{"type":"object","additionalProperties":false,"required":["object_type","original_object_id","reason"],"properties":{"object_type":{"type":"string","pattern":"^[a-z][a-z0-9_]{0,63}$"},"original_object_id":{"type":"string","minLength":1,"maxLength":120},"reason":{"enum":["not_selected","sensitive_text_excluded","thin_bundle","not_portable"]}}},
+    "entry":{"type":"object","additionalProperties":false,"required":["path","size_bytes","sha256","media_type","object_type","original_object_id"],"properties":{"path":{"type":"string","pattern":"^llm-foundations-bundle/objects/[A-Za-z0-9._/-]{1,190}$"},"size_bytes":{"type":"integer","minimum":0,"maximum":536870912},"sha256":{"$ref":"common.schema.json#/$defs/sha256"},"media_type":{"type":"string","minLength":1,"maxLength":120},"object_type":{"type":"string","pattern":"^[a-z][a-z0-9_]{0,63}$"},"original_object_id":{"type":"string","minLength":1,"maxLength":120}}}
+  }
+}

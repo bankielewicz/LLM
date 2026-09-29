@@ -1,0 +1,558 @@
+{
+  "section": "04-RUNTIME-AND-API.md",
+  "requirements": [
+    {
+      "id": "RUN-001",
+      "title": "Modes, launch and discovery"
+    },
+    {
+      "id": "RUN-002",
+      "title": "Package and process boundary"
+    },
+    {
+      "id": "RUN-003",
+      "title": "Pairing, sessions and browser security"
+    },
+    {
+      "id": "RUN-004",
+      "title": "Storage confinement and atomicity"
+    },
+    {
+      "id": "RUN-005",
+      "title": "Transport limits and errors"
+    },
+    {
+      "id": "RUN-006",
+      "title": "Registry and upload endpoints"
+    },
+    {
+      "id": "RUN-007",
+      "title": "Job creation and idempotency"
+    },
+    {
+      "id": "RUN-008",
+      "title": "Queue and state machine"
+    },
+    {
+      "id": "RUN-009",
+      "title": "Budgets, deterministic cancellation and process ownership"
+    },
+    {
+      "id": "RUN-010",
+      "title": "Crash recovery and reconnect"
+    },
+    {
+      "id": "RUN-011",
+      "title": "Events, replay and fetch-stream SSE"
+    },
+    {
+      "id": "RUN-012",
+      "title": "Concrete operation contracts"
+    },
+    {
+      "id": "RUN-013",
+      "title": "Legacy correspondence and no shell execution"
+    },
+    {
+      "id": "RUN-014",
+      "title": "Artifact access and output safety"
+    },
+    {
+      "id": "RUN-015",
+      "title": "Backend, device and download failure"
+    },
+    {
+      "id": "RUN-016",
+      "title": "Bundle validation and clean-root reuse"
+    },
+    {
+      "id": "RUN-017",
+      "title": "Truthful fault records"
+    },
+    {
+      "id": "RUN-018",
+      "title": "Observability and privacy"
+    },
+    {
+      "id": "RUN-019",
+      "title": "Qualification target"
+    }
+  ],
+  "cases": [
+    {
+      "id": "AC-RUN-001",
+      "requirements": [
+        "RUN-001"
+      ],
+      "name": "Static/local mode detection",
+      "method": "integration",
+      "profiles": [
+        "static",
+        "win-cpu",
+        "wsl-cpu",
+        "wsl-cuda"
+      ],
+      "preconditions": [
+        "Target implementation built from the pinned specification revision.",
+        "Fixtures and fault controls named by the case are available and hashed."
+      ],
+      "steps": [
+        "Open hosted reader; launch with omitted profile on Windows and WSL, launch each valid explicit profile, reject invalid OS/profile pairs, and query health/runtime with and without credentials."
+      ],
+      "expected": [
+        "Static has disabled live actions and makes no API request; local binds only 127.0.0.1:8765; omission selects only the OS CPU profile; CUDA requires explicit wsl-cuda plus passing preflight; profile is instance-immutable with no fallback; health is minimal; runtime/status/P00 fields match the selected profile."
+      ],
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "AC-RUN-002",
+      "requirements": [
+        "RUN-002"
+      ],
+      "name": "Fixed service-worker boundary",
+      "method": "integration",
+      "profiles": [
+        "win-cpu",
+        "wsl-cpu",
+        "wsl-cuda"
+      ],
+      "preconditions": [
+        "Target implementation built from the pinned specification revision.",
+        "Fixtures and fault controls named by the case are available and hashed."
+      ],
+      "steps": [
+        "Submit one fixture for every operation while recording service imports, child argv/environment and dispatch.",
+        "Submit command, module, URL and uploaded-code fields."
+      ],
+      "expected": [
+        "Service process imports no ML backend; every job uses fixed isolated worker and allowlisted environment; unknown/code-bearing inputs fail before spawn."
+      ],
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "AC-RUN-003",
+      "requirements": [
+        "RUN-003"
+      ],
+      "name": "Pairing, origin and expiry",
+      "method": "integration",
+      "profiles": [
+        "win-cpu",
+        "wsl-cpu",
+        "wsl-cuda"
+      ],
+      "preconditions": [
+        "Target implementation built from the pinned specification revision.",
+        "Fixtures and fault controls named by the case are available and hashed."
+      ],
+      "steps": [
+        "Exercise valid, expired and reused 120-second bootstrap; idle and absolute test clocks; hostile Host, Origin, preflight, missing bearer and CSRF; reload same tab."
+      ],
+      "expected": [
+        "Only one valid exchange succeeds; hostile requests fail before body parse; credentials persist only sessionStorage; two-hour idle, 12-hour absolute and restart invalidate exactly as specified."
+      ],
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "AC-RUN-004",
+      "requirements": [
+        "RUN-004"
+      ],
+      "name": "Storage traversal and atomic commit",
+      "method": "integration",
+      "profiles": [
+        "win-cpu",
+        "wsl-cpu",
+        "wsl-cuda"
+      ],
+      "preconditions": [
+        "Target implementation built from the pinned specification revision.",
+        "Fixtures and fault controls named by the case are available and hashed."
+      ],
+      "steps": [
+        "Use symlink/weak-permission roots; path, link, duplicate, sparse, bomb and traversal archives; inject failure before rename and before metadata commit."
+      ],
+      "expected": [
+        "Unsafe roots/members are rejected; no write escapes root; no metadata points to partial bytes; committed bytes remain immutable and digest-addressed."
+      ],
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "AC-RUN-005",
+      "requirements": [
+        "RUN-005"
+      ],
+      "name": "Every request boundary",
+      "method": "integration",
+      "profiles": [
+        "win-cpu",
+        "wsl-cpu",
+        "wsl-cuda"
+      ],
+      "preconditions": [
+        "Target implementation built from the pinned specification revision.",
+        "Fixtures and fault controls named by the case are available and hashed."
+      ],
+      "steps": [
+        "For JSON, dataset, bundle, record, UTF-8, prompt and chat limits submit exact-limit and limit-plus-one fixtures plus duplicate-key/nonfinite/trailing JSON."
+      ],
+      "expected": [
+        "Exact limits are accepted when otherwise valid; plus-one and malformed inputs return the frozen code/status and create no job or dataset."
+      ],
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "AC-RUN-006",
+      "requirements": [
+        "RUN-006"
+      ],
+      "name": "Registry pagination and uploads",
+      "method": "integration",
+      "profiles": [
+        "win-cpu",
+        "wsl-cpu",
+        "wsl-cuda"
+      ],
+      "preconditions": [
+        "Target implementation built from the pinned specification revision.",
+        "Fixtures and fault controls named by the case are available and hashed."
+      ],
+      "steps": [
+        "Import a valid three-part dataset and a bad final part; page tied records with limit 1; reuse cursor with changed filter; stage an inert bundle.",
+        "Create/update/conflict/read progress; create/update/list/delete-preview/delete notes and conversations; append a turn; create/verify/assess evidence; preview/apply v1 and v2 progress; create capstone attempt; export selected backup.",
+        "Read startup preflight; commit a completed conversation generation atomically; reject partial generation; export a conversation dataset candidate; inspect capstone creation response versus later detail."
+      ],
+      "expected": [
+        "Dataset commit is all-or-nothing; ordering/cursor has no gaps or duplicates; changed cursor fails; staging asserts transport safety only.",
+        "Every learner action has one callable closed-schema endpoint; revision conflicts do not mutate; delete requires fresh confirmed preview and tombstones content; migration preview is nonmutating and apply is atomic; sealed token and backup exclude credentials.",
+        "Preflight exposes fixed checks without host paths; generation commits user+assistant or neither; exported conversation cannot train before dataset audit; release token appears once and detail retains freeze/exposure without secret."
+      ],
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "AC-RUN-007",
+      "requirements": [
+        "RUN-007"
+      ],
+      "name": "Idempotent job creation and disk reserve",
+      "method": "integration",
+      "profiles": [
+        "win-cpu",
+        "wsl-cpu",
+        "wsl-cuda"
+      ],
+      "preconditions": [
+        "Target implementation built from the pinned specification revision.",
+        "Fixtures and fault controls named by the case are available and hashed."
+      ],
+      "steps": [
+        "Submit identical and changed bodies under one key; expire session and replay; mock available bytes at estimate+1GiB and one byte below for each estimate class.",
+        "Replay create, update, apply and delete mutations for learner-state endpoints with identical and changed idempotency bodies; fill each registry to its exact cap."
+      ],
+      "expected": [
+        "Identical replay returns original; changed conflicts; exact reserve accepts; one-byte-below rejects without row/event.",
+        "All mutation replays are stable; changed body conflicts; next item at quota returns REGISTRY_LIMIT before row/bytes change."
+      ],
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "AC-RUN-008",
+      "requirements": [
+        "RUN-008"
+      ],
+      "name": "FIFO, ninth queued and transitions",
+      "method": "integration",
+      "profiles": [
+        "win-cpu",
+        "wsl-cpu",
+        "wsl-cuda"
+      ],
+      "preconditions": [
+        "Target implementation built from the pinned specification revision.",
+        "Fixtures and fault controls named by the case are available and hashed."
+      ],
+      "steps": [
+        "Block worker, enqueue eight jobs, submit ninth; cancel queued; drive completed, failed, interrupted paths; repeat cancel on all terminal states."
+      ],
+      "expected": [
+        "One active/eight queued; ninth 429; FIFO stable; only declared transitions occur; terminal states never change."
+      ],
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "AC-RUN-009",
+      "requirements": [
+        "RUN-009"
+      ],
+      "name": "Cancellation, deadline and unrelated process",
+      "method": "integration",
+      "profiles": [
+        "win-cpu",
+        "wsl-cpu",
+        "wsl-cuda"
+      ],
+      "preconditions": [
+        "Target implementation built from the pinned specification revision.",
+        "Fixtures and fault controls named by the case are available and hashed."
+      ],
+      "steps": [
+        "Run signed tiny-v2 diagnosis preset; observe step-25 checkpoint/hold, cancel, and separately let 10-minute clock expire; exercise 60-minute deadline and hard-stop grace; keep unrelated Python sentinel."
+      ],
+      "expected": [
+        "Cancel yields interrupted step25 checkpoint; hold expiry yields interrupted exercise_timeout and no later update; deadline uses 30-second grace; sentinel remains alive; no unowned PID is signaled."
+      ],
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "AC-RUN-010",
+      "requirements": [
+        "RUN-010"
+      ],
+      "name": "Restart recovery and reconnect",
+      "method": "integration",
+      "profiles": [
+        "win-cpu",
+        "wsl-cpu",
+        "wsl-cuda"
+      ],
+      "preconditions": [
+        "Target implementation built from the pinned specification revision.",
+        "Fixtures and fault controls named by the case are available and hashed."
+      ],
+      "steps": [
+        "Stop service with queued and running jobs, restart same root, pair again and reconcile cached IDs; inject database/digest corruption."
+      ],
+      "expected": [
+        "Queued keeps order; active becomes interrupted service_restarted; sessions invalidate; UI shows unknown until snapshot; corruption is read-only recovery with mutations blocked."
+      ],
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "AC-RUN-011",
+      "requirements": [
+        "RUN-011"
+      ],
+      "name": "Bounded ordered event replay",
+      "method": "integration",
+      "profiles": [
+        "win-cpu",
+        "wsl-cpu",
+        "wsl-cuda"
+      ],
+      "preconditions": [
+        "Target implementation built from the pinned specification revision.",
+        "Fixtures and fault controls named by the case are available and hashed."
+      ],
+      "steps": [
+        "Produce maximum 2,001 metrics and checkpoints, 32 phases/warnings, 16 progress and terminal; page 500, reconnect SSE with duplicate cursor, then attempt one excess producer event."
+      ],
+      "expected": [
+        "All at-most-4,096 events replay once in cursor order; heartbeat has no cursor; SSE closes at bounds; duplicate ignored; excess causes WORKER_PROTOCOL_ERROR without pruning prior events."
+      ],
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "AC-RUN-012",
+      "requirements": [
+        "RUN-012"
+      ],
+      "name": "All operation schemas and semantics",
+      "method": "integration",
+      "profiles": [
+        "win-cpu",
+        "wsl-cpu",
+        "wsl-cuda"
+      ],
+      "preconditions": [
+        "Target implementation built from the pinned specification revision.",
+        "Fixtures and fault controls named by the case are available and hashed."
+      ],
+      "steps": [
+        "Submit valid/min/max and one invalid field for each of 15 operations including both tokenizer profiles and context_preview; run both applied adapter presets, verify the frozen validation comparator, run paired sealed evaluation twice, and inspect tokenizer/weight/resume/evaluate/generate effects and artifacts.",
+        "Run standard and fixed weight-tied architecture profiles and reject any uploaded or arbitrary architecture code.",
+        "Create preview then send unchanged generation; independently recompute canonical_generation_request_sha256 and context_preview_digest from the exact field objects; alter each bound prompt/message/decoding/identity/device field and retry."
+      ],
+      "expected": [
+        "Closed schemas enforce bounds; tokenizer profile/type agree and tokenizer creates no weights; the capstone preset is seed 29 and exactly 20 updates; selection orders exact-intent numerator, schema-valid numerator, finite supervised-response mean NLL, then earliest step; inference/evaluation do not update; resume preserves lineage/optimizer/RNG; paired token is consumed once even on interruption.",
+        "Only internal architecture profile IDs execute; tokenizer/model/resume/generation semantics remain distinct.",
+        "Only unchanged request accepts preview; every altered or corrupt/missing preview is rejected pre-job as CONTEXT_PREVIEW_STALE; preview performs no weight load or inference."
+      ],
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "AC-RUN-013",
+      "requirements": [
+        "RUN-013"
+      ],
+      "name": "CLI/API parity without shell",
+      "method": "source",
+      "profiles": [
+        "win-cpu",
+        "wsl-cpu",
+        "wsl-cuda"
+      ],
+      "preconditions": [
+        "Target implementation built from the pinned specification revision.",
+        "Fixtures and fault controls named by the case are available and hashed."
+      ],
+      "steps": [
+        "Export request.json, submit through CLI and HTTP, compare canonical records; inspect code for shell/eval interpolation; run legacy-equivalence fixture.",
+        "Run E01 harness with a nonexistent absolute output directory for exact edit, protected-byte change and one failing test; retry against an existing output path; inspect receipt/log atomicity, control-channel registration and tied training verification binding."
+      ],
+      "expected": [
+        "CLI and API records match; learner text never becomes argv/shell; pure-mechanics equivalence fields meet declared tolerance while artifact formats stay distinct.",
+        "Exact edit atomically creates the output directory with receipt.json and bounded logs plus one hash-bound registered receipt; existing output exits 2 without mutation, protected diff exits 3, and failed test exits 4; tied training requires verification ID and labels the built-in matching backend without claiming learner source trained."
+      ],
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "AC-RUN-014",
+      "requirements": [
+        "RUN-014"
+      ],
+      "name": "Safe artifact serving",
+      "method": "integration",
+      "profiles": [
+        "win-cpu",
+        "wsl-cpu",
+        "wsl-cuda"
+      ],
+      "preconditions": [
+        "Target implementation built from the pinned specification revision.",
+        "Fixtures and fault controls named by the case are available and hashed."
+      ],
+      "steps": [
+        "Request allowlisted small text, 256KiB and 256KiB+1 text, HTML/SVG/notebook/binary, Range, and malicious filename/content."
+      ],
+      "expected": [
+        "Only allowlisted text through 256KiB previews; all active/large content attaches with nosniff; Range 416; UI renders text without markup execution."
+      ],
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "AC-RUN-015",
+      "requirements": [
+        "RUN-015"
+      ],
+      "name": "Backend/device/download exactness",
+      "method": "integration",
+      "profiles": [
+        "win-cpu",
+        "wsl-cpu",
+        "wsl-cuda"
+      ],
+      "preconditions": [
+        "Target implementation built from the pinned specification revision.",
+        "Fixtures and fault controls named by the case are available and hashed."
+      ],
+      "steps": [
+        "Remove/mismatch each backend; request CUDA per profile; replay exact manifest downloads and alter host/path/query/redirect/count/byte/digest; inject timeout, ENOSPC and OOM."
+      ],
+      "expected": [
+        "Preflight reports exact capability/device failure with no fallback; only eight pinned files and redirects pass; any mismatch leaves no model; runtime faults never report success."
+      ],
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "AC-RUN-016",
+      "requirements": [
+        "RUN-016"
+      ],
+      "name": "Export, validate and clean-root import",
+      "method": "integration",
+      "profiles": [
+        "win-cpu",
+        "wsl-cpu",
+        "wsl-cuda"
+      ],
+      "preconditions": [
+        "Target implementation built from the pinned specification revision.",
+        "Fixtures and fault controls named by the case are available and hashed."
+      ],
+      "steps": [
+        "Export root A; stage in empty root B; validate then import under skip and copy; corrupt a member; evaluate/generate returned local model.",
+        "Export thin and full bundles with per-checkpoint resume-state choices and conversation selection."
+      ],
+      "expected": [
+        "Validation is read-only; corrupt import registers nothing; skip/copy identity maps follow data contract; imported provenance remains imported; root B does not read A; reuse works via local IDs.",
+        "Thin is non-loadable and omits weights; full includes inference bytes and only explicitly selected resume state; sensitive conversation inclusion is previewed."
+      ],
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "AC-RUN-017",
+      "requirements": [
+        "RUN-017"
+      ],
+      "name": "Truthful post-accept faults",
+      "method": "integration",
+      "profiles": [
+        "win-cpu",
+        "wsl-cpu",
+        "wsl-cuda"
+      ],
+      "preconditions": [
+        "Target implementation built from the pinned specification revision.",
+        "Fixtures and fault controls named by the case are available and hashed."
+      ],
+      "steps": [
+        "Inject ENOSPC at artifact and SQLite phases, malformed worker messages, nonfinite metric, bad hash, step mismatch and unexpected exit zero/nonzero."
+      ],
+      "expected": [
+        "Every accepted job has exactly one truthful terminal path; committed evidence remains; partial output quarantines; no failed/interrupted path is labelled completed."
+      ],
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "AC-RUN-018",
+      "requirements": [
+        "RUN-018"
+      ],
+      "name": "Audit privacy and UI truth",
+      "method": "source",
+      "profiles": [
+        "win-cpu",
+        "wsl-cpu",
+        "wsl-cuda"
+      ],
+      "preconditions": [
+        "Target implementation built from the pinned specification revision.",
+        "Fixtures and fault controls named by the case are available and hashed."
+      ],
+      "steps": [
+        "Submit prompts/messages/secrets and inspect HTTP headers, audit rows, five rotated logs and diagnostic exports; compare UI labels to event snapshots.",
+        "Preview then delete note/conversation and inspect tombstone audit."
+      ],
+      "expected": [
+        "Logs/audit omit secrets/content/full bodies; request/entity metadata remains; diagnostics are opt-in; running/completed labels require persisted reconciled events.",
+        "Deleted content is absent while ID/time/digest audit remains; no other deletion endpoint exists."
+      ],
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "AC-RUN-019",
+      "requirements": [
+        "RUN-019"
+      ],
+      "name": "Native release qualification evidence",
+      "method": "manual",
+      "profiles": [
+        "static",
+        "win-cpu",
+        "wsl-cpu",
+        "wsl-cuda"
+      ],
+      "preconditions": [
+        "Target implementation built from the pinned specification revision.",
+        "Fixtures and fault controls named by the case are available and hashed."
+      ],
+      "steps": [
+        "Execute all RUN cases against pinned commit/fixtures on each named profile and static absence case; retain raw evidence and environment identity."
+      ],
+      "expected": [
+        "Each profile has an independent result per applicable case with hashes/versions/timestamps; NOT_RUN remains until execution; no speed, quality or unsupported-platform claim is recorded."
+      ],
+      "status": "NOT_RUN"
+    }
+  ]
+}

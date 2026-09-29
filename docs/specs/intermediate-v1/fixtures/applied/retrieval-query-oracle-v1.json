@@ -1,0 +1,13 @@
+{
+  "format": "llm-foundations-retrieval-query-oracle-v1",
+  "fixture_id": "retrieval-manual-v1",
+  "algorithm_id": "tfidf-nfkc-casefold-v1",
+  "queries": [
+    {"query_id":"RQ01","query":"How do I recover account access?","top_k":3,"expected_hits":[{"record_id":"RM01","score":0.5044368928581014},{"record_id":"RM02","score":0.0},{"record_id":"RM03","score":0.0}],"supported_record_ids":["RM01"]},
+    {"query_id":"RQ02","query":"Where can I check a pending refund?","top_k":3,"expected_hits":[{"record_id":"RM02","score":0.3465509681185714},{"record_id":"RM04","score":0.27720198880720437},{"record_id":"RM07","score":0.06261552473805203}],"supported_record_ids":["RM02"]},
+    {"query_id":"RQ03","query":"What should I do with an expired password reset link?","top_k":3,"expected_hits":[{"record_id":"RM03","score":0.5329571614592222},{"record_id":"RM06","score":0.11350474029873134},{"record_id":"RM05","score":0.08247794972081855}],"supported_record_ids":["RM03"]},
+    {"query_id":"RQ04","query":"My parcel has no recent tracking scan.","top_k":3,"expected_hits":[{"record_id":"RM04","score":0.46350816098461767},{"record_id":"RM01","score":0.0},{"record_id":"RM02","score":0.0}],"supported_record_ids":["RM04"]},
+    {"query_id":"RQ05","query":"A sign-in code fails when my device clock is wrong.","top_k":3,"expected_hits":[{"record_id":"RM05","score":0.5910418222222802},{"record_id":"RM02","score":0.14506653165417394},{"record_id":"RM04","score":0.13797832500708695}],"supported_record_ids":["RM05"]},
+    {"query_id":"RQ06","query":"The invoice contains a duplicate service line.","top_k":3,"expected_hits":[{"record_id":"RM06","score":0.5619882961489769},{"record_id":"RM04","score":0.14498942582688443},{"record_id":"RM07","score":0.10683960606880566}],"supported_record_ids":["RM06"]}
+  ]
+}

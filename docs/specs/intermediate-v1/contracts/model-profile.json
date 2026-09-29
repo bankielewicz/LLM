@@ -1,0 +1,54 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://llm-foundations.local/schemas/model-profile-v1.json",
+  "title": "LLM Foundations pinned model profile",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["format", "model_profile_id", "repository", "revision", "license", "download_manifest_sha256", "tokenizer_sha256", "chat_template_sha256", "architecture", "tokens", "execution", "adapter_preset", "capstone_adapter_preset"],
+  "properties": {
+    "format": {"const": "llm-foundations-model-profile-v1"},
+    "model_profile_id": {"const": "smollm2-135m-instruct-v1"},
+    "repository": {"const": "HuggingFaceTB/SmolLM2-135M-Instruct"},
+    "revision": {"const": "12fd25f77366fa6b3b4b768ec3050bf629380bac"},
+    "license": {"const": "Apache-2.0"},
+    "download_manifest_sha256": {"const": "4ac640c0c740b5294fbcc1bfe0d74a4667262c98c63ac65d456d12a0648cda0a"},
+    "tokenizer_sha256": {"const": "9ca9acddb6525a194ec8ac7a87f24fbba7232a9a15ffa1af0c1224fcd888e47c"},
+    "chat_template_sha256": {"const": "872be49dbb638044ad01b60388f48d469ff2980e5f0dccdc22ec907db54d0788"},
+    "architecture": {
+      "type": "object", "additionalProperties": false,
+      "required": ["class", "model_type", "layers", "hidden_size", "intermediate_size", "attention_heads", "key_value_heads", "head_dimension", "vocabulary_size", "native_context", "rope_theta", "tie_word_embeddings"],
+      "properties": {
+        "class": {"const": "LlamaForCausalLM"}, "model_type": {"const": "llama"}, "layers": {"const": 30},
+        "hidden_size": {"const": 576}, "intermediate_size": {"const": 1536}, "attention_heads": {"const": 9},
+        "key_value_heads": {"const": 3}, "head_dimension": {"const": 64}, "vocabulary_size": {"const": 49152},
+        "native_context": {"const": 8192}, "rope_theta": {"const": 100000}, "tie_word_embeddings": {"const": true}
+      }
+    },
+    "tokens": {"const": {"bos": 1, "eos": 2, "pad": 2}},
+    "execution": {
+      "type": "object", "additionalProperties": false,
+      "required": ["teaching_context", "source_dtype_metadata", "dtype", "quantization", "trust_remote_code", "use_safetensors", "default_device"],
+      "properties": {
+        "teaching_context": {"const": 512}, "source_dtype_metadata": {"const": "bfloat16"}, "dtype": {"const": "float32"},
+        "quantization": {"const": "none"}, "trust_remote_code": {"const": false}, "use_safetensors": {"const": true}, "default_device": {"const": "cpu"}
+      }
+    },
+    "adapter_preset": {"const": {
+      "preset_id": "smollm2-intents-lora-v1", "r": 8, "lora_alpha": 16, "lora_dropout": 0,
+      "bias": "none", "task_type": "CAUSAL_LM", "target_modules": ["q_proj", "v_proj"],
+      "trainable_parameters": 460800, "batch_size": 1, "gradient_accumulation": 4,
+      "learning_rate": 0.0002, "weight_decay": 0.01, "adam_beta1": 0.9, "adam_beta2": 0.999,
+      "adam_epsilon": 1e-8, "max_gradient_norm": 1, "validation_every_updates": 10,
+      "checkpoint_every_updates": 10, "maximum_lineage_updates": 120
+    }},
+    "capstone_adapter_preset": {"const": {
+      "preset_id": "smollm2-capstone-lora-v1", "dataset_fixture_id": "capstone-support-v1",
+      "r": 8, "lora_alpha": 16, "lora_dropout": 0, "bias": "none", "task_type": "CAUSAL_LM",
+      "target_modules": ["q_proj", "v_proj"], "trainable_parameters": 460800, "batch_size": 1,
+      "gradient_accumulation": 3, "learning_rate": 0.0002, "weight_decay": 0.01,
+      "adam_beta1": 0.9, "adam_beta2": 0.999, "adam_epsilon": 1e-8, "max_gradient_norm": 1,
+      "seed": 29, "required_updates": 20, "validation_every_updates": 5,
+      "checkpoint_every_updates": 5, "maximum_lineage_updates": 20
+    }}
+  }
+}

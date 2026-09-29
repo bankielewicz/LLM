@@ -1,0 +1,437 @@
+{
+  "section": "08-DELIVERY-AND-ACCEPTANCE.md",
+  "requirements": [
+    {
+      "id": "DEL-001",
+      "title": "Deliver dependency-ordered vertical slices"
+    },
+    {
+      "id": "DEL-002",
+      "title": "Produce installable profile artifacts"
+    },
+    {
+      "id": "DEL-003",
+      "title": "Freeze candidate and acceptance denominator"
+    },
+    {
+      "id": "DEL-004",
+      "title": "Keep verification stages separate"
+    },
+    {
+      "id": "DEL-005",
+      "title": "Define executable acceptance evidence"
+    },
+    {
+      "id": "DEL-006",
+      "title": "Run the mandatory integrated learner journeys"
+    },
+    {
+      "id": "DEL-007",
+      "title": "Bound security and persistence release gates"
+    },
+    {
+      "id": "DEL-008",
+      "title": "Complete accessible behavior, not CSS presence"
+    },
+    {
+      "id": "DEL-009",
+      "title": "Publish only the qualified audience and artifacts"
+    },
+    {
+      "id": "DEL-010",
+      "title": "State exact completion and remaining work"
+    }
+  ],
+  "cases": [
+    {
+      "id": "AC-DEL-001",
+      "requirements": [
+        "DEL-001"
+      ],
+      "name": "Deliver dependency-ordered vertical slices",
+      "method": "manual",
+      "profiles": [
+        "static",
+        "win-cpu",
+        "wsl-cpu",
+        "wsl-cuda"
+      ],
+      "preconditions": [
+        "Frozen implementation candidate, specification registry, isolated test storage and profile receipt."
+      ],
+      "steps": [
+        "Build a dependency graph from delivered slice receipts S0-S5.",
+        "Check each consumer's input contract hash matches its producer and any amended contract reran affected cases."
+      ],
+      "expected": [
+        "Every dependency is satisfied at a matching contract revision before acceptance; stale consumers block the slice."
+      ],
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "AC-DEL-002",
+      "requirements": [
+        "DEL-002"
+      ],
+      "name": "Produce installable profile artifacts",
+      "method": "manual",
+      "profiles": [
+        "win-cpu",
+        "wsl-cpu",
+        "wsl-cuda"
+      ],
+      "preconditions": [
+        "Frozen implementation candidate, specification registry, isolated test storage and profile receipt."
+      ],
+      "steps": [
+        "Install each profile in a clean user-owned virtual environment from its delivered lock.",
+        "Run package consistency, imports and startup; disable network after approved preparation and execute its required path."
+      ],
+      "expected": [
+        "All dependencies are hash-pinned; correct CPU/cu126 Torch selected; no global install; offline required paths operate without network."
+      ],
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "AC-DEL-003",
+      "requirements": [
+        "DEL-003"
+      ],
+      "name": "Freeze candidate and acceptance denominator",
+      "method": "manual",
+      "profiles": [
+        "static",
+        "win-cpu",
+        "wsl-cpu",
+        "wsl-cuda"
+      ],
+      "preconditions": [
+        "Frozen implementation candidate, specification registry, isolated test storage and profile receipt."
+      ],
+      "steps": [
+        "Freeze requirement/case and candidate manifests.",
+        "Expand every case\u00d7profile and every browser-case engine; inject one BLOCKED case and calculate release eligibility.",
+        "Change one implementation, lock, model, contract, fixture or registry byte and create the replacement candidate."
+      ],
+      "expected": [
+        "Counts equal the full expanded registry; the injected BLOCKED result prevents release; no case disappears.",
+        "Every mandatory execution row on the replacement candidate is NOT_RUN; historical PASS rows do not qualify it."
+      ],
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "AC-DEL-004",
+      "requirements": [
+        "DEL-004"
+      ],
+      "name": "Keep verification stages separate",
+      "method": "manual",
+      "profiles": [
+        "static",
+        "win-cpu",
+        "wsl-cpu",
+        "wsl-cuda"
+      ],
+      "preconditions": [
+        "Frozen implementation candidate, specification registry, isolated test storage and profile receipt."
+      ],
+      "steps": [
+        "Inspect stage receipts and raw test outputs.",
+        "Attempt to use simulated or source-only evidence for a required native/model/browser case."
+      ],
+      "expected": [
+        "All six stages retain distinct statuses; a substitute for native evidence is rejected and the case remains NOT_RUN/BLOCKED."
+      ],
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "AC-DEL-005",
+      "requirements": [
+        "DEL-005"
+      ],
+      "name": "Define executable acceptance evidence",
+      "method": "manual",
+      "profiles": [
+        "static",
+        "win-cpu",
+        "wsl-cpu",
+        "wsl-cuda"
+      ],
+      "preconditions": [
+        "Frozen implementation candidate, specification registry, isolated test storage and profile receipt."
+      ],
+      "steps": [
+        "Create PASS/FAIL/BLOCKED/NOT_RUN rows and two attempts of one failing case.",
+        "Verify fresh output paths, file hashes and required row fields; scan exported reports for forbidden credential fields."
+      ],
+      "expected": [
+        "Every required field/hash resolves; failed attempts remain; missing output or credentials in reports fail acceptance."
+      ],
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "AC-DEL-006",
+      "requirements": [
+        "DEL-006"
+      ],
+      "name": "J1 Foundation continuity",
+      "method": "browser",
+      "profiles": [
+        "static"
+      ],
+      "preconditions": [
+        "Frozen implementation candidate, specification registry, isolated test storage and profile receipt."
+      ],
+      "steps": [
+        "Execute DEL-006 J1 in Edge and Firefox from separate fresh browser profiles."
+      ],
+      "expected": [
+        "Read/practice/self-check survive reload/export/import; no artifact or assessor verification is awarded."
+      ],
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "AC-DEL-007",
+      "requirements": [
+        "DEL-007"
+      ],
+      "name": "Bound security and persistence release gates",
+      "method": "manual",
+      "profiles": [
+        "win-cpu",
+        "wsl-cpu",
+        "wsl-cuda"
+      ],
+      "preconditions": [
+        "Frozen implementation candidate, specification registry, isolated test storage and profile receipt."
+      ],
+      "steps": [
+        "Execute each listed adversarial and persistence fault in isolated fixtures.",
+        "Compare registry/job counts and protected hashes before and after rejected attempts; verify child process ownership."
+      ],
+      "expected": [
+        "No unauthorized job/state mutation or unrelated process termination; committed artifacts remain valid and recovery status is honest."
+      ],
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "AC-DEL-008",
+      "requirements": [
+        "DEL-008"
+      ],
+      "name": "Complete accessible behavior, not CSS presence",
+      "method": "browser",
+      "profiles": [
+        "static",
+        "win-cpu",
+        "wsl-cpu",
+        "wsl-cuda"
+      ],
+      "preconditions": [
+        "Frozen implementation candidate, specification registry, isolated test storage and profile receipt."
+      ],
+      "steps": [
+        "Run each named native accessibility condition in both browsers.",
+        "Record applicable WCAG criteria; attempt to substitute a CSS audit for a keyboard or screen-reader journey."
+      ],
+      "expected": [
+        "Both engines pass required behavior/criteria; source-only substitution cannot mark behavioral tests PASS."
+      ],
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "AC-DEL-009",
+      "requirements": [
+        "DEL-009"
+      ],
+      "name": "Publish only the qualified audience and artifacts",
+      "method": "manual",
+      "profiles": [
+        "static",
+        "win-cpu",
+        "wsl-cpu",
+        "wsl-cuda"
+      ],
+      "preconditions": [
+        "Frozen implementation candidate, specification registry, isolated test storage and profile receipt."
+      ],
+      "steps": [
+        "Inspect qualified distributions and publication identity; verify existing audience.",
+        "Exercise supported storage rollback from retained backup; attempt destructive downgrade."
+      ],
+      "expected": [
+        "Published/installable bytes match qualified source; audience is preserved; unsupported destructive downgrade is refused."
+      ],
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "AC-DEL-010",
+      "requirements": [
+        "DEL-010"
+      ],
+      "name": "State exact completion and remaining work",
+      "method": "manual",
+      "profiles": [
+        "static",
+        "win-cpu",
+        "wsl-cpu",
+        "wsl-cuda"
+      ],
+      "preconditions": [
+        "Frozen implementation candidate, specification registry, isolated test storage and profile receipt."
+      ],
+      "steps": [
+        "Join delivered requirement coverage, case/profile results and custody checks.",
+        "Produce a final report that distinguishes document, product, browser, delivery and learner statuses."
+      ],
+      "expected": [
+        "No requirement/case/profile/browser is unaccounted for; any missing evidence keeps product readiness incomplete."
+      ],
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "AC-DEL-011",
+      "requirements": [
+        "DEL-006"
+      ],
+      "name": "J2 Real tiny experiment",
+      "method": "browser",
+      "profiles": [
+        "win-cpu",
+        "wsl-cpu",
+        "wsl-cuda"
+      ],
+      "preconditions": [
+        "Frozen candidate and empty isolated profile storage; paired local runtime; native browser access."
+      ],
+      "steps": [
+        "Execute the exact named journey in DEL-006 in both specified browser engines.",
+        "Retain action/observation trace and artifact/checkpoint/job identities."
+      ],
+      "expected": [
+        "Actual local training/evaluation/generation artifacts and identity-linked notes exist; no recorded fixture substitutes execution."
+      ],
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "AC-DEL-012",
+      "requirements": [
+        "DEL-006"
+      ],
+      "name": "J3 Interruption and recovery",
+      "method": "browser",
+      "profiles": [
+        "win-cpu",
+        "wsl-cpu",
+        "wsl-cuda"
+      ],
+      "preconditions": [
+        "Frozen candidate and empty isolated profile storage; paired local runtime; native browser access."
+      ],
+      "steps": [
+        "Execute the exact named journey in DEL-006 in both specified browser engines.",
+        "Retain action/observation trace and artifact/checkpoint/job identities."
+      ],
+      "expected": [
+        "Cancellation/restart retain honest state and checkpoint identity; resume creates one child and no duplicate job."
+      ],
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "AC-DEL-013",
+      "requirements": [
+        "DEL-006"
+      ],
+      "name": "J4 Applied adaptation",
+      "method": "browser",
+      "profiles": [
+        "win-cpu",
+        "wsl-cpu",
+        "wsl-cuda"
+      ],
+      "preconditions": [
+        "Frozen candidate and empty isolated profile storage; paired local runtime; native browser access."
+      ],
+      "steps": [
+        "Execute the exact named journey in DEL-006 in both specified browser engines.",
+        "Retain action/observation trace and artifact/checkpoint/job identities."
+      ],
+      "expected": [
+        "Pinned baseline/adapters use consistent protocol, base tensors unchanged, adapter tensors updated, output identity visible."
+      ],
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "AC-DEL-014",
+      "requirements": [
+        "DEL-006"
+      ],
+      "name": "J5 Portable reuse",
+      "method": "browser",
+      "profiles": [
+        "win-cpu",
+        "wsl-cpu",
+        "wsl-cuda"
+      ],
+      "preconditions": [
+        "Frozen candidate and empty isolated profile storage; paired local runtime; native browser access."
+      ],
+      "steps": [
+        "Execute the exact named journey in DEL-006 in both specified browser engines.",
+        "Retain action/observation trace and artifact/checkpoint/job identities."
+      ],
+      "expected": [
+        "Validated bundle imports in clean root, loads and runs with permitted output agreement and imported provenance."
+      ],
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "AC-DEL-015",
+      "requirements": [
+        "DEL-006"
+      ],
+      "name": "J6 Bad-input recovery",
+      "method": "browser",
+      "profiles": [
+        "win-cpu",
+        "wsl-cpu",
+        "wsl-cuda"
+      ],
+      "preconditions": [
+        "Frozen candidate and empty isolated profile storage; paired local runtime; native browser access."
+      ],
+      "steps": [
+        "Execute the exact named journey in DEL-006 in both specified browser engines.",
+        "Retain action/observation trace and artifact/checkpoint/job identities."
+      ],
+      "expected": [
+        "Every bad input is rejected; prior valid records and notes remain, failures are actionable and surviving state can export."
+      ],
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "AC-DEL-016",
+      "requirements": [
+        "DEL-006"
+      ],
+      "name": "J7 Native accessible local journeys",
+      "method": "browser",
+      "profiles": [
+        "win-cpu",
+        "wsl-cpu",
+        "wsl-cuda"
+      ],
+      "preconditions": [
+        "Frozen candidate and empty isolated profile storage; paired local runtime; native browser access."
+      ],
+      "steps": [
+        "Execute the exact named journey in DEL-006 in both specified browser engines.",
+        "Retain action/observation trace and artifact/checkpoint/job identities."
+      ],
+      "expected": [
+        "J2/J4 principal actions and output are usable in both browsers with every listed accessibility condition."
+      ],
+      "status": "NOT_RUN"
+    }
+  ]
+}

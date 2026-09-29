@@ -1,0 +1,1 @@
+{"$schema":"https://json-schema.org/draft/2020-12/schema","$id":"capstone-attempt-created.schema.json","type":"object","additionalProperties":false,"required":["attempt","release_token"],"properties":{"attempt":{"$ref":"capstone-attempt.schema.json"},"release_token":{"type":"string","writeOnly":true,"pattern":"^[A-Za-z0-9_-]{43}$"}}}

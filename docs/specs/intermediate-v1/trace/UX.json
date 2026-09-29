@@ -1,0 +1,173 @@
+{
+  "section": "03-LEARNER-EXPERIENCE.md",
+  "requirements": [
+    {"id": "UX-001", "title": "Application shell, routes, and navigation"},
+    {"id": "UX-002", "title": "Home, learning path, and continuation"},
+    {"id": "UX-003", "title": "Lesson reader and progressive disclosure"},
+    {"id": "UX-004", "title": "Truthful provenance and runtime connection"},
+    {"id": "UX-005", "title": "Data and job setup"},
+    {"id": "UX-006", "title": "Job monitor, results, and checkpoints"},
+    {"id": "UX-007", "title": "Playground, continuation, chat, and context disclosure"},
+    {"id": "UX-008", "title": "Notebook, evidence, storage migration, and imports"},
+    {"id": "UX-009", "title": "Visual system and responsive layouts"},
+    {"id": "UX-010", "title": "Keyboard, focus, announcements, and display adaptations"},
+    {"id": "UX-011", "title": "Empty, loading, failure, interruption, and recovery states"},
+    {"id": "UX-012", "title": "Required end-to-end learner journeys"}
+  ],
+  "cases": [
+    {
+      "id": "AC-UX-001",
+      "requirements": ["UX-001", "UX-002", "UX-003", "UX-012"],
+      "name": "Navigation, continuation, lesson overlay, and complete learner journeys",
+      "method": "browser",
+      "profiles": ["static", "win-cpu", "wsl-cpu", "wsl-cuda"],
+      "preconditions": [
+        "A clean intermediate-v1 storage scope is available.",
+        "The immutable foundation 00-12 content and validated overlay manifest are loaded.",
+        "For companion profiles, the matching local runtime is connected and deterministic curriculum fixtures are available."
+      ],
+      "steps": [
+        "Open every canonical hash route directly, refresh it, and use browser Back and Forward after changing an unsent form and scroll position.",
+        "Open legacy #/lesson/00 and inspect the resulting URL, history length, route, and progress record.",
+        "Exercise Start learning, voluntary Mark read, the independent exercise, self-check feedback, stopping note, leave, return, and Continue learning.",
+        "Create timestamp/curriculum-sequence ties, odd partial-flag states, all-false states, all-learning-complete with unresolved evidence, and fully exhausted states; evaluate continuation precedence.",
+        "Inspect P00, foundations 00-12, modules 13-20, E01, and E02, including locked-prerequisite explanations.",
+        "Validate every supplement card against its exact heading occurrence and compare rendered foundation Markdown with the baseline.",
+        "Search normalized empty, exact, prefix, substring, glossary-definition, tie, no-match, 50-result, and 101-scalar queries; select one result.",
+        "Execute the seven UX-012 journeys through each state reachable in the active profile; in static, verify every companion-only step stops at setup guidance with no enabled submission."
+      ],
+      "expected": [
+        "All canonical routes render without a server rewrite; parent links and browser history preserve session form state, selection, and scroll.",
+        "The legacy route is replaced once by #/learn/00 without a new history entry or progress mutation.",
+        "Home contains one primary Start or Continue action and resolves normal, odd, all-false, all-learning-complete, and fully exhausted records exactly by UX-002 precedence and tie rules.",
+        "Opening sets only reading; scrolling, searching, and route changes never set read, practiced, or self_checked; Mark read, exercise submission, and check submission independently set only their respective flags.",
+        "Foundation bodies and heading order are byte-correspondent to the rendered baseline content; overlay cards remain separate and missing or ambiguous anchors fail validation.",
+        "Required, prerequisite, and elective groups remain distinct; electives do not replace required modules or evidence.",
+        "Search normalization, field scope, ranking, tie order, 50-result cap, exact empty/no-match text, result focus, and destination focus match UX-001 without progress mutation.",
+        "Each complete journey retains failures and uncertainty and never awards artifact verification or assessor review from navigation or progress."
+      ],
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "AC-UX-002",
+      "requirements": ["UX-004", "UX-005", "UX-006", "UX-011"],
+      "name": "Provenance, connection, submission, job lifecycle, and recovery",
+      "method": "browser",
+      "profiles": ["static", "win-cpu", "wsl-cpu", "wsl-cuda"],
+      "preconditions": [
+        "Static files, a compatible runtime fixture, an incompatible runtime fixture, and persisted job/event fixtures are available.",
+        "Fixtures cover queued, starting, running, module 14 cancellable_hold at step 25, ten-minute exercise timeout, cancelling, completed, failed, interrupted, connection loss, queue full, invalid input, limit, missing artifact, storage failure, and malformed import."
+      ],
+      "steps": [
+        "Open tokenizer calculation, structural shape/attention simulation, supplied record, imported record, and each companion job state.",
+        "Probe static, checking, compatible, incompatible, and lost connection states.",
+        "In companion profiles, submit each operation from its review screen, double-activate submission, fill the queue, and exercise each validation/error response; in static, verify each action is disabled with setup guidance.",
+        "In companion profiles, request cancellation from queued and running, leave the route during execution, and recover after simulated service loss.",
+        "In companion profiles, enter module 14 cancellable_hold at saved step 25, exercise learner interruption, and separately advance the clock to the ten-minute exercise timeout.",
+        "Disconnect a nonterminal job after a known event cursor, reconnect, replay events, and inspect reconciliation.",
+        "Compare compatible runs and runs differing in each identity/protocol field; inspect best and latest checkpoint rows.",
+        "Retry a failed and interrupted attempt."
+      ],
+      "expected": [
+        "Each surface uses the exact UX-004 provenance label and explanatory copy; queued and starting jobs are not described as executed.",
+        "Static mode enables only browser calculations, structural simulations, record imports, and setup guidance; it never exposes an enabled job submit action.",
+        "Connection is asserted only from a valid same-origin version response; incompatible versions show both versions; lost state preserves a timestamped snapshot and says job state is unknown.",
+        "Double activation creates one job; errors retain entered values and focus a linked summary; queue and D08 boundaries are rendered exactly.",
+        "All job states, actions, timestamps, warnings, and terminal reasons match UX-006; leaving does not cancel and cancellation is never labelled Pause.",
+        "The module 14 hold remains running, states that it will not resume, exposes only Interrupt at saved step 25, and resolves to interrupted step 25 by learner action or reason exercise_timeout after ten minutes.",
+        "Reconnection fetches by ID, validates replay order after the cursor, announces the reconciled state once, and does not infer a terminal state.",
+        "Charts have exact tables and correct axes; incompatible comparisons list differences and suppress aggregate deltas; Missing is never displayed as zero.",
+        "Retry creates and links a new attempt while preserving failed/interrupted records, logs, and artifacts."
+      ],
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "AC-UX-003",
+      "requirements": ["UX-007"],
+      "name": "TinyLM continuation, pretrained chat, context disclosure, and checkpoint comparison",
+      "method": "browser",
+      "profiles": ["win-cpu", "wsl-cpu", "wsl-cuda"],
+      "preconditions": [
+        "Two compatible TinyLM checkpoints, one incompatible TinyLM checkpoint, the pinned prepared base model, and one adapter fixture are registered.",
+        "Prompts include spaces, tabs, newlines, Unicode, under-limit context, and over-limit context."
+      ],
+      "steps": [
+        "Submit context_preview then generate a TinyLM continuation; inspect preview digest, prompt/output boundaries, and metadata.",
+        "Submit context_preview then start base-model and adapter chat sessions; inspect role rendering and serialized context.",
+        "Trigger continuation and chat truncation and compare visible raw context to submitted context.",
+        "Change each preview-bound field, verify generation disables, then create and submit a replacement preview digest.",
+        "Attempt to change model, checkpoint, tokenizer/template, and decoding identities in an existing history.",
+        "Compare two through four compatible checkpoints, attempt an incompatible selection, and introduce a settings mismatch."
+      ],
+      "expected": [
+        "TinyLM is labelled continuation with no roles; pretrained and adapter interactions are labelled chat; every action states that it does not train.",
+        "context_preview runs through the companion queue without loading/updating weights or inference; raw serialized context preserves whitespace and reports counts, limits, retained range, truncation location, and digest before generation.",
+        "Outputs report bound identities, decoding settings, stop reason, generated count, elapsed time when reported, and job ID.",
+        "Identity changes require a new session and preserve the former history read-only.",
+        "Compatible comparison jobs are sequential with identical inputs/settings and visible queue order; incompatible identities or mismatched settings block comparison.",
+        "Comparison outputs are labelled columns at 1440 and labelled stacked regions at 360 and 768."
+      ],
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "AC-UX-004",
+      "requirements": ["UX-008"],
+      "name": "Notebook persistence, evidence boundaries, export, import, and v1 migration",
+      "method": "browser",
+      "profiles": ["static", "win-cpu", "wsl-cpu", "wsl-cuda"],
+      "preconditions": [
+        "Valid and invalid notebook-entry-v2, artifact-descriptor-v1, llm-foundations-bundle-v1, and foundation v1 fixtures are available.",
+        "Fixtures include duplicate IDs, equal and divergent revisions, corrupt digests, unknown fields, verification/review claims, storage failure, and rollback failure injection."
+      ],
+      "steps": [
+        "In static, fill the intermediate sidecar to 100 and 101 notes and to 4194304 and 4194306 computed bytes; export portable learning state; verify artifact verification and independent review are unavailable and foundation v1 remains unchanged.",
+        "In companion profiles, create and edit a bounded v2 notebook entry with all link types, force autosave failure, display artifact preview boundaries, and reload after successful save.",
+        "In companion profiles, run objective verification and complete self and independent rubric reviews.",
+        "In companion profiles, export/read back a bundle and import valid, corrupt, conflict, and over-limit bundles through preview, cancel, and apply.",
+        "In static and companion profiles, select a foundation v1 export and preview migration; in companion, download exact source bytes, inspect unmapped fields, cancel, apply, and inject an atomic-write failure; export portable state at 8388608 and 8388609 UTF-8 bytes."
+      ],
+      "expected": [
+        "Notebook limits and revisions match UX-008 and the data contract; failed save retains visible unsaved session text and offers export.",
+        "Safe text up to and including 262144 bytes is escaped inline; larger safe text says Preview unavailable above 256 KiB and remains downloadable; metadata-only and download-only artifacts are not inlined.",
+        "Static retains foundation v1, writes only the separate intermediate sidecar at or below 4194304 computed bytes and 100 notes, preserves the prior sidecar on rejection, and cannot create artifact_verified or independently_reviewed.",
+        "Portable learning state succeeds through 8388608 UTF-8 bytes; over-limit export emits BACKUP_TOO_LARGE with no partial file and companion offers full .lfbundle.",
+        "Artifact verification and assessor review remain separate with verifier/reviewer identity and evidence; neither is inferred from progress, imports, or electives.",
+        "Export excludes credentials and its digest validates; import previews source and category counts before any write.",
+        "Cancel is byte-neutral; invalid imports perform no partial write; identical duplicates are skipped; divergent valid items preview copy semantics without future UUIDs and successful apply returns the complete source-to-local ID map.",
+        "Migration maps v1 reading, read, and practiced only to same-named independent v2 flags and v1 checked only to v2 self_checked, never promotes one flag or imports verification/review, and preserves exact v1 backup bytes plus both versions on failure.",
+        "Successful apply reports the committed bundle digest and leaves the source backup available."
+      ],
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "AC-UX-005",
+      "requirements": ["UX-009", "UX-010"],
+      "name": "Responsive layout, keyboard, focus, announcements, zoom, motion, colors, and contrast",
+      "method": "browser",
+      "profiles": ["static", "win-cpu", "wsl-cpu", "wsl-cuda"],
+      "preconditions": [
+        "Every primary route has representative empty, populated, error, long-text, and long-identifier fixtures.",
+        "A keyboard, supported screen reader, browser forced-colors emulation or OS mode, reduced-motion setting, and contrast analyzer are available."
+      ],
+      "steps": [
+        "Inspect every primary route at 360, 768, and 1440 CSS pixels with long fixtures.",
+        "Complete every journey keyboard-only, including drawer/dialog Escape, validation summary links, tables, disclosures, file inputs, cancellation, and focus after route/state changes.",
+        "Observe polite/assertive announcements during save, connection, queue, running progress, import, generation, failure, and repeated events.",
+        "Repeat at 200 percent text size and 400 percent zoom in a 1280px viewport.",
+        "Select every Theme, Reading density, Motion, and Results presentation value; reset them; then enable OS reduced motion, forced colors, and dark/light themes.",
+        "Submit empty, invalid, valid, and no-match search from keyboard and inspect focus.",
+        "Measure text, focus, control boundary, graphical, chart, and status contrast in light and dark themes."
+      ],
+      "expected": [
+        "At 360 and 400 percent zoom, content is one column with no page-level horizontal scrolling; only labelled tables/code scroll internally; every action remains visible.",
+        "At 768 and 1440, layout matches UX-009 dimensions and minimum panel widths without overlap, clipping, or lost content.",
+        "Tab order follows DOM/visual order; native activation works; Escape and focus restoration follow UX-010; no chart or grid traps keys.",
+        "Announcements use specified priorities and cadence, retain visible text, and do not repeat stream events as alerts.",
+        "Reduced motion removes animation and smooth scrolling; forced colors preserve boundaries, selected/focus states, line distinctions, and labels.",
+        "System theme is used until explicit selection; normal text is at least 4.5:1 and large text plus control/graphical boundaries at least 3:1.",
+        "Each accessibility setting applies the exact UX-009 value, persists without changing progress, and Reset restores system/comfortable/system/visual_and_table defaults."
+      ],
+      "status": "NOT_RUN"
+    }
+  ]
+}

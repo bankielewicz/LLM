@@ -1,0 +1,12 @@
+{"record_id":"dc07-summary","scenario_group_id":"DC07","text":"The password-reset link expired. Observation: the browser displayed link expired. Action: send one fresh reset link."}
+{"record_id":"dc07-timeline","scenario_group_id":"DC07","text":"At 09:07 UTC, the receipt and page item codes differed. The reported issue was: The order page showed the wrong item. The recorded action was: record both codes for order support."}
+{"record_id":"dc07-symptom","scenario_group_id":"DC07","text":"Symptom for DC07: The order page showed the wrong item. Evidence: the receipt and page item codes differed."}
+{"record_id":"dc07-resolution","scenario_group_id":"DC07","text":"Resolution for DC07: record both codes for order support. It responds to this observation: the receipt and page item codes differed."}
+{"record_id":"dc08-summary","scenario_group_id":"DC08","text":"The security code was rejected. Observation: the device clock was seven minutes slow. Action: synchronize the clock and retry once."}
+{"record_id":"dc08-timeline","scenario_group_id":"DC08","text":"AT 09:02 UTC, THE INVOICE LISTED A DUPLICATE SERVICE LINE. THE REPORTED ISSUE WAS: THE INVOICE TOTAL LOOKED UNFAMILIAR. THE RECORDED ACTION WAS: ROUTE THE INVOICE FOR BILLING REVIEW. !!!"}
+{"record_id":"dc08-symptom","scenario_group_id":"DC08","text":"Symptom for DC08: The security code was rejected. Evidence: the device clock was seven minutes slow."}
+{"record_id":"dc08-resolution","scenario_group_id":"DC08","text":"Resolution for DC08: synchronize the clock and retry once. It responds to this observation: the device clock was seven minutes slow."}
+{"record_id":"dc09-summary","scenario_group_id":"DC09","text":"The export file was empty. Observation: the selected date range contained no records. Action: choose a populated date range."}
+{"record_id":"dc09-timeline","scenario_group_id":"DC09","text":"At 09:09 UTC, the selected date range contained no records. The reported issue was: The export file was empty. The recorded action was: choose a populated date range."}
+{"record_id":"dc09-symptom","scenario_group_id":"DC09","text":"Symptom for DC09: The export file was empty. Evidence: the selected date range contained no records."}
+{"record_id":"dc09-resolution","scenario_group_id":"DC09","text":"Resolution for DC09: choose a populated date range. It responds to this observation: the selected date range contained no records."}

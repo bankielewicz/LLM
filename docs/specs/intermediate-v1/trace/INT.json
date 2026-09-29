@@ -1,0 +1,347 @@
+{
+  "section": "07-INTEGRATION-CONTRACT.md",
+  "requirements": [
+    {
+      "id": "INT-001",
+      "title": "Bind each operation to its effects"
+    },
+    {
+      "id": "INT-002",
+      "title": "Join screens, APIs, and durable state"
+    },
+    {
+      "id": "INT-003",
+      "title": "Define the TinyLM v2 mechanics"
+    },
+    {
+      "id": "INT-004",
+      "title": "Serialize TinyLM checkpoints without pickle"
+    },
+    {
+      "id": "INT-005",
+      "title": "Define complete byte-normalized evaluation"
+    },
+    {
+      "id": "INT-006",
+      "title": "Freeze preview and decoding semantics"
+    },
+    {
+      "id": "INT-007",
+      "title": "Enforce numeric limits at their actual boundary"
+    },
+    {
+      "id": "INT-008",
+      "title": "Use one error vocabulary and validation order"
+    },
+    {
+      "id": "INT-009",
+      "title": "Keep progress, assessment, and test exposure independent"
+    },
+    {
+      "id": "INT-010",
+      "title": "Preserve complete import and reuse meaning"
+    },
+    {
+      "id": "INT-011",
+      "title": "Ship concrete teaching inputs and verifier profiles"
+    },
+    {
+      "id": "INT-012",
+      "title": "Resolve amendments before qualification"
+    }
+  ],
+  "cases": [
+    {
+      "id": "AC-INT-001",
+      "requirements": [
+        "INT-001"
+      ],
+      "name": "Bind each operation to its effects",
+      "method": "unit",
+      "profiles": [
+        "static",
+        "win-cpu",
+        "wsl-cpu",
+        "wsl-cuda"
+      ],
+      "preconditions": [
+        "Frozen implementation candidate and contract/fixture digests; isolated data root; required native profile/browser available."
+      ],
+      "steps": [
+        "Enumerate operation labels and the weights/registry effects matrix.",
+        "Inject a generation result labelled as training and a queued job labelled executed."
+      ],
+      "expected": [
+        "Unknown or misleading effects fail validation/render assertions; operation labels remain distinct."
+      ],
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "AC-INT-002",
+      "requirements": [
+        "INT-002"
+      ],
+      "name": "Join screens, APIs, and durable state",
+      "method": "integration",
+      "profiles": [
+        "win-cpu",
+        "wsl-cpu",
+        "wsl-cuda"
+      ],
+      "preconditions": [
+        "Frozen implementation candidate and contract/fixture digests; isolated data root; required native profile/browser available."
+      ],
+      "steps": [
+        "Execute each local screen action through the exact documented API using an isolated root.",
+        "Verify every committed object ID resolves and every failed revision check leaves state unchanged."
+      ],
+      "expected": [
+        "No dangling UI action, fabricated success, unknown schema field or missing persisted result."
+      ],
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "AC-INT-003",
+      "requirements": [
+        "INT-003"
+      ],
+      "name": "Define the TinyLM v2 mechanics",
+      "method": "integration",
+      "profiles": [
+        "win-cpu",
+        "wsl-cpu",
+        "wsl-cuda"
+      ],
+      "preconditions": [
+        "Frozen implementation candidate and contract/fixture digests; isolated data root; required native profile/browser available."
+      ],
+      "steps": [
+        "Run fixed-seed standard tiny-v2 and protected pure-mechanics parity controls.",
+        "Verify P=137088 at V257/C64/W64/L2 and tied delta16448; train257-byte tokenizer and BPE320 on same orderedfixture."
+      ],
+      "expected": [
+        "Architecture and optimizer match bound source; tokenization deterministic; byte run haszero merges; actualBPEvocab reported; no implicitweights update."
+      ],
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "AC-INT-004",
+      "requirements": [
+        "INT-004"
+      ],
+      "name": "Serialize TinyLM checkpoints without pickle",
+      "method": "integration",
+      "profiles": [
+        "win-cpu",
+        "wsl-cpu",
+        "wsl-cuda"
+      ],
+      "preconditions": [
+        "Frozen implementation candidate and contract/fixture digests; isolated data root; required native profile/browser available."
+      ],
+      "steps": [
+        "Compare uninterrupted50 to25plusresume25 using same-profile fixedseed.",
+        "Inject bad tensor name, mismatched lock/dataset, missing optimizer and alias cycle."
+      ],
+      "expected": [
+        "Tensors/RNG/fixedmetrics/greedytokens equal; identity/time excluded; invalidcheckpoint rejected beforeload; inference-onlycannotresume."
+      ],
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "AC-INT-005",
+      "requirements": [
+        "INT-005"
+      ],
+      "name": "Define complete byte-normalized evaluation",
+      "method": "unit",
+      "profiles": [
+        "win-cpu",
+        "wsl-cpu",
+        "wsl-cuda"
+      ],
+      "preconditions": [
+        "Frozen implementation candidate and contract/fixture digests; isolated data root; required native profile/browser available."
+      ],
+      "steps": [
+        "Calculate A6nats/3bytes andB4nats/8bytes aggregate; evaluate uniformV257 onebyte+EOS fixture.",
+        "Evaluate all records with two tokenizations over identical original bytes and verify no first/last target omitted."
+      ],
+      "expected": [
+        "Aggregate10/11 within1e-12, not1.25; uniformNLL2ln257; token_countincludesEOS, denominatoronlyoriginalUTF8bytes; no skippedrecords."
+      ],
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "AC-INT-006",
+      "requirements": [
+        "INT-006"
+      ],
+      "name": "Freeze preview and decoding semantics",
+      "method": "integration",
+      "profiles": [
+        "win-cpu",
+        "wsl-cpu",
+        "wsl-cuda"
+      ],
+      "preconditions": [
+        "Frozen implementation candidate and contract/fixture digests; isolated data root; required native profile/browser available."
+      ],
+      "steps": [
+        "Create tiny and applied context previews then generate using exactmatchingrequests.",
+        "Alter onepromptbyte, seed, tokenbudget, subject or template afterpreview; testEOS/tiep/nucleuscrop/cancellation."
+      ],
+      "expected": [
+        "Matchingpreviewused; changedrequestrejects CONTEXT_PREVIEW_STALE beforeinference; outputIDs,count,stopreasonandinputcropping agreewithoracle."
+      ],
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "AC-INT-007",
+      "requirements": [
+        "INT-007"
+      ],
+      "name": "Enforce numeric limits at their actual boundary",
+      "method": "integration",
+      "profiles": [
+        "win-cpu",
+        "wsl-cpu",
+        "wsl-cuda"
+      ],
+      "preconditions": [
+        "Frozen implementation candidate and contract/fixture digests; isolated data root; required native profile/browser available."
+      ],
+      "steps": [
+        "For every INT007 numericboundary submit atlimit andlimit+1; varyUTF8multibyte andUnicode scalarvalues.",
+        "Reserve queuedjobs nearrootquota andforceENOSPC afteracceptance."
+      ],
+      "expected": [
+        "Inclusivevalidlimits accepted whenotherrequirementsmet;overlimitrejectstatedcode withzeroacceptedmutation; reservationpreventsquotaovercommit; runtimefailurehonestandpriorbytesunchanged."
+      ],
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "AC-INT-008",
+      "requirements": [
+        "INT-008"
+      ],
+      "name": "Use one error vocabulary and validation order",
+      "method": "integration",
+      "profiles": [
+        "win-cpu",
+        "wsl-cpu",
+        "wsl-cuda"
+      ],
+      "preconditions": [
+        "Frozen implementation candidate and contract/fixture digests; isolated data root; required native profile/browser available."
+      ],
+      "steps": [
+        "Submit inputs that failtwoorderedvalidationstages; repeatacceptedrequest idempotently thenchangebytes.",
+        "Expire session duringuncertainjobsubmit thenreconcilebeforeanyretry."
+      ],
+      "expected": [
+        "Firststagecodeandlexicalfielderrororder exact; oneacceptedjob; conflicts orlostresponses cannotduplicate orinventexecution."
+      ],
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "AC-INT-009",
+      "requirements": [
+        "INT-009"
+      ],
+      "name": "Keep progress, assessment, and test exposure independent",
+      "method": "browser",
+      "profiles": [
+        "static",
+        "win-cpu",
+        "wsl-cpu",
+        "wsl-cuda"
+      ],
+      "preconditions": [
+        "Frozen implementation candidate and contract/fixture digests; isolated data root; required native profile/browser available."
+      ],
+      "steps": [
+        "Toggle eachprogressdimension separately andexport/importstate.",
+        "Inspect self/independent/importedlabels; inlocalmodeconsumecapstonetoken thencreateallowedreplacement."
+      ],
+      "expected": [
+        "Noimpliedprogressorverification;staticnevergrantslocalattestation; localreplacementretainspriorconsumptionandshowsreusedtest."
+      ],
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "AC-INT-010",
+      "requirements": [
+        "INT-010"
+      ],
+      "name": "Preserve complete import and reuse meaning",
+      "method": "integration",
+      "profiles": [
+        "win-cpu",
+        "wsl-cpu",
+        "wsl-cuda"
+      ],
+      "preconditions": [
+        "Frozen implementation candidate and contract/fixture digests; isolated data root; required native profile/browser available."
+      ],
+      "steps": [
+        "Exportfull andthin, inference-only andresume selections; importcleanroot withskipandcopy.",
+        "Testduplicate dependency resolution, missingbase, tamper andomittedoptimizer."
+      ],
+      "expected": [
+        "AllIDsmapandprovenanceretained;fullworksnetworkoff;thinwithoutbasebase_required;resumeonlycomplete; invalidimportatomic."
+      ],
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "AC-INT-011",
+      "requirements": [
+        "INT-011"
+      ],
+      "name": "Ship concrete teaching inputs and verifier profiles",
+      "method": "source",
+      "profiles": [
+        "static",
+        "win-cpu",
+        "wsl-cpu",
+        "wsl-cuda"
+      ],
+      "preconditions": [
+        "Frozen implementation candidate and contract/fixture digests; isolated data root; required native profile/browser available."
+      ],
+      "steps": [
+        "Regeneratefixturesfromauthoredfacts andcompareallmaterializedSHA256s.",
+        "Join verifierprofileIDs, curriculumoracles, schemaformats andacceptancecase references."
+      ],
+      "expected": [
+        "Everyfixturebyte andverifierdependencyexists andmatches; noplaceholder/inventedlabel/simulation-as-measurement."
+      ],
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "AC-INT-012",
+      "requirements": [
+        "INT-012"
+      ],
+      "name": "Resolve amendments before qualification",
+      "method": "source",
+      "profiles": [
+        "static",
+        "win-cpu",
+        "wsl-cpu",
+        "wsl-cuda"
+      ],
+      "preconditions": [
+        "Frozen implementation candidate and contract/fixture digests; isolated data root; required native profile/browser available."
+      ],
+      "steps": [
+        "Introducecontractdrift inisolatedspecfixture andrunbuilderchecks.",
+        "Amendfixtureandregistry undernewrevision andnewcandidate."
+      ],
+      "expected": [
+        "Driftfails;amendmentupdatesallconsumers; priorcandidatepassesstayhistorical andnewrowsNOT_RUN."
+      ],
+      "status": "NOT_RUN"
+    }
+  ]
+}

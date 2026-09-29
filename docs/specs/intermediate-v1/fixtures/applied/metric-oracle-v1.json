@@ -1,0 +1,13 @@
+{
+  "format": "llm-foundations-metric-oracle-v1",
+  "allowed_intents": ["account_access", "billing_refund", "order_status", "password_reset", "product_information", "technical_issue"],
+  "records": [
+    {"record_id": "ORACLE-001", "expected_intent": "billing_refund", "raw_text": "INTENT=billing_refund\nREPLY=Provide the order number.", "expected": {"parsed_intent": "billing_refund", "exact_intent_match": 1, "response_schema_valid": 1}},
+    {"record_id": "ORACLE-002", "expected_intent": "order_status", "raw_text": "INTENT=technical_issue\nREPLY=Check the tracking page.", "expected": {"parsed_intent": "technical_issue", "exact_intent_match": 0, "response_schema_valid": 1}},
+    {"record_id": "ORACLE-003", "expected_intent": "technical_issue", "raw_text": "I would restart it.", "expected": {"parsed_intent": null, "exact_intent_match": 0, "response_schema_valid": 0}}
+  ],
+  "expected_overall": {
+    "exact_intent_match": {"numerator": 1, "denominator": 3, "ratio": 0.3333333333333333},
+    "response_schema_valid": {"numerator": 2, "denominator": 3, "ratio": 0.6666666666666666}
+  }
+}

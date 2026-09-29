@@ -1,0 +1,14 @@
+{
+  "format": "llm-foundations-retrieval-corpus-v1",
+  "fixture_id": "retrieval-manual-v1",
+  "documents": [
+    {"record_id":"RM01","text":"Account recovery uses the recovery page. Verify identity before changing an account email."},
+    {"record_id":"RM02","text":"Refund status appears in the billing settlement record. Pending refunds include a settlement reference."},
+    {"record_id":"RM03","text":"Password reset links expire after use. Request one fresh reset link and discard the old link."},
+    {"record_id":"RM04","text":"Order tracking shows carrier scans. A parcel without a recent scan can receive a carrier trace."},
+    {"record_id":"RM05","text":"Sign-in security codes depend on an accurate device clock. Synchronize the clock before retrying."},
+    {"record_id":"RM06","text":"Invoices list service lines and totals. A duplicate service line should be sent to billing review."},
+    {"record_id":"RM07","text":"Application launch failures need the app version and a sanitized launch log."},
+    {"record_id":"RM08","text":"Plan comparisons describe export availability and current product limits."}
+  ]
+}

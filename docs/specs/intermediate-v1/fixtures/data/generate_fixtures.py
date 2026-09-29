@@ -1,0 +1,148 @@
+"""Materialize the authored intermediate-v1 fixtures. Standard library only."""
+from __future__ import annotations
+import argparse, hashlib, json, math, re, unicodedata
+from collections import Counter
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parent
+CANONICAL = ROOT / "materialized"
+SOURCE = json.loads((ROOT / "fixture-source.json").read_text(encoding="utf-8"))
+OUTPUT_FILES = {}
+
+def line(obj):
+    return json.dumps(obj, ensure_ascii=False, sort_keys=True, separators=(",", ":")) + "\n"
+
+def write_rows(relative, rows):
+    raw = "".join(line(row) for row in rows).encode("utf-8")
+    OUTPUT_FILES[relative.as_posix()] = raw
+    return {"path": relative.as_posix(), "records": len(rows), "utf8_bytes": len(raw),
+            "sha256": hashlib.sha256(raw).hexdigest()}
+
+def norm(text):
+    text = unicodedata.normalize("NFKC", text).casefold()
+    text = "".join(" " if unicodedata.category(ch)[0] in "PS" else ch for ch in text)
+    return " ".join(text.split())
+
+def audit(splits):
+    named = [(split, row) for split, rows in splits.items() for row in rows]
+    exact = near = 0
+    for i, (sa, a) in enumerate(named):
+        for sb, b in named[i + 1:]:
+            if sa == sb:
+                continue
+            if a["text"].encode("utf-8") == b["text"].encode("utf-8"):
+                exact += 1
+            elif norm(a["text"]) == norm(b["text"]):
+                near += 1
+    groups = {}
+    for split, row in named:
+        groups.setdefault(row["scenario_group_id"], set()).add(split)
+    return {"records": len(named), "exact_duplicate_pairs": exact,
+            "normalized_near_duplicate_pairs": near,
+            "group_overlap_count": sum(len(v) > 1 for v in groups.values())}
+
+def clinic_rows():
+    variants = SOURCE["data_clinic"]["variants"]
+    result = {"train": [], "validation": [], "test": []}
+    for scenario in SOURCE["data_clinic"]["scenarios"]:
+        number = int(scenario["group"][2:])
+        split = "train" if number <= 6 else "validation" if number <= 9 else "test"
+        for variant in variants:
+            result[split].append({"record_id": f"{scenario['group'].lower()}-{variant['id']}",
+                "scenario_group_id": scenario["group"],
+                "text": variant["template"].format(**scenario)})
+    return result
+
+def instruction_rows(prefix, ordinals, capstone=False):
+    result = {"train": [], "validation": [], "sealed_test" if capstone else "test": []}
+    for spec in SOURCE["instruction_sets"]["slices"]:
+        for ordinal in ordinals:
+            if capstone:
+                split = "train" if ordinal <= 5 else "validation" if ordinal == 6 else "sealed_test"
+                user = spec["capstone_user"].format(ordinal=f"{ordinal:02d}")
+                reply = spec["capstone_reply"].format(ordinal=f"{ordinal:02d}")
+            else:
+                split = "train" if ordinal <= 10 else "validation" if ordinal <= 12 else "test"
+                user = spec["applied_user"].format(ordinal=f"{ordinal:02d}")
+                reply = spec["applied_reply"].format(ordinal=f"{ordinal:02d}")
+            full = f"INTENT={spec['slice']}\nREPLY={reply}"
+            result[split].append({"record_id": f"{prefix}-{spec['slice']}-{ordinal:02d}",
+                "scenario_group_id": f"{prefix.upper()}-{spec['slice']}-{ordinal:02d}",
+                "slice": spec["slice"], "messages": [{"role": "user", "content": user}],
+                "expected": {"intent": spec["slice"], "response": full}})
+    return result
+
+def tokens(text):
+    return re.findall(r"[a-z0-9]+", unicodedata.normalize("NFKC", text).casefold())
+
+def retrieval_rows():
+    docs = SOURCE["retrieval_manual"]["documents"]
+    df = Counter(token for doc in docs for token in set(tokens(doc["text"])))
+    idf = {token: math.log((1 + len(docs)) / (1 + count)) + 1 for token, count in df.items()}
+    def vector(text):
+        terms = tokens(text); counts = Counter(terms)
+        values = {t: counts[t] / len(terms) * idf[t] for t in counts if t in idf}
+        length = math.sqrt(sum(v * v for v in values.values()))
+        return {t: v / length for t, v in values.items()} if length else {}
+    doc_vectors = {doc["record_id"]: vector(doc["text"]) for doc in docs}
+    queries = []
+    for source in SOURCE["retrieval_manual"]["queries"]:
+        query_vector = vector(source["text"])
+        scores = {doc_id: sum(query_vector.get(t, 0) * values.get(t, 0) for t in query_vector)
+                  for doc_id, values in doc_vectors.items()}
+        ordered = sorted(scores, key=lambda doc_id: (-scores[doc_id], doc_id))
+        assert ordered[:3] == source["top3"], (source["query_id"], ordered[:3], source["top3"])
+        queries.append({**source, "scores": [{"record_id": d, "score": scores[d]} for d in ordered]})
+    return docs, queries
+
+def main():
+    parser = argparse.ArgumentParser()
+    group = parser.add_mutually_exclusive_group()
+    group.add_argument("--check", action="store_true", help="compare regenerated bytes with retained fixtures (default)")
+    group.add_argument("--output", type=Path, help="write to a new, nonexistent directory")
+    args = parser.parse_args()
+    OUTPUT_FILES.clear()
+    manifest = {"format": "llm-foundations-materialized-fixtures-v1", "files": [], "audits": {}}
+    clean = clinic_rows()
+    assert audit(clean) == {"records": 48, "exact_duplicate_pairs": 0,
+                            "normalized_near_duplicate_pairs": 0, "group_overlap_count": 0}
+    leaky = json.loads(json.dumps(clean))
+    by_id = {r["record_id"]: r for rows in leaky.values() for r in rows}
+    clean_by_id = {r["record_id"]: r for rows in clean.values() for r in rows}
+    by_id["dc07-summary"]["text"] = clean_by_id["dc01-summary"]["text"]
+    by_id["dc08-timeline"]["text"] = clean_by_id["dc02-timeline"]["text"].upper() + " !!!"
+    by_id["dc10-symptom"]["text"] = clean_by_id["dc03-symptom"]["text"].upper() + " !!!"
+    by_id["dc10-resolution"]["scenario_group_id"] = "DC06"
+    expected_leaky = {"records": 48, "exact_duplicate_pairs": 1,
+                      "normalized_near_duplicate_pairs": 2, "group_overlap_count": 1}
+    assert audit(leaky) == expected_leaky, audit(leaky)
+    manifest["audits"] = {"data-clinic-v1": audit(clean), "data-clinic-leaky-v1": audit(leaky)}
+    for fixture, splits in (("data-clinic-v1", clean), ("data-clinic-leaky-v1", leaky),
+                            ("applied-intents-v1", instruction_rows("ai", range(1, 15))),
+                            ("capstone-support-v1", instruction_rows("cs", range(1, 9), True))):
+        for split, rows in splits.items():
+            manifest["files"].append(write_rows(Path(fixture) / f"{split}.jsonl", rows))
+    docs, queries = retrieval_rows()
+    manifest["files"].append(write_rows(Path("retrieval-manual-v1/documents.jsonl"), docs))
+    manifest["files"].append(write_rows(Path("retrieval-manual-v1/queries.jsonl"), queries))
+    manifest["files"].sort(key=lambda item: item["path"])
+    raw = (json.dumps(manifest, ensure_ascii=False, sort_keys=True, indent=2) + "\n").encode("utf-8")
+    OUTPUT_FILES["materialized-manifest.json"] = raw
+    if args.output is not None:
+        args.output.mkdir(parents=True, exist_ok=False)
+        for relative, content in OUTPUT_FILES.items():
+            target = args.output / relative
+            target.parent.mkdir(parents=True, exist_ok=True)
+            target.write_bytes(content)
+        print(f"wrote {len(manifest['files'])} fixtures plus manifest to new directory {args.output}")
+    else:
+        retained = {p.relative_to(CANONICAL).as_posix(): p.read_bytes()
+                    for p in CANONICAL.rglob("*") if p.is_file()}
+        assert set(retained) == set(OUTPUT_FILES), (sorted(set(retained) - set(OUTPUT_FILES)), sorted(set(OUTPUT_FILES) - set(retained)))
+        for relative, content in OUTPUT_FILES.items():
+            assert retained[relative] == content, f"fixture differs: {relative}"
+        digest = hashlib.sha256(retained["materialized-manifest.json"]).hexdigest()
+        print(f"checked {len(manifest['files'])} fixtures; audits/rankings and retained bytes match; manifest_sha256={digest}")
+
+if __name__ == "__main__":
+    main()

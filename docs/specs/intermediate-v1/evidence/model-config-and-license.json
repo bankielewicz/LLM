@@ -1,0 +1,220 @@
+{
+  "kind": "revision_bound_public_metadata",
+  "retrieved_utc": "2026-09-29T03:49:58.403815+00:00",
+  "repository": "HuggingFaceTB/SmolLM2-135M-Instruct",
+  "revision": "12fd25f77366fa6b3b4b768ec3050bf629380bac",
+  "model_weights_downloaded": false,
+  "items": [
+    {
+      "name": "config.json",
+      "url": "https://huggingface.co/HuggingFaceTB/SmolLM2-135M-Instruct/resolve/12fd25f77366fa6b3b4b768ec3050bf629380bac/config.json",
+      "bytes": 861,
+      "sha256": "8eb740e8bbe4cff95ea7b4588d17a2432deb16e8075bc5828ff7ba9be94d982a",
+      "parsed": {
+        "architectures": [
+          "LlamaForCausalLM"
+        ],
+        "attention_bias": false,
+        "attention_dropout": 0.0,
+        "bos_token_id": 1,
+        "eos_token_id": 2,
+        "hidden_act": "silu",
+        "hidden_size": 576,
+        "initializer_range": 0.041666666666666664,
+        "intermediate_size": 1536,
+        "is_llama_config": true,
+        "max_position_embeddings": 8192,
+        "mlp_bias": false,
+        "model_type": "llama",
+        "num_attention_heads": 9,
+        "num_hidden_layers": 30,
+        "num_key_value_heads": 3,
+        "pad_token_id": 2,
+        "pretraining_tp": 1,
+        "rms_norm_eps": 1e-05,
+        "rope_interleaved": false,
+        "rope_scaling": null,
+        "rope_theta": 100000,
+        "tie_word_embeddings": true,
+        "torch_dtype": "bfloat16",
+        "transformers_version": "4.42.3",
+        "transformers.js_config": {
+          "kv_cache_dtype": {
+            "q4f16": "float16",
+            "fp16": "float16"
+          }
+        },
+        "use_cache": true,
+        "vocab_size": 49152
+      }
+    },
+    {
+      "name": "tokenizer_config.json",
+      "url": "https://huggingface.co/HuggingFaceTB/SmolLM2-135M-Instruct/resolve/12fd25f77366fa6b3b4b768ec3050bf629380bac/tokenizer_config.json",
+      "bytes": 3764,
+      "sha256": "4ec77d44f62efeb38d7e044a1db318f6a939438425312dfa333b8382dbad98df",
+      "parsed": {
+        "add_prefix_space": false,
+        "added_tokens_decoder": {
+          "0": {
+            "content": "<|endoftext|>",
+            "lstrip": false,
+            "normalized": false,
+            "rstrip": false,
+            "single_word": false,
+            "special": true
+          },
+          "1": {
+            "content": "<|im_start|>",
+            "lstrip": false,
+            "normalized": false,
+            "rstrip": false,
+            "single_word": false,
+            "special": true
+          },
+          "2": {
+            "content": "<|im_end|>",
+            "lstrip": false,
+            "normalized": false,
+            "rstrip": false,
+            "single_word": false,
+            "special": true
+          },
+          "3": {
+            "content": "<repo_name>",
+            "lstrip": false,
+            "normalized": false,
+            "rstrip": false,
+            "single_word": false,
+            "special": true
+          },
+          "4": {
+            "content": "<reponame>",
+            "lstrip": false,
+            "normalized": false,
+            "rstrip": false,
+            "single_word": false,
+            "special": true
+          },
+          "5": {
+            "content": "<file_sep>",
+            "lstrip": false,
+            "normalized": false,
+            "rstrip": false,
+            "single_word": false,
+            "special": true
+          },
+          "6": {
+            "content": "<filename>",
+            "lstrip": false,
+            "normalized": false,
+            "rstrip": false,
+            "single_word": false,
+            "special": true
+          },
+          "7": {
+            "content": "<gh_stars>",
+            "lstrip": false,
+            "normalized": false,
+            "rstrip": false,
+            "single_word": false,
+            "special": true
+          },
+          "8": {
+            "content": "<issue_start>",
+            "lstrip": false,
+            "normalized": false,
+            "rstrip": false,
+            "single_word": false,
+            "special": true
+          },
+          "9": {
+            "content": "<issue_comment>",
+            "lstrip": false,
+            "normalized": false,
+            "rstrip": false,
+            "single_word": false,
+            "special": true
+          },
+          "10": {
+            "content": "<issue_closed>",
+            "lstrip": false,
+            "normalized": false,
+            "rstrip": false,
+            "single_word": false,
+            "special": true
+          },
+          "11": {
+            "content": "<jupyter_start>",
+            "lstrip": false,
+            "normalized": false,
+            "rstrip": false,
+            "single_word": false,
+            "special": true
+          },
+          "12": {
+            "content": "<jupyter_text>",
+            "lstrip": false,
+            "normalized": false,
+            "rstrip": false,
+            "single_word": false,
+            "special": true
+          },
+          "13": {
+            "content": "<jupyter_code>",
+            "lstrip": false,
+            "normalized": false,
+            "rstrip": false,
+            "single_word": false,
+            "special": true
+          },
+          "14": {
+            "content": "<jupyter_output>",
+            "lstrip": false,
+            "normalized": false,
+            "rstrip": false,
+            "single_word": false,
+            "special": true
+          },
+          "15": {
+            "content": "<jupyter_script>",
+            "lstrip": false,
+            "normalized": false,
+            "rstrip": false,
+            "single_word": false,
+            "special": true
+          },
+          "16": {
+            "content": "<empty_output>",
+            "lstrip": false,
+            "normalized": false,
+            "rstrip": false,
+            "single_word": false,
+            "special": true
+          }
+        },
+        "additional_special_tokens": [
+          "<|im_start|>",
+          "<|im_end|>"
+        ],
+        "bos_token": "<|im_start|>",
+        "chat_template": "{% for message in messages %}{% if loop.first and messages[0]['role'] != 'system' %}{{ '<|im_start|>system\nYou are a helpful AI assistant named SmolLM, trained by Hugging Face<|im_end|>\n' }}{% endif %}{{'<|im_start|>' + message['role'] + '\n' + message['content'] + '<|im_end|>' + '\n'}}{% endfor %}{% if add_generation_prompt %}{{ '<|im_start|>assistant\n' }}{% endif %}",
+        "clean_up_tokenization_spaces": false,
+        "eos_token": "<|im_end|>",
+        "model_max_length": 8192,
+        "pad_token": "<|im_end|>",
+        "tokenizer_class": "GPT2Tokenizer",
+        "unk_token": "<|endoftext|>",
+        "vocab_size": 49152
+      }
+    },
+    {
+      "name": "README.md",
+      "url": "https://huggingface.co/HuggingFaceTB/SmolLM2-135M-Instruct/resolve/12fd25f77366fa6b3b4b768ec3050bf629380bac/README.md",
+      "bytes": 6772,
+      "sha256": "4f97533ad95b1b2fea15fbc075c01b94578ebdd7c8138888fa43fa3abd530dc4",
+      "front_matter": "library_name: transformers\nlicense: apache-2.0\nlanguage:\n- en\npipeline_tag: text-generation\ntags:\n- safetensors\n- onnx\n- transformers.js\nbase_model:\n- HuggingFaceTB/SmolLM2-135M",
+      "license_assertion": "apache-2.0"
+    }
+  ]
+}

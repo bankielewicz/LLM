@@ -1,0 +1,48 @@
+{
+  "format":"llm-foundations-authored-fixture-source-v1",
+  "serialization":{"encoding":"UTF-8","bom":false,"newline":"LF","json_keys":"Unicode code-point order","json_separators":", and : without spaces","terminal_newline":true,"ordinal":"two-digit ASCII decimal"},
+  "data_clinic":{"variants":[
+    {"id":"summary","template":"{issue}. Observation: {observation}. Action: {action}."},
+    {"id":"timeline","template":"At 09:{minute} UTC, {observation}. The reported issue was: {issue}. The recorded action was: {action}."},
+    {"id":"symptom","template":"Symptom for {group}: {issue}. Evidence: {observation}."},
+    {"id":"resolution","template":"Resolution for {group}: {action}. It responds to this observation: {observation}."}
+  ],"scenarios":[
+    {"group":"DC01","minute":"01","issue":"The password-reset link expired","observation":"the browser displayed link expired","action":"send one fresh reset link"},
+    {"group":"DC02","minute":"02","issue":"The invoice total looked unfamiliar","observation":"the invoice listed a duplicate service line","action":"route the invoice for billing review"},
+    {"group":"DC03","minute":"03","issue":"The parcel had not arrived","observation":"tracking remained at the regional depot","action":"open a carrier trace"},
+    {"group":"DC04","minute":"04","issue":"The desktop app closed at launch","observation":"the log ended after configuration load","action":"collect the version and sanitized log"},
+    {"group":"DC05","minute":"05","issue":"The account email was outdated","observation":"the profile still showed the former address","action":"verify identity before changing email"},
+    {"group":"DC06","minute":"06","issue":"The refund was not visible","observation":"the bank status remained pending","action":"confirm the settlement reference"},
+    {"group":"DC07","minute":"07","issue":"The order page showed the wrong item","observation":"the receipt and page item codes differed","action":"record both codes for order support"},
+    {"group":"DC08","minute":"08","issue":"The security code was rejected","observation":"the device clock was seven minutes slow","action":"synchronize the clock and retry once"},
+    {"group":"DC09","minute":"09","issue":"The export file was empty","observation":"the selected date range contained no records","action":"choose a populated date range"},
+    {"group":"DC10","minute":"10","issue":"The plan name was unclear","observation":"the product page used an abbreviated label","action":"show the matching plan glossary entry"},
+    {"group":"DC11","minute":"11","issue":"The upload stopped halfway","observation":"the file exceeded the displayed size limit","action":"select a file within the limit"},
+    {"group":"DC12","minute":"12","issue":"The notification arrived twice","observation":"two active rules matched the same event","action":"disable one duplicate rule"}
+  ]},
+  "instruction_sets":{"slices":[
+    {"slice":"account_access","applied_user":"Account access case AA{ordinal}: my sign-in is locked.","applied_reply":"Use the account recovery flow and reference case AA{ordinal} if support is needed.","capstone_user":"Access request CA{ordinal}: the account cannot sign in.","capstone_reply":"Start account recovery and keep reference CA{ordinal}."},
+    {"slice":"billing_refund","applied_user":"Billing case BR{ordinal}: I need the refund status.","applied_reply":"Check the refund settlement record and reference BR{ordinal} with billing support.","capstone_user":"Refund request CB{ordinal}: the credit is not visible.","capstone_reply":"Check the settlement record and keep reference CB{ordinal}."},
+    {"slice":"order_status","applied_user":"Order case OS{ordinal}: where is my parcel?","applied_reply":"Open the carrier tracking record for OS{ordinal} and review its latest scan.","capstone_user":"Delivery request CO{ordinal}: the parcel has not arrived.","capstone_reply":"Review the carrier trace and keep reference CO{ordinal}."},
+    {"slice":"password_reset","applied_user":"Password case PR{ordinal}: my reset link expired.","applied_reply":"Request one fresh password-reset link for PR{ordinal} and discard the expired link.","capstone_user":"Reset request CP{ordinal}: the recovery link is expired.","capstone_reply":"Request a fresh recovery link and discard CP{ordinal}'s expired link."},
+    {"slice":"product_information","applied_user":"Product case PI{ordinal}: which plan includes exports?","applied_reply":"Consult the current plan comparison for PI{ordinal} before choosing a plan.","capstone_user":"Plan request CI{ordinal}: I need export availability.","capstone_reply":"Check the current plan comparison for CI{ordinal}."},
+    {"slice":"technical_issue","applied_user":"Technical case TI{ordinal}: the app closes at launch.","applied_reply":"Collect the app version and sanitized launch log for TI{ordinal}.","capstone_user":"App request CT{ordinal}: launch closes immediately.","capstone_reply":"Collect the version and sanitized launch log for CT{ordinal}."}
+  ],"applied_ordinals":[1,2,3,4,5,6,7,8,9,10,11,12,13,14],"capstone_ordinals":[1,2,3,4,5,6,7,8],"record_shape":{"messages":[{"role":"user","content":"rendered user template"}],"expected":{"intent":"slice","response":"INTENT={slice} LF REPLY={rendered reply template}"}},"evaluation_serialization":"expected.response is the exact two-line assistant content"},
+  "retrieval_manual":{"documents":[
+    {"record_id":"RM01","text":"Account recovery uses the recovery page. Verify identity before changing an account email."},
+    {"record_id":"RM02","text":"Refund status appears in the billing settlement record. Pending refunds include a settlement reference."},
+    {"record_id":"RM03","text":"Password reset links expire after use. Request one fresh reset link and discard the old link."},
+    {"record_id":"RM04","text":"Order tracking shows carrier scans. A parcel without a recent scan can receive a carrier trace."},
+    {"record_id":"RM05","text":"Sign-in security codes depend on an accurate device clock. Synchronize the clock before retrying."},
+    {"record_id":"RM06","text":"Invoices list service lines and totals. A duplicate service line should be sent to billing review."},
+    {"record_id":"RM07","text":"Application launch failures need the app version and a sanitized launch log."},
+    {"record_id":"RM08","text":"Plan comparisons describe export availability and current product limits."}
+  ],"queries":[
+    {"query_id":"RQ01","text":"How do I recover account access?","top3":["RM01","RM02","RM03"],"citation_supported":["RM01"]},
+    {"query_id":"RQ02","text":"Where can I check a pending refund?","top3":["RM02","RM04","RM07"],"citation_supported":["RM02"]},
+    {"query_id":"RQ03","text":"What should I do with an expired password reset link?","top3":["RM03","RM06","RM05"],"citation_supported":["RM03"]},
+    {"query_id":"RQ04","text":"My parcel has no recent tracking scan.","top3":["RM04","RM01","RM02"],"citation_supported":["RM04"]},
+    {"query_id":"RQ05","text":"A sign-in code fails when my device clock is wrong.","top3":["RM05","RM02","RM04"],"citation_supported":["RM05"]},
+    {"query_id":"RQ06","text":"The invoice contains a duplicate service line.","top3":["RM06","RM04","RM07"],"citation_supported":["RM06"]}
+  ],"ranking":"APP lexical TF-IDF; score descending, record_id ascending; top_k accepts 1..20 and returns min(top_k,N) including zero-score ties"}
+}

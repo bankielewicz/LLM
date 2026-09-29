@@ -1,0 +1,130 @@
+{
+  "section": "06-APPLIED-MODELS.md",
+  "requirements": [
+    {"id":"APP-001","title":"Operation and model identity boundaries"},
+    {"id":"APP-002","title":"Pinned acquisition and safe-file verification"},
+    {"id":"APP-003","title":"Exact model profile"},
+    {"id":"APP-004","title":"Chat serialization and supervised-loss mask"},
+    {"id":"APP-005","title":"Applied task and deterministic evaluation"},
+    {"id":"APP-006","title":"Fixed LoRA training preset"},
+    {"id":"APP-007","title":"Deterministic training, validation, and selection"},
+    {"id":"APP-008","title":"Safe checkpoints and exact resume"},
+    {"id":"APP-009","title":"Decoding, output events, and cancellation"},
+    {"id":"APP-010","title":"Conversation validation and context truncation"},
+    {"id":"APP-011","title":"Base, adapter, and checkpoint comparisons"},
+    {"id":"APP-012","title":"Applied packaging and reuse"},
+    {"id":"APP-013","title":"E02 lexical retrieval with evidence"},
+    {"id":"APP-014","title":"E01 weight-tying model variant"},
+    {"id":"APP-015","title":"Failure behavior and release evidence"}
+  ],
+  "cases": [
+    {
+      "id":"AC-APP-001","requirements":["APP-001"],"name":"Operations preserve model-changing boundaries","method":"integration","profiles":["win-cpu","wsl-cpu","wsl-cuda"],
+      "preconditions":["Registered tiny, base, and adapter fixtures exist"],
+      "steps":["Call each operation with its valid model family","Pass tiny to chat_generate and base to generate","Hash all model artifacts before and after non-training operations"],
+      "expected":["Valid operations return their distinct result type","Both mismatches return SUBJECT_INCOMPATIBLE before compute","Non-training hashes are unchanged"],"status":"NOT_RUN"
+    },
+    {
+      "id":"AC-APP-002","requirements":["APP-002","APP-003"],"name":"Pinned safe download accepts exact files and rejects drift","method":"integration","profiles":["win-cpu","wsl-cpu","wsl-cuda"],
+      "preconditions":["Empty model cache","Exact local mirror and one byte-corrupt mirror are available"],
+      "steps":["Prepare with accept_download false","Prepare from exact pinned response","Repeat with corrupt model.safetensors and with changed config constant","Inspect requested filenames and registered profile"],
+      "expected":["Consent refusal queues no job","Exactly eight allowlisted files totaling 272437573 bytes are verified","Corrupt file returns DOWNLOAD_INTEGRITY_FAILED and changed config returns MODEL_PROFILE_MISMATCH","No pickle/code/extra file is requested or registered"],"status":"NOT_RUN"
+    },
+    {
+      "id":"AC-APP-003","requirements":["APP-004"],"name":"Template boundary creates response-only labels","method":"unit","profiles":["win-cpu","wsl-cpu","wsl-cuda"],
+      "preconditions":["Pinned tokenizer files pass manifest"],
+      "steps":["Render fixed system/user/assistant record and prompt prefix","Compare prefix IDs","Inspect labels and padding","Submit overlength and zero-target fixtures"],
+      "expected":["Prompt IDs exactly prefix full IDs","Prompt/padding/trailing-newline labels are -100 and assistant through first im_end labels equal token IDs","Assistant mask API is not called","Invalid fixtures return ASSISTANT_BOUNDARY_MISMATCH or EMPTY_SUPERVISED_TARGET"],"status":"NOT_RUN"
+    },
+    {
+      "id":"AC-APP-004","requirements":["APP-005"],"name":"Applied evaluation matches frozen parser oracle","method":"unit","profiles":["win-cpu","wsl-cpu","wsl-cuda"],
+      "preconditions":["metric-oracle-v1.json validates"],
+      "steps":["Parse all three raw outputs","Aggregate overall and per-slice metrics"],
+      "expected":["Exact intent aggregate is 1/3","Schema-valid aggregate is 2/3","Raw outputs and ordered IDs remain in artifact","No pass or improvement label is emitted"],"status":"NOT_RUN"
+    },
+    {
+      "id":"AC-APP-005","requirements":["APP-006"],"name":"LoRA preset adapts only 60 target modules","method":"integration","profiles":["win-cpu","wsl-cpu","wsl-cuda"],
+      "preconditions":["Verified base model is prepared"],
+      "steps":["Construct adapter with fixed preset","List trainable names/shapes","Compare base and initial-adapter logits","Submit update bounds 0,1,120,121"],
+      "expected":["Only q_proj/v_proj LoRA tensors in 30 layers are trainable","Trainable scalar count is 460800","Initial logits match within 1e-6","Only 1 and 120 pass bounds"],"status":"NOT_RUN"
+    },
+    {
+      "id":"AC-APP-006","requirements":["APP-007"],"name":"Training order, accumulation, validation, and selection are deterministic","method":"integration","profiles":["win-cpu","wsl-cpu"],
+      "preconditions":["applied-intents-v1 is registered and eligible","Base and adapter preset are verified"],
+      "steps":["Run prescribed 40 updates twice with seed17","Compare record order, metrics, checkpoints, and validation outputs","Inspect validation access and selector tuples"],
+      "expected":["Both runs are byte-equal for deterministic artifacts","Four records contribute to each update","Validation occurs at 0,10,20,30,40","No test record is read and selector follows declared tuple order"],"status":"NOT_RUN"
+    },
+    {
+      "id":"AC-APP-007","requirements":["APP-008"],"name":"Resume equals uninterrupted CPU lineage","method":"integration","profiles":["win-cpu","wsl-cpu"],
+      "preconditions":["Same base, dataset, lock, profile, and seed"],
+      "steps":["Run uninterrupted 60 updates","Run 40 updates then resume 20","Compare adapter/optimizer tensors, updates41-60 metrics, selection, and validation token IDs","Corrupt each checkpoint identity field in turn"],
+      "expected":["Tensors, ordered records, numerical updates41-60 metrics, selection, and token IDs are equal; elapsed/time/identity fields are excluded","Resume creates child without changing parent","Every identity corruption returns CHECKPOINT_INCOMPATIBLE before tensor load","No checkpoint contains pickle"],"status":"NOT_RUN"
+    },
+    {
+      "id":"AC-APP-008","requirements":["APP-009"],"name":"Greedy, sampling, streaming, and cancel contracts","method":"integration","profiles":["win-cpu","wsl-cpu","wsl-cuda"],
+      "preconditions":["Verified base and chat-no-truncation-v1 exist"],
+      "steps":["Generate twice greedy","Generate twice sampled with same seed","Submit invalid temperature/top-p pairs","Cancel after the first coalesced progress event"],
+      "expected":["Repeated token IDs match within each mode/profile","Invalid pairs return INVALID_SAMPLING_PARAMETERS before queuing","Generation phase and bounded progress events precede terminal decoded artifact","Cancelled job is interrupted with retained partial artifact"],"status":"NOT_RUN"
+    },
+    {
+      "id":"AC-APP-009","requirements":["APP-010"],"name":"Conversation validation drops only oldest complete pairs","method":"unit","profiles":["win-cpu","wsl-cpu","wsl-cuda"],
+      "preconditions":["Both chat fixtures and pinned tokenizer exist"],
+      "steps":["Render no-truncation fixture","Render drop-oldest fixture","Try invalid role orders and an overlong latest user"],
+      "expected":["First fixture drops none","Second drops original indices1,2 and retains0,3 within448-token input budget","Invalid roles return INVALID_CONVERSATION","Unshrinkable request returns CONTEXT_TOO_LONG without token cropping"],"status":"NOT_RUN"
+    },
+    {
+      "id":"AC-APP-010","requirements":["APP-011"],"name":"Paired evaluation holds inputs constant","method":"integration","profiles":["win-cpu","wsl-cpu","wsl-cuda"],
+      "preconditions":["Frozen base and selected adapter exist","applied-intents test is registered"],
+      "steps":["Submit one evaluate job with base then adapter subjects","Inspect identities, ordered record IDs, settings, metrics, and deltas","Attempt comparison with mismatched revision"],
+      "expected":["Both subject blocks use identical twelve IDs and decoding","Raw outputs and neutral deltas are retained","Mismatch returns SUBJECT_INCOMPATIBLE","No significance or improvement claim is emitted"],"status":"NOT_RUN"
+    },
+    {
+      "id":"AC-APP-011","requirements":["APP-011"],"name":"Capstone test token permits one atomic paired evaluation","method":"integration","profiles":["win-cpu","wsl-cpu","wsl-cuda"],
+      "preconditions":["Fresh capstone-support-v1 attempt has frozen base, selected candidate, and unused release token"],
+      "steps":["Verify sealed records cannot be read","Evaluate ordered base/candidate subjects once","Reuse that token after success and after injected failure","After injected failure, explicitly create a new attempt and run its paired evaluation"],
+      "expected":["No pre-release content is exposed","One paired artifact contains both subject blocks","Each consumed token is rejected on reuse and failed first attempt stays consumed","The later attempt is allowed only with reused_test exposure, remains eligible as labelled final comparison evidence, and cannot satisfy untouched-test evidence"],"status":"NOT_RUN"
+    },
+    {
+      "id":"AC-APP-012","requirements":["APP-012"],"name":"Thin and full bundles validate and reuse","method":"integration","profiles":["win-cpu","wsl-cpu"],
+      "preconditions":["Completed adapter and evidence exist"],
+      "steps":["Export thin and full bundles","Import each into fresh data directory with network disabled","Run fixed greedy fixture","Remove base before thin import and retry"],
+      "expected":["Both bundles pass digest/path/identity validation","Full runs offline","Thin runs only with exact base cached and otherwise returns MODEL_NOT_PREPARED","No secret, absolute path, or unlisted file is present"],"status":"NOT_RUN"
+    },
+    {
+      "id":"AC-APP-013","requirements":["APP-013"],"name":"Lexical retrieval matches six canonical top-three lists","method":"unit","profiles":["win-cpu","wsl-cpu","wsl-cuda"],
+      "preconditions":["retrieval-manual-v1 corpus and oracle validate"],
+      "steps":["Build index","Run RQ01 through RQ06 with top_k3","Try out-of-vocabulary query","Build evidence-answer prompt for one query"],
+      "expected":["Every ranked record_id list exactly matches expected_hits and every score is within 1e-15 absolute error","OOV query returns RETRIEVAL_QUERY_NO_TERMS","No network or model download occurs","Prompt and artifact retain scores, IDs, and exact evidence text"],"status":"NOT_RUN"
+    },
+    {
+      "id":"AC-APP-014","requirements":["APP-014"],"name":"Tied tiny-v2 shares one safely serialized parameter","method":"integration","profiles":["win-cpu","wsl-cpu","wsl-cuda"],
+      "preconditions":["weight-tying-oracle-v1 validates"],
+      "steps":["Run verify-e01-workspace on a learner-owned copy and unused absolute output directory","Inspect receipt.json, bounded logs, the six named results, and control-channel registration","Run the registered tied profile for 50 updates with its e01_verification_id","Attempt missing/wrong verification ID, conflicting alias, variant load, and protected-source change"],
+      "expected":["Identity, delta16448, shape/loss on explicit shifted targets, causal, save/load, and incompatibility checks all pass","Atomic output contains receipt.json/stdout.log/stderr.log and registration returns receipt_artifact_id plus e01_verification_id","Only the receipt-bound verification ID enables tiny-v2-weight-tied-v1; standard profile forbids it","Protected or alias failures cannot register profile and legacy checkpoint is not transformed"],"status":"NOT_RUN"
+    },
+    {
+      "id":"AC-APP-015","requirements":["APP-015"],"name":"Stable errors are bounded and mutation-free","method":"integration","profiles":["win-cpu","wsl-cpu","wsl-cuda"],
+      "preconditions":["Registry revision and artifact-tree digest are recorded"],
+      "steps":["Trigger every APP stable error with its frozen invalid fixture","Inspect API and local log","Compare registry revision and artifact tree after preflight rejections"],
+      "expected":["Each boundary returns its specified code and corrective message","Browser response contains no traceback or absolute path","Local log is keyed by job/request ID","Preflight rejection changes no registry or artifact bytes"],"status":"NOT_RUN"
+    },
+    {
+      "id":"AC-APP-016","requirements":["APP-002","APP-015"],"name":"Official pinned download receipt","method":"manual","profiles":["win-cpu","wsl-cpu","wsl-cuda"],
+      "preconditions":["Network is enabled by tester and learner consent is recorded"],
+      "steps":["Run model_prepare against official pinned repository","Capture resolved revision, redirect hosts, names, sizes, digests, license, and final registration"],
+      "expected":["Receipt names only approved HTTPS hosts and eight files","Revision and all manifest values match","Registered origin is locally prepared without asserting compatibility beyond the tested profile"],"status":"NOT_RUN"
+    },
+    {
+      "id":"AC-APP-017","requirements":["APP-009","APP-010"],"name":"Context preview binds visible tokens to generation request","method":"integration","profiles":["win-cpu","wsl-cpu","wsl-cuda"],
+      "preconditions":["Tiny and chat subjects plus both chat fixtures are registered"],
+      "steps":["Preview tiny continuation and both chat fixtures","Submit generation with each unchanged preview","Change one request field and then one registered subject digest","Inspect worker imports and artifacts"],
+      "expected":["Preview contains exact serialized input, token IDs/count, budget, and crop/drop indices","Unchanged requests are accepted","Both changes return CONTEXT_PREVIEW_STALE before job creation","Preview worker loads tokenizer metadata but no model weights","E02 augmented chat uses a new preview"],"status":"NOT_RUN"
+    },
+    {
+      "id":"AC-APP-018","requirements":["APP-006","APP-007","APP-011"],"name":"Capstone adapter preset is fixed and validation-selected","method":"integration","profiles":["win-cpu","wsl-cpu","wsl-cuda"],
+      "preconditions":["Eligible capstone-support-v1 has 30 train and 6 validation records","Verified base is frozen"],
+      "steps":["Run smollm2-capstone-lora-v1","Inspect requests at 19,20,21 updates and wrong seed/dataset","Inspect update records and validation selections","Attempt prompt-only capstone candidate"],
+      "expected":["Only dataset capstone-support-v1, seed29, and exactly20 initial updates are accepted","Three records contribute per update for60 presentations/two passes","Validation/save occurs at0,5,10,15,20 and full comparator selects checkpoint","Prompt-only candidate is rejected"],"status":"NOT_RUN"
+    }
+  ]
+}

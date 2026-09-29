@@ -1,0 +1,44 @@
+{
+  "format": "llm-foundations-illustrative-diagnosis-traces-v1",
+  "fixture_id": "diagnosis-traces-v1",
+  "evidence_class": "illustrative_trace",
+  "must_not_import_as_recorded_run": true,
+  "cases": [
+    {
+      "case_id": "D14-01",
+      "request": {"width":63,"heads":4},
+      "events": [{"phase":"preflight","state":"rejected"}],
+      "expected_label": "CFG_HEAD_DIVISIBILITY",
+      "expected_next_action": "choose a positive width evenly divisible by heads"
+    },
+    {
+      "case_id": "D14-02",
+      "request": {"dataset_id":"data-clinic-leaky-v1"},
+      "events": [{"phase":"preflight","state":"rejected","exact_duplicate_pairs":1,"normalized_near_duplicate_pairs":2,"group_overlap_count":1}],
+      "expected_label": "DATASET_LEAKAGE_BLOCK",
+      "expected_next_action": "repair and re-audit the split before compute"
+    },
+    {
+      "case_id": "D14-03",
+      "request": {"learning_rate":10.0},
+      "events": [{"step":0,"train_loss":5.4,"validation_loss":5.5},{"step":25,"train_loss":1e308,"validation_loss":1e308},{"step":26,"train_loss":"NaN","state":"failed"}],
+      "expected_label": "NON_FINITE_LOSS",
+      "expected_next_action": "retain the failure and test a bounded lower learning rate with all other fields fixed"
+    },
+    {
+      "case_id": "D14-04",
+      "request": {"exercise_profile_id":"tiny-v2-diagnosis-v1","curriculum_hold_after_step":25},
+      "events": [{"step":25,"phase":"evaluation_checkpointed"},{"step":25,"phase":"cancellable_hold"},{"step":25,"state":"interrupted","reason":"user_cancelled"}],
+      "expected_label": "USER_CANCELLED_SAFE_BOUNDARY",
+      "expected_resume_step": 25
+    },
+    {
+      "case_id": "D14-05",
+      "request": {"steps":50},
+      "events": [{"step":0,"train_loss":5.4,"validation_loss":5.5},{"step":25,"train_loss":4.8,"validation_loss":5.0},{"step":50,"train_loss":4.4,"validation_loss":4.9,"state":"completed"}],
+      "sample": "the the the the",
+      "expected_label": "NO_QUALITY_FAILURE",
+      "expected_next_action": "report the completed bounded run and weak sample separately"
+    }
+  ]
+}
