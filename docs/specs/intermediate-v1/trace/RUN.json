@@ -553,6 +553,35 @@
         "Each profile has an independent result per applicable case with hashes/versions/timestamps; NOT_RUN remains until execution; no speed, quality or unsupported-platform claim is recorded."
       ],
       "status": "NOT_RUN"
+    },
+    {
+      "id": "AC-RUN-020",
+      "name": "Bounded preflight child and diagnostic receipts",
+      "method": "integration",
+      "requirements": [
+        "RUN-001",
+        "RUN-015",
+        "RUN-007"
+      ],
+      "profiles": [
+        "win-cpu",
+        "wsl-cpu",
+        "wsl-cuda"
+      ],
+      "preconditions": [
+        "Installed candidate with isolated storage and process ownership instrumentation."
+      ],
+      "steps": [
+        "Observe fixed preflight child invocation; induce timeout, excess stdout and wrong dependency version.",
+        "Save prescribed width63/heads4 diagnostic and failed tampered-bundle job receipt.",
+        "Try valid/different invalid request, successful job and stale job ID; replay identical idempotency key."
+      ],
+      "expected": [
+        "API process imports no ML libraries and performs only service-owned storage checks; child bounds enforced.",
+        "Only named negative cases create one diagnostic artifact, no extra job or protected registry mutation; invalid receipt inputs rejected.",
+        "Repeated idempotent submission returns same receipt identity."
+      ],
+      "status": "NOT_RUN"
     }
   ]
 }

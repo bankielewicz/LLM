@@ -1,0 +1,63 @@
+{
+  "checkpoint_id": "10101010-1010-4010-8010-101010101010",
+  "artifact_id": "11111111-1010-4010-8010-101010101010",
+  "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "format": "safetensors",
+  "origin": "locally_created",
+  "run_id": "12121212-1212-4212-8212-121212121212",
+  "job_id": "13131313-1313-4313-8313-131313131313",
+  "backend": "transformers_peft",
+  "step": 20,
+  "model_identity": {
+    "kind": "transformers_peft",
+    "model_repository": "HuggingFaceTB/SmolLM2-135M-Instruct",
+    "model_revision": "12fd25f77366fa6b3b4b768ec3050bf629380bac",
+    "model_manifest_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "tokenizer_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+    "chat_template_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+    "model_profile_id": "smollm2-135m-instruct-v1",
+    "model_profile_version": 1,
+    "adapter_preset_id": "smollm2-capstone-lora-v1",
+    "adapter": {
+      "r": 8,
+      "lora_alpha": 16,
+      "lora_dropout": 0,
+      "target_modules": [
+        "q_proj",
+        "v_proj"
+      ],
+      "bias": "none",
+      "task_type": "CAUSAL_LM",
+      "init_lora_weights": true
+    },
+    "base_model_id": "12121212-1212-4212-8212-121212121212"
+  },
+  "dataset_bindings": [
+    {
+      "dataset_id": "14141414-1414-4414-8414-141414141414",
+      "split": "train",
+      "artifact_id": "15151515-1515-4515-8515-151515151515",
+      "sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+    }
+  ],
+  "training_identity": {
+    "batch_size": 1,
+    "gradient_accumulation": 3,
+    "learning_rate": 0.0002,
+    "weight_decay": 0.01,
+    "max_gradient_norm": 1,
+    "context": 512,
+    "eval_every": 5,
+    "save_every": 5
+  },
+  "seed": 29,
+  "dependency_lock_sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+  "dtype": "float32",
+  "runtime_profile": "win-cpu",
+  "created_at": "2026-09-28T12:00:00.000Z",
+  "portability": "resume",
+  "contains_resume_state": true,
+  "parent_checkpoint_id": null,
+  "device": "cpu",
+  "companion_source_revision": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+}

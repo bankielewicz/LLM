@@ -1,24 +1,738 @@
 {
- "$schema":"https://json-schema.org/draft/2020-12/schema","$id":"run-manifest.schema.json","type":"object","additionalProperties":false,
- "required":["format","run_id","job_id","operation","backend","origin","config","dependency_lock_sha256","runtime_profile","device","created_at"],
- "properties":{"format":{"const":"llm-foundations-run-v2"},"run_id":{"$ref":"common.schema.json#/$defs/id"},"job_id":{"$ref":"common.schema.json#/$defs/id"},"operation":{"enum":["tokenizer_train","tiny_train","tiny_resume","evaluate","generate","adapter_train","adapter_resume","chat_generate"]},"backend":{"enum":["tiny_v2","transformers_peft"]},"origin":{"$ref":"common.schema.json#/$defs/origin"},"config":{"anyOf":[{"$ref":"#/$defs/tokenizerConfig"},{"$ref":"#/$defs/tinyConfig"},{"$ref":"#/$defs/appliedConfig"},{"$ref":"#/$defs/evalConfig"},{"$ref":"#/$defs/generateConfig"},{"$ref":"#/$defs/chatConfig"}]},"dataset_bindings":{"type":"array","minItems":1,"maxItems":3,"items":{"$ref":"#/$defs/binding"}},"seed":{"type":"integer","minimum":0,"maximum":4294967295},"dependency_lock_sha256":{"$ref":"common.schema.json#/$defs/sha256"},"runtime_profile":{"enum":["win-cpu","wsl-cpu","wsl-cuda"]},"device":{"type":"string","minLength":1,"maxLength":80},"parent_checkpoint_id":{"$ref":"common.schema.json#/$defs/id"},"model_id":{"$ref":"common.schema.json#/$defs/id"},"tokenizer_sha256":{"$ref":"common.schema.json#/$defs/sha256"},"chat_template_sha256":{"$ref":"common.schema.json#/$defs/sha256"},"created_at":{"$ref":"common.schema.json#/$defs/time"}},
- "allOf":[
-  {"if":{"properties":{"operation":{"const":"tokenizer_train"}}},"then":{"required":["dataset_bindings","seed"],"properties":{"backend":{"const":"tiny_v2"},"config":{"$ref":"#/$defs/tokenizerConfig"}}}},
-  {"if":{"properties":{"operation":{"enum":["tiny_train","tiny_resume"]}}},"then":{"required":["dataset_bindings","seed"],"properties":{"backend":{"const":"tiny_v2"},"config":{"$ref":"#/$defs/tinyConfig"}}}},
-  {"if":{"properties":{"operation":{"const":"tiny_resume"}}},"then":{"required":["parent_checkpoint_id"]}},
-  {"if":{"properties":{"operation":{"enum":["adapter_train","adapter_resume"]}}},"then":{"required":["dataset_bindings","seed","model_id","tokenizer_sha256","chat_template_sha256"],"properties":{"backend":{"const":"transformers_peft"},"config":{"$ref":"#/$defs/appliedConfig"}}}},
-  {"if":{"properties":{"operation":{"const":"adapter_resume"}}},"then":{"required":["parent_checkpoint_id"]}},
-  {"if":{"properties":{"operation":{"const":"evaluate"}}},"then":{"required":["dataset_bindings"],"properties":{"config":{"$ref":"#/$defs/evalConfig"}}}},
-  {"if":{"properties":{"operation":{"const":"generate"}}},"then":{"required":["seed","model_id","tokenizer_sha256"],"properties":{"backend":{"const":"tiny_v2"},"config":{"$ref":"#/$defs/generateConfig"}}}},
-  {"if":{"properties":{"operation":{"const":"chat_generate"}}},"then":{"required":["seed","model_id","chat_template_sha256"],"properties":{"backend":{"const":"transformers_peft"},"config":{"$ref":"#/$defs/chatConfig"}}}}
- ],
- "$defs":{
-  "binding":{"type":"object","additionalProperties":false,"required":["dataset_id","split","artifact_id","sha256"],"properties":{"dataset_id":{"$ref":"common.schema.json#/$defs/id"},"split":{"enum":["train","validation","test","development","sealed_test"]},"artifact_id":{"$ref":"common.schema.json#/$defs/id"},"sha256":{"$ref":"common.schema.json#/$defs/sha256"}}},
-  "tokenizerConfig":{"type":"object","additionalProperties":false,"required":["vocab_size"],"properties":{"vocab_size":{"type":"integer","minimum":257,"maximum":1024}}},
-  "tinyConfig":{"type":"object","additionalProperties":false,"required":["architecture_profile_id","steps","eval_every","batch_size","learning_rate","context","width","heads","layers"],"properties":{"architecture_profile_id":{"enum":["tiny-v2-standard-v1","tiny-v2-weight-tied-v1"]},"steps":{"type":"integer","minimum":1,"maximum":2000},"eval_every":{"type":"integer","minimum":1,"maximum":500},"batch_size":{"type":"integer","minimum":1,"maximum":64},"learning_rate":{"type":"number","exclusiveMinimum":0,"maximum":0.1},"context":{"type":"integer","minimum":8,"maximum":512},"width":{"type":"integer","minimum":16,"maximum":512},"heads":{"type":"integer","minimum":1,"maximum":16},"layers":{"type":"integer","minimum":1,"maximum":12}}},
-  "appliedConfig":{"type":"object","additionalProperties":false,"required":["model_profile_id","adapter_preset_id","steps","batch_size","gradient_accumulation","learning_rate","weight_decay","max_gradient_norm","context","eval_every","save_every"],"properties":{"model_profile_id":{"const":"smollm2-135m-instruct-v1"},"adapter_preset_id":{"const":"smollm2-135m-lora-teaching-v1"},"steps":{"type":"integer","minimum":1,"maximum":2000},"batch_size":{"type":"integer","minimum":1,"maximum":64},"gradient_accumulation":{"type":"integer","minimum":1,"maximum":64},"learning_rate":{"const":0.0002},"weight_decay":{"type":"number","minimum":0,"maximum":1},"max_gradient_norm":{"type":"number","exclusiveMinimum":0,"maximum":100},"context":{"const":512},"eval_every":{"type":"integer","minimum":1,"maximum":500},"save_every":{"type":"integer","minimum":1,"maximum":500}}},
-  "evalConfig":{"type":"object","additionalProperties":false,"required":["evaluation_profile_id","subject_ids"],"properties":{"evaluation_profile_id":{"enum":["tiny-nll-per-byte-v1","applied-intents-greedy-v1"]},"subject_ids":{"type":"array","minItems":1,"maxItems":2,"items":{"$ref":"common.schema.json#/$defs/id"}},"release_token_consumed":{"type":"boolean"}}},
-  "generateConfig":{"type":"object","additionalProperties":false,"required":["preview_artifact_id","max_new_tokens","temperature","top_p"],"properties":{"preview_artifact_id":{"$ref":"common.schema.json#/$defs/id"},"max_new_tokens":{"type":"integer","minimum":1,"maximum":512},"temperature":{"type":"number","minimum":0,"maximum":2},"top_p":{"type":"number","exclusiveMinimum":0,"maximum":1}}},
-  "chatConfig":{"type":"object","additionalProperties":false,"required":["preview_artifact_id","max_new_tokens","temperature","top_p"],"properties":{"preview_artifact_id":{"$ref":"common.schema.json#/$defs/id"},"max_new_tokens":{"type":"integer","minimum":1,"maximum":128},"temperature":{"type":"number","minimum":0,"maximum":2},"top_p":{"type":"number","minimum":0.05,"maximum":1}}}
- }
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "run-manifest.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "format",
+    "run_id",
+    "job_id",
+    "operation",
+    "backend",
+    "origin",
+    "config",
+    "dependency_lock_sha256",
+    "runtime_profile",
+    "device",
+    "created_at"
+  ],
+  "properties": {
+    "format": {
+      "const": "llm-foundations-run-v2"
+    },
+    "run_id": {
+      "$ref": "common.schema.json#/$defs/id"
+    },
+    "job_id": {
+      "$ref": "common.schema.json#/$defs/id"
+    },
+    "operation": {
+      "enum": [
+        "tokenizer_train",
+        "tiny_train",
+        "tiny_resume",
+        "evaluate",
+        "generate",
+        "adapter_train",
+        "adapter_resume",
+        "chat_generate"
+      ]
+    },
+    "backend": {
+      "enum": [
+        "tiny_v2",
+        "transformers_peft"
+      ]
+    },
+    "origin": {
+      "$ref": "common.schema.json#/$defs/origin"
+    },
+    "config": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/tokenizerConfig"
+        },
+        {
+          "$ref": "#/$defs/tinyConfig"
+        },
+        {
+          "$ref": "#/$defs/appliedConfig"
+        },
+        {
+          "$ref": "#/$defs/evalConfig"
+        },
+        {
+          "$ref": "#/$defs/generateConfig"
+        },
+        {
+          "$ref": "#/$defs/chatConfig"
+        }
+      ]
+    },
+    "dataset_bindings": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 3,
+      "items": {
+        "$ref": "#/$defs/binding"
+      }
+    },
+    "seed": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 4294967295
+    },
+    "dependency_lock_sha256": {
+      "$ref": "common.schema.json#/$defs/sha256"
+    },
+    "runtime_profile": {
+      "enum": [
+        "win-cpu",
+        "wsl-cpu",
+        "wsl-cuda"
+      ]
+    },
+    "device": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 80
+    },
+    "parent_checkpoint_id": {
+      "$ref": "common.schema.json#/$defs/id"
+    },
+    "model_id": {
+      "$ref": "common.schema.json#/$defs/id"
+    },
+    "tokenizer_sha256": {
+      "$ref": "common.schema.json#/$defs/sha256"
+    },
+    "chat_template_sha256": {
+      "$ref": "common.schema.json#/$defs/sha256"
+    },
+    "created_at": {
+      "$ref": "common.schema.json#/$defs/time"
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "operation": {
+            "const": "tokenizer_train"
+          }
+        }
+      },
+      "then": {
+        "required": [
+          "dataset_bindings",
+          "seed"
+        ],
+        "properties": {
+          "backend": {
+            "const": "tiny_v2"
+          },
+          "config": {
+            "$ref": "#/$defs/tokenizerConfig"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "operation": {
+            "enum": [
+              "tiny_train",
+              "tiny_resume"
+            ]
+          }
+        }
+      },
+      "then": {
+        "required": [
+          "dataset_bindings",
+          "seed"
+        ],
+        "properties": {
+          "backend": {
+            "const": "tiny_v2"
+          },
+          "config": {
+            "$ref": "#/$defs/tinyConfig"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "operation": {
+            "const": "tiny_resume"
+          }
+        }
+      },
+      "then": {
+        "required": [
+          "parent_checkpoint_id"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "operation": {
+            "enum": [
+              "adapter_train",
+              "adapter_resume"
+            ]
+          }
+        }
+      },
+      "then": {
+        "required": [
+          "dataset_bindings",
+          "seed",
+          "model_id",
+          "tokenizer_sha256",
+          "chat_template_sha256"
+        ],
+        "properties": {
+          "backend": {
+            "const": "transformers_peft"
+          },
+          "config": {
+            "$ref": "#/$defs/appliedConfig"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "operation": {
+            "const": "adapter_resume"
+          }
+        }
+      },
+      "then": {
+        "required": [
+          "parent_checkpoint_id"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "operation": {
+            "const": "evaluate"
+          }
+        }
+      },
+      "then": {
+        "required": [
+          "dataset_bindings"
+        ],
+        "properties": {
+          "config": {
+            "$ref": "#/$defs/evalConfig"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "operation": {
+            "const": "generate"
+          }
+        }
+      },
+      "then": {
+        "required": [
+          "seed",
+          "model_id",
+          "tokenizer_sha256"
+        ],
+        "properties": {
+          "backend": {
+            "const": "tiny_v2"
+          },
+          "config": {
+            "$ref": "#/$defs/generateConfig"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "operation": {
+            "const": "chat_generate"
+          }
+        }
+      },
+      "then": {
+        "required": [
+          "seed",
+          "model_id",
+          "chat_template_sha256"
+        ],
+        "properties": {
+          "backend": {
+            "const": "transformers_peft"
+          },
+          "config": {
+            "$ref": "#/$defs/chatConfig"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "operation": {
+            "enum": [
+              "adapter_train",
+              "adapter_resume"
+            ]
+          },
+          "config": {
+            "properties": {
+              "adapter_preset_id": {
+                "const": "smollm2-intents-lora-v1"
+              }
+            },
+            "required": [
+              "adapter_preset_id"
+            ]
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "seed": {
+            "const": 17
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "operation": {
+            "enum": [
+              "adapter_train",
+              "adapter_resume"
+            ]
+          },
+          "config": {
+            "properties": {
+              "adapter_preset_id": {
+                "const": "smollm2-capstone-lora-v1"
+              }
+            },
+            "required": [
+              "adapter_preset_id"
+            ]
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "seed": {
+            "const": 29
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "operation": {
+            "const": "adapter_train"
+          },
+          "config": {
+            "required": [
+              "adapter_preset_id"
+            ],
+            "properties": {
+              "adapter_preset_id": {
+                "const": "smollm2-capstone-lora-v1"
+              }
+            }
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "config": {
+            "properties": {
+              "steps": {
+                "const": 20
+              }
+            }
+          }
+        }
+      }
+    }
+  ],
+  "$defs": {
+    "binding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "dataset_id",
+        "split",
+        "artifact_id",
+        "sha256"
+      ],
+      "properties": {
+        "dataset_id": {
+          "$ref": "common.schema.json#/$defs/id"
+        },
+        "split": {
+          "enum": [
+            "train",
+            "validation",
+            "test",
+            "development",
+            "sealed_test"
+          ]
+        },
+        "artifact_id": {
+          "$ref": "common.schema.json#/$defs/id"
+        },
+        "sha256": {
+          "$ref": "common.schema.json#/$defs/sha256"
+        }
+      }
+    },
+    "tokenizerConfig": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "vocab_size"
+      ],
+      "properties": {
+        "vocab_size": {
+          "type": "integer",
+          "minimum": 257,
+          "maximum": 1024
+        }
+      }
+    },
+    "tinyConfig": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "architecture_profile_id",
+        "steps",
+        "eval_every",
+        "batch_size",
+        "learning_rate",
+        "context",
+        "width",
+        "heads",
+        "layers"
+      ],
+      "properties": {
+        "architecture_profile_id": {
+          "enum": [
+            "tiny-v2-standard-v1",
+            "tiny-v2-weight-tied-v1"
+          ]
+        },
+        "steps": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 2000
+        },
+        "eval_every": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 500
+        },
+        "batch_size": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 64
+        },
+        "learning_rate": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "maximum": 0.1
+        },
+        "context": {
+          "type": "integer",
+          "minimum": 8,
+          "maximum": 512
+        },
+        "width": {
+          "type": "integer",
+          "minimum": 16,
+          "maximum": 512
+        },
+        "heads": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 16
+        },
+        "layers": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 12
+        }
+      }
+    },
+    "appliedConfig": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "model_profile_id",
+        "adapter_preset_id",
+        "steps",
+        "batch_size",
+        "gradient_accumulation",
+        "learning_rate",
+        "weight_decay",
+        "max_gradient_norm",
+        "context",
+        "eval_every",
+        "save_every"
+      ],
+      "properties": {
+        "model_profile_id": {
+          "const": "smollm2-135m-instruct-v1"
+        },
+        "adapter_preset_id": {
+          "enum": [
+            "smollm2-intents-lora-v1",
+            "smollm2-capstone-lora-v1"
+          ]
+        },
+        "steps": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 2000
+        },
+        "batch_size": {
+          "const": 1
+        },
+        "gradient_accumulation": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 64
+        },
+        "learning_rate": {
+          "const": 0.0002
+        },
+        "weight_decay": {
+          "const": 0.01
+        },
+        "max_gradient_norm": {
+          "const": 1
+        },
+        "context": {
+          "const": 512
+        },
+        "eval_every": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 500
+        },
+        "save_every": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 500
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "adapter_preset_id": {
+                "const": "smollm2-intents-lora-v1"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "gradient_accumulation": {
+                "const": 4
+              },
+              "eval_every": {
+                "const": 10
+              },
+              "save_every": {
+                "const": 10
+              },
+              "steps": {
+                "maximum": 120
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "adapter_preset_id": {
+                "const": "smollm2-capstone-lora-v1"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "gradient_accumulation": {
+                "const": 3
+              },
+              "eval_every": {
+                "const": 5
+              },
+              "save_every": {
+                "const": 5
+              },
+              "steps": {
+                "maximum": 20
+              }
+            }
+          }
+        }
+      ]
+    },
+    "evalConfig": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "evaluation_profile_id",
+        "subject_ids"
+      ],
+      "properties": {
+        "evaluation_profile_id": {
+          "enum": [
+            "tiny-nll-per-byte-v1",
+            "applied-intents-greedy-v1"
+          ]
+        },
+        "subject_ids": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 2,
+          "items": {
+            "$ref": "common.schema.json#/$defs/id"
+          }
+        },
+        "release_token_consumed": {
+          "type": "boolean"
+        }
+      }
+    },
+    "generateConfig": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "preview_artifact_id",
+        "max_new_tokens",
+        "temperature",
+        "top_p",
+        "context_preview_digest"
+      ],
+      "properties": {
+        "preview_artifact_id": {
+          "$ref": "common.schema.json#/$defs/id"
+        },
+        "max_new_tokens": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 512
+        },
+        "temperature": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 2
+        },
+        "top_p": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "maximum": 1
+        },
+        "context_preview_digest": {
+          "$ref": "common.schema.json#/$defs/sha256"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "temperature": {
+                "const": 0
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "top_p": {
+                "const": 1
+              }
+            }
+          }
+        }
+      ]
+    },
+    "chatConfig": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "preview_artifact_id",
+        "max_new_tokens",
+        "temperature",
+        "top_p",
+        "subject",
+        "context_preview_digest"
+      ],
+      "properties": {
+        "preview_artifact_id": {
+          "$ref": "common.schema.json#/$defs/id"
+        },
+        "max_new_tokens": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 128
+        },
+        "temperature": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 2
+        },
+        "top_p": {
+          "type": "number",
+          "minimum": 0.05,
+          "maximum": 1
+        },
+        "subject": {
+          "$ref": "conversation.schema.json#/$defs/subject"
+        },
+        "context_preview_digest": {
+          "$ref": "common.schema.json#/$defs/sha256"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "temperature": {
+                "const": 0
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "top_p": {
+                "const": 1
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
 }

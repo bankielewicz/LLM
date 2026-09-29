@@ -1,1 +1,419 @@
-{"$schema":"https://json-schema.org/draft/2020-12/schema","$id":"assessment-record.schema.json","type":"object","additionalProperties":false,"required":["assessment_id","evidence_id","review_kind","reviewer","rubric_version","rubric_rows","decision","rationale","origin","created_at"],"properties":{"assessment_id":{"$ref":"common.schema.json#/$defs/id"},"evidence_id":{"$ref":"common.schema.json#/$defs/id"},"review_kind":{"enum":["self","independent"]},"reviewer":{"type":"object","additionalProperties":false,"required":["reviewer_id","display_name"],"properties":{"reviewer_id":{"type":"string","minLength":1,"maxLength":120},"display_name":{"type":"string","minLength":1,"maxLength":120}}},"rubric_version":{"type":"string","minLength":1,"maxLength":80},"rubric_rows":{"type":"array","minItems":10,"maxItems":10,"uniqueItems":true,"items":{"type":"object","additionalProperties":false,"required":["criterion_id","score","comment"],"properties":{"criterion_id":{"type":"string","minLength":1,"maxLength":80},"score":{"enum":[0,5,10]},"comment":{"type":"string","maxLength":4000}}}},"decision":{"enum":["meets","partially_meets","does_not_meet"]},"rationale":{"type":"string","minLength":1,"maxLength":20000},"origin":{"$ref":"common.schema.json#/$defs/origin"},"created_at":{"$ref":"common.schema.json#/$defs/time"}}}
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "assessment-record.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "assessment_id",
+    "evidence_id",
+    "review_kind",
+    "reviewer",
+    "rubric_version",
+    "rubric_rows",
+    "decision",
+    "rationale",
+    "origin",
+    "created_at",
+    "total_score",
+    "objective_gates_verified"
+  ],
+  "properties": {
+    "assessment_id": {
+      "$ref": "common.schema.json#/$defs/id"
+    },
+    "evidence_id": {
+      "$ref": "common.schema.json#/$defs/id"
+    },
+    "review_kind": {
+      "enum": [
+        "self",
+        "independent"
+      ]
+    },
+    "reviewer": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "reviewer_id",
+        "display_name"
+      ],
+      "properties": {
+        "reviewer_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 120
+        },
+        "display_name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 120
+        }
+      }
+    },
+    "rubric_version": {
+      "const": "intermediate-v1"
+    },
+    "rubric_rows": {
+      "type": "array",
+      "minItems": 10,
+      "maxItems": 10,
+      "items": false,
+      "prefixItems": [
+        {
+          "type": "object",
+          "properties": {
+            "criterion_id": {
+              "const": "problem_framing"
+            },
+            "score": {
+              "enum": [
+                0,
+                5,
+                10
+              ]
+            },
+            "comment": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 4000
+            }
+          },
+          "required": [
+            "criterion_id",
+            "score",
+            "comment"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "criterion_id": {
+              "const": "data_custody"
+            },
+            "score": {
+              "enum": [
+                0,
+                5,
+                10
+              ]
+            },
+            "comment": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 4000
+            }
+          },
+          "required": [
+            "criterion_id",
+            "score",
+            "comment"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "criterion_id": {
+              "const": "baseline"
+            },
+            "score": {
+              "enum": [
+                0,
+                5,
+                10
+              ]
+            },
+            "comment": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 4000
+            }
+          },
+          "required": [
+            "criterion_id",
+            "score",
+            "comment"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "criterion_id": {
+              "const": "candidate_control"
+            },
+            "score": {
+              "enum": [
+                0,
+                5,
+                10
+              ]
+            },
+            "comment": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 4000
+            }
+          },
+          "required": [
+            "criterion_id",
+            "score",
+            "comment"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "criterion_id": {
+              "const": "operation_distinction"
+            },
+            "score": {
+              "enum": [
+                0,
+                5,
+                10
+              ]
+            },
+            "comment": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 4000
+            }
+          },
+          "required": [
+            "criterion_id",
+            "score",
+            "comment"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "criterion_id": {
+              "const": "evaluation_discipline"
+            },
+            "score": {
+              "enum": [
+                0,
+                5,
+                10
+              ]
+            },
+            "comment": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 4000
+            }
+          },
+          "required": [
+            "criterion_id",
+            "score",
+            "comment"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "criterion_id": {
+              "const": "diagnosis"
+            },
+            "score": {
+              "enum": [
+                0,
+                5,
+                10
+              ]
+            },
+            "comment": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 4000
+            }
+          },
+          "required": [
+            "criterion_id",
+            "score",
+            "comment"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "criterion_id": {
+              "const": "reproducibility"
+            },
+            "score": {
+              "enum": [
+                0,
+                5,
+                10
+              ]
+            },
+            "comment": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 4000
+            }
+          },
+          "required": [
+            "criterion_id",
+            "score",
+            "comment"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "criterion_id": {
+              "const": "reuse_safety"
+            },
+            "score": {
+              "enum": [
+                0,
+                5,
+                10
+              ]
+            },
+            "comment": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 4000
+            }
+          },
+          "required": [
+            "criterion_id",
+            "score",
+            "comment"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "criterion_id": {
+              "const": "claim_quality"
+            },
+            "score": {
+              "enum": [
+                0,
+                5,
+                10
+              ]
+            },
+            "comment": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 4000
+            }
+          },
+          "required": [
+            "criterion_id",
+            "score",
+            "comment"
+          ],
+          "additionalProperties": false
+        }
+      ]
+    },
+    "decision": {
+      "enum": [
+        "meets",
+        "partially_meets",
+        "does_not_meet"
+      ]
+    },
+    "rationale": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 20000
+    },
+    "origin": {
+      "$ref": "common.schema.json#/$defs/origin"
+    },
+    "created_at": {
+      "$ref": "common.schema.json#/$defs/time"
+    },
+    "total_score": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 100,
+      "multipleOf": 5
+    },
+    "objective_gates_verified": {
+      "type": "boolean"
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "decision": {
+            "const": "meets"
+          }
+        },
+        "required": [
+          "decision"
+        ]
+      },
+      "then": {
+        "properties": {
+          "rubric_rows": {
+            "items": {
+              "properties": {
+                "score": {
+                  "enum": [
+                    5,
+                    10
+                  ]
+                }
+              }
+            },
+            "contains": {
+              "properties": {
+                "score": {
+                  "const": 10
+                }
+              },
+              "required": [
+                "score"
+              ]
+            },
+            "minContains": 6
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "decision": {
+            "const": "meets"
+          }
+        },
+        "required": [
+          "decision"
+        ]
+      },
+      "then": {
+        "properties": {
+          "total_score": {
+            "minimum": 80
+          },
+          "objective_gates_verified": {
+            "const": true
+          }
+        }
+      }
+    }
+  ],
+  "x-semantic-rules": [
+    "ASSESSMENT_DERIVATION",
+    "ASSESSMENT_TOTAL"
+  ]
+}

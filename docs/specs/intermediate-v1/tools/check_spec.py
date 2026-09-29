@@ -48,7 +48,8 @@ for path in ROOT.rglob('*.json'):
 check('json_parse',f'{len(documents)} JSON documents parsed; failures listed separately')
 
 requirements={}
-for path in sorted(ROOT.glob('*.md')):
+for path in sorted(ROOT.rglob('*.md')):
+    if 'reviews' in path.relative_to(ROOT).parts: continue
     text=path.read_text(encoding='utf-8-sig')
     for ident,title in re.findall(r'^## ([A-Z]+-\d{3}) — (.+)$',text,re.M):
         if ident in requirements: fail(f'Duplicate requirement heading {ident}')

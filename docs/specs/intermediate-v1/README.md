@@ -23,6 +23,8 @@ Read the documents in numeric order. The implementation order and release gate a
 
 Machine contracts:
 - [OpenAPI 3.1](contracts/openapi.json) defines local HTTP requests, responses and discriminated jobs.
+- [Evidence verification mapping](contracts/evidence-verification.md) fixes each module’s objective evidence, structured submission, and assessment boundary.
+- [Semantic rules](contracts/semantic-rules.json) fixes arithmetic and server-derived assertions that JSON Schema alone cannot enforce.
 - [Data/schema directory](contracts/schemas) defines durable records and portable formats.
 - [Model-profile schema](contracts/model-profile.json) and [pinned profile instance](fixtures/applied/smollm2-135m-instruct-v1.json) fix the applied baseline.
 - [Requirement registry](requirements.json) and [acceptance registry](acceptance-cases.json) are generated from section traces. Every product case and expanded profile/browser row begins NOT_RUN.
@@ -43,7 +45,7 @@ Five specialist authors owned curriculum, UX, runtime, data, and applied-model s
 - [Round02 independent cross-section findings](reviews/round-02-independent.md).
 - [Contract example checks](reviews/contract-edge-checks.md).
 
-The final review record and manifest accompany the completed package. Earlier failed checks are retained. A document check does not qualify application behavior.
+The [final review](reviews/FINAL-REVIEW.md), [root closure](reviews/round-03-root-closure.md), and [payload manifest](spec-manifest.json) accompany the completed package. Earlier failed checks are retained. A document check does not qualify application behavior.
 
 The authoring process used public model/config/license and dependency metadata, authored fixtures, schema validators, source hashing, and contract inspection. It did not install the selected runtime, download model weights, train/adapt models, run native browser journeys, publish a Site, or modify the original labs. Browser execution remains unavailable under administrator policy; its future acceptance cases are mandatory and cannot be waived by a source audit.
 
@@ -57,6 +59,7 @@ python docs/specs/intermediate-v1/tools/check_spec.py --report reviews/document-
 python docs/specs/intermediate-v1/tools/check_contract_edges.py --strict --report reviews/contract-edge-new-attempt.md
 python docs/specs/intermediate-v1/tools/check_fixture_oracles.py --report reviews/fixture-oracles-new-attempt.json
 python docs/specs/intermediate-v1/fixtures/data/generate_fixtures.py --check
+python docs/specs/intermediate-v1/tools/seal_spec.py --check
 ```
 
 Each retained report path must be new. check_spec validates strict JSON, schema/reference structure, fixture cases, local links, requirement/case/profile coverage, OpenAPI structure and all 107 pre-existing file hashes. The edge checker probes example contracts; it does not execute HTTP requests or model code. Native/model/browser qualification follows08 after implementation.

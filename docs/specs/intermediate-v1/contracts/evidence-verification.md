@@ -1,0 +1,125 @@
+# Evidence verification mapping
+
+Status: normative integration contract. It defines verifier dispatch and objective checks; it does not report implementation or product testing. Evidence requests and responses also conform to [openapi.json](openapi.json), and immutable records conform to the schemas in [schemas](schemas/).
+
+## Request binding and closed dispatch
+
+An evidence submission uses `EvidenceCreateRequest`: one closed `requirement_id`; zero to 32 unique registered `artifact_ids`; `claim_text`; zero to eight `note_refs` of exact `{note_id,revision}`; and an optional `structured_response`. At creation, each note reference MUST resolve to that immutable revision; the service persists a `note_snapshots` entry with exact `note_id`, `revision`, canonical SHA-256, and the full value conforming to `notebook-entry.schema.json`, so a later edit or deletion cannot change submitted evidence. Verification uses the same evidence ID and revision plus one closed `verification_profile_id`. The service MUST accept only the pairs below. Every other pair returns HTTP 400 with top-level `code:"VALIDATION_FAILED"` and `reason_code:"SEMANTIC_INVALID"`, without changing the evidence revision or status.
+
+CUR-012 requires exactly one `note_refs` item for the capstone plan. Other mapped requirements may include zero to eight note references as human-assessment context; their content cannot satisfy an objective role or rule. Only CUR-015 accepts `structured_response`, and it requires the exact E02 object defined below. Every other row rejects a non-null structured response.
+
+| Learning item | `requirement_id` | `verification_profile_id` | Source requirement |
+|---|---|---|---|
+| P00 prerequisite | `CUR-004` | `prerequisite-p00-v1` | CUR-004 |
+| Foundation lesson 12 capstone | `FOUNDATION-12` | `foundation-capstone-v1` | Preserved lesson 12 |
+| Module 13 | `CUR-005` | `intermediate-data-clinic-v1` | CUR-005 |
+| Module 14 | `CUR-006` | `intermediate-training-diagnosis-v1` | CUR-006 |
+| Module 15 | `CUR-007` | `intermediate-evaluation-report-v1` | CUR-007 |
+| Module 16 | `CUR-008` | `intermediate-pretrained-baseline-v1` | CUR-008 |
+| Module 17 | `CUR-009` | `intermediate-adapter-comparison-v1` | CUR-009 |
+| Module 18 | `CUR-010` | `intermediate-conversation-boundary-v1` | CUR-010 |
+| Module 19 | `CUR-011` | `intermediate-portable-reuse-v1` | CUR-011 |
+| Module 20 | `CUR-012` | `intermediate-capstone-v1` | CUR-012 and CUR-013 gates |
+| E01 | `CUR-014` | `elective-e01-v1` | CUR-014 |
+| E02 | `CUR-015` | `elective-e02-v1` | CUR-015 |
+
+`CUR-001`, `CUR-002`, `CUR-003`, `CUR-013`, `CUR-016`, and `CUR-017` are content, state, assessment, overlay, or cross-cutting rules. They do not create separate evidence records. CUR-013 assessment records attach to the `CUR-012` evidence. OpenAPI MUST retain the existing `foundation-capstone-v1`, `elective-e01-v1`, and `elective-e02-v1` names, add `prerequisite-p00-v1` and the eight item-specific intermediate names above, and reject `intermediate-required-v1`; that umbrella name does not determine one artifact-role contract.
+
+## Artifact-role resolution
+
+Role names below are server concepts. Clients submit only artifact IDs and MUST NOT assert roles. For each submitted ID, the verifier loads the immutable descriptor and exact bytes, verifies the stored size and SHA-256, and follows registry relations to the creating job, typed job result, run, model, checkpoint, dataset, capstone attempt, bundle, or imported source identity. A role is matched by the relation and schema/format identity stated below. `display_name`, `relative_path`, learner text, and array position MUST NOT assign a role.
+
+Resolution is deterministic:
+
+1. A nonexistent ID returns HTTP 400 `VALIDATION_FAILED` with `reason_code:"REFERENCE_MISSING"`; a descriptor/byte mismatch uses the same top-level code with `reason_code:"CHECKSUM_MISMATCH"`.
+2. Each required role MUST have exactly the listed cardinality. No artifact may satisfy two roles unless a row explicitly says “shared.” A missing role, a role with too many candidates, one artifact matching multiple roles, or an unconsumed submitted artifact returns HTTP 400 `VALIDATION_FAILED` with `reason_code:"SEMANTIC_INVALID"` and `field_path` identifying the role and artifact IDs. Nothing is guessed by newest timestamp.
+3. The verifier follows only immutable registered relations. It MUST NOT search host paths, parse a learner-provided filename, or accept an unregistered file.
+4. If role resolution succeeds, each named rule runs. A false objective rule leaves `verification_status:"unverified"` and returns that check as failed with rule ID, received value, expected rule, and source artifact. A missing runtime dependency produces `NOT_RUN`, never pass or a rubric zero. Only a complete pass changes the evidence to `artifact_verified` and records verifier name/version, check IDs, and exact artifact digests.
+5. `claim_text`, notebook prose, provenance permission judgments, diagnoses, categories, causal explanations, limitations, and next-experiment arguments are assessment inputs. Their presence or wording MUST NOT make an objective check pass. A verifier may check that a required narrative field is nonempty only where the curriculum explicitly requires presence; it cannot assert that the narrative is true.
+
+## Objective mappings
+
+### P00 — `prerequisite-p00-v1`
+
+Required role: exactly one `preflight_receipt`, whose artifact ID equals `PreflightReceipt.receipt_artifact_id` and whose bytes parse as `llm-foundations-preflight-v1`.
+
+Checks: `python_version` matches `3.12.<patch>`; profile is `win-cpu`, `wsl-cpu`, or `wsl-cuda`; `storage_writable` and `status` are true/pass; the six tests occur once each as `P00-RUN-001-PYTHON`, `P00-RUN-002-PROFILE`, `P00-RUN-003-STORAGE-WRITE`, `P00-RUN-004-STORAGE-READ-DIGEST`, `P00-RUN-005-STORAGE-DELETE`, and `P00-RUN-006-BACKEND-CAPABILITIES`, all pass; the canonical receipt digest recomputes; and no interpreter path or probe filename is present. The verifier does not regrade P00-SHIFT, P00-JSONL, or P00-MEAN as execution evidence. Passing is optional prerequisite evidence and MUST NOT increment required-module completion.
+
+### Foundation lesson 12 — `foundation-capstone-v1`
+
+Required roles are companion-created reenactment evidence: one registered `llm-foundations-dataset-v1` manifest/audit; one registered tokenizer identity; one `tiny_train` request/run/metrics/result/checkpoint group using `architecture_profile_id:"tiny-v2-standard-v1"`; one later `evaluate` metrics/records group; three `generate` output groups for fixed prompts; one `tiny_resume` request/run/result/checkpoint group; and two controlled-comparison `tiny_train` request/run/metrics groups. The original fresh-run artifacts are shared with resume and comparison only as immutable parents.
+
+Checks: dataset split IDs/hashes/counts close; the verifier itself calls the registered tokenizer's pure encode/decode implementation and obtains exact round trips for a space-bearing string, newline, tab, accented text, and emoji; tokenizer identity and vocabulary size are recorded; the fresh run starts from initialized tiny-v2 weights and binds that tokenizer/data; initial/final metrics, seed, parameter count, elapsed time, checkpoint, and terminal status exist; later evaluation and all three generations load the saved checkpoint/tokenizer; resume has a new run identity, retains the parent checkpoint, and ends at parent step plus additional steps; original artifacts still resolve; the controlled pair differs in exactly one learning-rate field and otherwise shares data, tokenizer, architecture, seed, schedule, and evaluation protocol. No loss threshold applies. The preserved lesson/lab bytes remain unchanged, and their external files are never imported or relabelled as companion execution. The data permission judgment, leakage-limit explanation, comparison interpretation, complete-path explanation, and bounded final claim remain assessor reviewed.
+
+### Module 13 — `intermediate-data-clinic-v1`
+
+Required roles: exactly one `clean_dataset_manifest`, one `clean_data_audit`, and one `leaky_data_audit`, derived from `llm-foundations-dataset-v1` and `llm-foundations-data-audit-v1` formats for `data-clinic-v1` and `data-clinic-leaky-v1`.
+
+Checks: clean split counts are train 24, validation 12, test 12; clean exact-duplicate, normalized-near-duplicate, and group-overlap counts are 0/0/0; leaky counts are 1/2/1; clean `eligibility` is exactly `eligible` with empty `rejections`; leaky `eligibility` is exactly `audit_only`; both `algorithm_version` values are `data-audit-v1`; the clean manifest split artifacts match `audit_artifact_id`, hashes, counts, bytes, and total 48 records; DC01–DC06/DC07–DC09/DC10–DC12 are group-disjoint across train/validation/test; no accepted compute job in the registry binds the leaky dataset; and `provenance_note` is present. The verifier does not judge the note's source, permitted-use, removal, or limitation assertions.
+
+### Module 14 — `intermediate-training-diagnosis-v1`
+
+Required roles: one `tiny_head_validation` diagnostic receipt artifact created by `POST /diagnostic-receipts`; one completed clean `tiny_train` request/run/metrics/result group; one held-and-cancelled `tiny_train` request/job-event/checkpoint group; and one `tiny_resume` request/run/result group.
+
+Checks: the diagnostic receipt request has `kind:"tiny_head_validation"` and contains the complete prescribed `TinyTrainRequest` with `width=63`, `heads=4`, and all other module-14 fixed settings; the receipt records `CFG_HEAD_DIVISIBILITY` and confirms that it created only the diagnostic artifact and no job, training, data, model, or checkpoint mutation. The clean run binds `data-clinic-v1`, byte tokenizer, context/width 64, heads 4, layers 2, batch 8, learning rate 0.0003, seed 17, steps 50, and eval every 25 and completes at 50; the held request differs only by the paired fixed fields `exercise_profile_id:"tiny-v2-diagnosis-v1"` and `curriculum_hold_after_step:25`; its event stream reaches `cancellable_hold`; cancellation terminates `interrupted` at checkpoint step 25; the resume names that checkpoint, requests 25 additional updates, creates a new run identity, preserves inherited settings/optimizer/RNG lineage, and completes at step 50. A timed-out teaching hold, when submitted, must be `interrupted/exercise_timeout` at 25. No loss value is a gate. Learner cause diagnoses and next actions remain assessed prose.
+
+### Module 15 — `intermediate-evaluation-report-v1`
+
+Required roles: three `tiny_train` run groups, three selected checkpoint descriptors, three evaluation metric artifacts, and three evaluation-records artifacts. The three run groups are distinguished by seed 17, 23, and 31, never by array order.
+
+Checks: every non-seed setting is byte-identical and equals the CUR-007 preset; each run has 100 updates and evaluation every 25; within each seed the selected checkpoint has the lowest validation NLL with earliest-step tie break; selection time precedes every test request; each selected checkpoint is evaluated exactly once over the complete `data-clinic-v1` test split with `tiny-nll-per-byte-v1`; each record block is ordered by `record_id` and contains the exact six metric fields; aggregate NLL-per-byte equals total negative log likelihood divided by nonzero UTF-8 bytes; three values, mean, sample standard deviation with denominator two, minimum, maximum, and range recompute within `1e-12`; and worst three are descending NLL-per-byte then ascending record ID. The verifier computes the worst-record IDs itself. Learner category choices, cited-span interpretation, bounded claim, and non-claim remain assessment inputs.
+
+### Module 16 — `intermediate-pretrained-baseline-v1`
+
+Required roles: one prepared-model manifest group, one evaluation metrics artifact, and one evaluation-records artifact.
+
+Checks: the model is `HuggingFaceTB/SmolLM2-135M-Instruct` at revision `12fd25f77366fa6b3b4b768ec3050bf629380bac`; the download manifest digest, allowlisted file names/sizes/hashes, model profile, and verification state match the frozen model contract; evaluation binds `applied-intents-v1` test and `applied-intents-greedy-v1`; records are exactly the 12 frozen test IDs in ascending order with no duplicate or omission; decoding is temperature 0, top-p 1, max-new-tokens 64; two-line parsing and exact-intent/schema numerators recompute overall and for six slices; and every prepared base digest is unchanged before and after evaluation. No metric minimum applies. Strength, failure, semantic response quality, and applicability statements remain assessed prose.
+
+### Module 17 — `intermediate-adapter-comparison-v1`
+
+Required roles: the module-16 base manifest (shared), one adapter-train run/metrics group, one adapter-resume run/metrics group, one selected adapter checkpoint, and one base-versus-adapter paired evaluation metrics/records group.
+
+Checks: base identity/digests equal the verified module-16 evidence; dataset is `applied-intents-v1`; preset is `smollm2-intents-lora-v1`; seed is 17; only `q_proj` and `v_proj` LoRA r8/alpha16/dropout0 parameters are trainable and base trainable count is zero; train completes update 40 with eval/save every 10; resume names step-40 parent plus optimizer/RNG state and completes update 60 after 20 additional updates; batch 1 and accumulation 4 over 60 train records account for four passes; selection uses validation exact-intent numerator, schema-valid numerator, lowest finite supervised-response mean NLL, then earliest update; paired test subjects are the unchanged base then selected adapter over the identical 12 records and decoding; overall/per-slice and paired-record metrics recompute; base digests remain unchanged. Improvement is not required. Explanations of changed cases and usefulness remain assessed prose.
+
+### Module 18 — `intermediate-conversation-boundary-v1`
+
+Required roles: one tiny-v2 `generate` output; one base and one adapter `chat_generate` output for the same request; one `chat_generate` output for each truncation fixture; one conversation-export artifact; and the referenced tiny/base/adapter identity manifests.
+
+Checks: tiny-v2 uses `generate`, never `chat_generate`; base/adapter use `chat_generate`; the same-request pair has identical input messages/decoding before model serialization; `chat-no-truncation-v1` drops no messages; `chat-drop-oldest-v1` drops exactly the oldest complete user-assistant pair while preserving system and latest user and reserving 64 new tokens; serialized text, pre/post token counts, retained/dropped message IDs, template/model identities, output token IDs/text, stop reason, temperature 0, and top-p 1 exist; all model/checkpoint digests are unchanged; conversation export is an inert dataset-candidate artifact and no dataset registry entry was created solely by chatting/export. Helpfulness and instruction-following quality remain unverified narrative.
+
+### Module 19 — `intermediate-portable-reuse-v1`
+
+Required roles: one source inference artifact; one bundle archive/descriptor; one successful read-only validation result; one clean-root import-map result; one destination inference artifact; one duplicate-skip import result; and one `failed_bundle_validation` diagnostic receipt artifact created by `POST /diagnostic-receipts`. Imported source artifacts may satisfy source roles when their `source_identity` closes to the same bundle.
+
+Checks: export dependency closure contains the selected complete tiny-v2 or base-plus-adapter experiment; archive/member sizes, hashes, safe relative paths, lineage, formats, and credential absence validate; validation performs no registration; destination root is distinct and empty before import; imported IDs are new local IDs with immutable source identity and no source absolute paths; source and destination inference use the same release profile, subject lineage, input, temperature 0, and settings and have identical output token IDs and stop reason; duplicate policy is `skip`, reports every duplicate source identity, creates no duplicate logical entity/bytes, and closes references; the tampered archive differs from the source archive by exactly one byte; its referenced failed `validate_bundle` or `import_bundle` job has immutable request/error/artifact identity; the diagnostic receipt has `kind:"failed_bundle_validation"`, names that job, and confirms destination mutation count zero; source artifacts remain resolvable and unchanged. Portability-limit prose remains assessed.
+
+### Module 20 — `intermediate-capstone-v1`
+
+Registry prerequisites, resolved by exact requirement ID rather than submitted as artifact IDs, are verified evidence records for `FOUNDATION-12` and CUR-005 through CUR-011. Required submitted roles are: exactly one snapshotted capstone plan note revision; capstone dataset manifest/audit; prepared-base manifest and frozen validation evaluation; adapter-train metrics/checkpoint and deterministic selection record; one capstone-attempt/token/request group; one terminal paired-test metrics/records artifact; bundle export/validation/import artifacts; same-profile reuse inference pair; and a `failed_bundle_validation` diagnostic receipt. A prior failed/cancelled attempt group is also required when `prior_release_count > 0`.
+
+Checks: every prerequisite evidence is currently `artifact_verified`; checklist roles 1–10 resolve to immutable identities; the one note snapshot belongs to module 20, has the exact referenced revision and recomputed canonical SHA-256 over its full `notebook-entry.schema.json` content, and its revision time predates the first candidate compute request; required plan fields are present, but their truth is not machine judged; `capstone-support-v1` has 30/6/12 group-disjoint records and passes audit; the base is frozen before candidate compute; adapter preset is `smollm2-capstone-lora-v1` with seed 29, batch 1, accumulation 3, 20 updates, eval/save every 5, and exactly 60 presentations/two passes; selection uses validation exact-intent numerator, schema-valid numerator, lowest finite supervised-response mean NLL, then earliest update; selection and subject freeze predate token consumption; one atomic test request orders `[base, adapter]`, binds the frozen digest/profile, consumes the token before load, and covers identical 12 sealed records; failure/cancellation also consumes the token; a replacement attempt has new IDs/token and correct exposure ledger, `prior_release_count`, and `reused_test` label; overall/per-slice metrics and all raw-record results recompute; worst/failing record IDs follow the metric contract; bundle, import, tamper, and same-profile reuse rules match module 19. Passing sets the CUR-012 evidence to `artifact_verified`; the API derives read-only `intermediate_evidence_packet_complete:true` from that status and does not accept the flag from clients. `objective_gates_verified` for assessment is true only from this exact pass. Plan reasoning, operation justification, categories, causal account, limitations, claim boundaries, and next experiment remain rubric assessed. The verifier MUST NOT infer their truth from nonempty text.
+
+### E01 — `elective-e01-v1`
+
+Required roles: one E01 CLI verification group registered by the current-user control channel (immutable receipt artifact, `e01_verification_id`, template/source/diff hashes, harness version, stdout digest, and stderr digest); one tied-profile tiny-train request/run/metrics/checkpoint/result group; and the shipped workspace/profile identities. There is no HTTP receipt-ingest role.
+
+Checks: protected source/course bytes match the release; only bytes between the single edit markers differ; receipt binds the exact workspace source hash and fixed seed/vocabulary/context/width/heads/layers/causal inputs; all six check IDs pass; parameter delta is 16,448; embedding and output weight share object identity; shape is finite `[2,16,257]`; causal prefix, save/load, and incompatible-checkpoint rules pass; the training request references that receipt ID, uses `tiny-v2-weight-tied-v1` mapped to `tiny-v2-tied-v1`, dataset `data-clinic-v1`, seed 17, 50 updates, eval every 25; and all comparison identities resolve. No loss/superiority threshold applies. Passing awards only E01 elective evidence.
+
+### E02 — `elective-e02-v1`
+
+Required roles: one retrieval-build index artifact and six retrieval-query result artifacts. `structured_response` is required and is exactly `{format:"retrieval-citation-submission-v1",citations:[...]}`. `citations` has six entries in fixed RQ01, RQ02, RQ03, RQ04, RQ05, RQ06 order; each entry is exactly `{query_id,record_id,span_start_utf8,span_end_utf8}`. Offsets are nonnegative integers, form a nonempty half-open interval, fall on Unicode-scalar boundaries in the exact UTF-8 document bytes, and end no later than the byte length. Queries are keyed by `query_id`, never by artifact or submission order.
+
+Checks: source is immutable `retrieval-manual-v1` with RM01–RM08; index records NFKC, casefold, `[a-z0-9]+`, document term frequency, smoothed IDF, L2 normalization, float64 cosine, and score-descending/record-ID-ascending ordering; all six queries use the same index and `top_k=3`; top-three IDs exactly equal E02-RANKING; each structured citation `record_id` is among that query's returned records and equals required support RM01 through RM06 respectively; each byte interval resolves to nonempty exact text in that record; build/query jobs complete; no model/adapter digest changes; and a rebuild after source change creates a new index while prior query artifacts retain the prior identity. The verifier proves identity and exact quoted location, not that arbitrary prose is semantically supported. Learner answer fluency, completeness, and interpretation remain unverified narrative. Passing awards only E02 elective evidence.
+
+## Closed submission and custody decisions
+
+These joins are part of the mapping and MUST be implemented without a generic artifact-upload facility:
+
+1. Foundation lesson 12 uses companion-created tiny-v2 reenactment evidence. External preserved-lab files may be retained as unverified imported claims but cannot satisfy `foundation-capstone-v1`.
+2. `POST /diagnostic-receipts` accepts exactly two forms: `kind:"tiny_head_validation"` plus the complete prescribed invalid `TinyTrainRequest`, or `kind:"failed_bundle_validation"` plus a failed `validate_bundle`/`import_bundle` job ID. It creates one diagnostic artifact and no compute/entity mutation. Success returns `201` with its `ArtifactDescriptor`.
+3. E01 exit-zero receipt bytes travel only through the current-user control channel. The service registers the immutable receipt and `e01_verification_id`; no HTTP or browser receipt-ingest route exists.
+4. Module-15 categories and source-span explanations remain in `claim_text` and are assessed, not objectively parsed. E02 alone uses the closed `retrieval-citation-submission-v1` structured response defined above.
+5. `note_refs` contains at most eight `{note_id,revision}` objects. Creation snapshots exact note content/digest. CUR-012 requires exactly one plan reference. Other requirements may retain notes for human assessment, but no note content satisfies an objective verifier rule.
+6. `intermediate_evidence_packet_complete` is read-only and derived solely from verified CUR-012 evidence. Client requests cannot set it.
+
+If any required artifact, registry relation, note snapshot, or structured response is unavailable, its check is `NOT_RUN`; an imported assertion, filename, display label, or narrative claim MUST NOT substitute.

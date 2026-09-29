@@ -1,0 +1,545 @@
+{
+  "spec_revision": "1.0",
+  "requirements": [
+    {
+      "id": "SCP-001",
+      "title": "Preserve and identify the foundation",
+      "document": "01-SCOPE.md"
+    },
+    {
+      "id": "SCP-002",
+      "title": "Define the learner and observable outcome",
+      "document": "01-SCOPE.md"
+    },
+    {
+      "id": "SCP-003",
+      "title": "Ship a finite content expansion",
+      "document": "01-SCOPE.md"
+    },
+    {
+      "id": "SCP-004",
+      "title": "Support two honest product modes",
+      "document": "01-SCOPE.md"
+    },
+    {
+      "id": "SCP-005",
+      "title": "Qualify named execution profiles",
+      "document": "01-SCOPE.md"
+    },
+    {
+      "id": "SCP-006",
+      "title": "Select supported model and operations",
+      "document": "01-SCOPE.md"
+    },
+    {
+      "id": "SCP-007",
+      "title": "Keep the implementation bounded",
+      "document": "01-SCOPE.md"
+    },
+    {
+      "id": "SCP-008",
+      "title": "Add explicit implementation paths",
+      "document": "01-SCOPE.md"
+    },
+    {
+      "id": "SCP-009",
+      "title": "Define data custody and network behavior",
+      "document": "01-SCOPE.md"
+    },
+    {
+      "id": "SCP-010",
+      "title": "Separate implementation, evidence, and qualification",
+      "document": "01-SCOPE.md"
+    },
+    {
+      "id": "CUR-001",
+      "title": "Preserve the foundation and add a versioned overlay",
+      "document": "02-CURRICULUM.md"
+    },
+    {
+      "id": "CUR-002",
+      "title": "Use explicit prerequisites, sessions, and completion states",
+      "document": "02-CURRICULUM.md"
+    },
+    {
+      "id": "CUR-003",
+      "title": "Apply a fixed lesson grammar and fade scaffolding",
+      "document": "02-CURRICULUM.md"
+    },
+    {
+      "id": "CUR-004",
+      "title": "P00 refreshes prerequisite mechanics without awarding intermediate evidence",
+      "document": "02-CURRICULUM.md"
+    },
+    {
+      "id": "CUR-005",
+      "title": "Module 13 performs a leakage-aware data clinic",
+      "document": "02-CURRICULUM.md"
+    },
+    {
+      "id": "CUR-006",
+      "title": "Module 14 diagnoses configuration, interruption, and unstable evidence",
+      "document": "02-CURRICULUM.md"
+    },
+    {
+      "id": "CUR-007",
+      "title": "Module 15 measures uncertainty and performs error analysis",
+      "document": "02-CURRICULUM.md"
+    },
+    {
+      "id": "CUR-008",
+      "title": "Module 16 establishes a frozen pretrained baseline",
+      "document": "02-CURRICULUM.md"
+    },
+    {
+      "id": "CUR-009",
+      "title": "Module 17 trains and compares a LoRA adapter",
+      "document": "02-CURRICULUM.md"
+    },
+    {
+      "id": "CUR-010",
+      "title": "Module 18 distinguishes continuation from conversation",
+      "document": "02-CURRICULUM.md"
+    },
+    {
+      "id": "CUR-011",
+      "title": "Module 19 packages, imports, and reuses an experiment",
+      "document": "02-CURRICULUM.md"
+    },
+    {
+      "id": "CUR-012",
+      "title": "Module 20 is an independent applied capstone",
+      "document": "02-CURRICULUM.md"
+    },
+    {
+      "id": "CUR-013",
+      "title": "Apply an exact capstone rubric without automated competency claims",
+      "document": "02-CURRICULUM.md"
+    },
+    {
+      "id": "CUR-014",
+      "title": "E01 implements and verifies safe weight tying",
+      "document": "02-CURRICULUM.md"
+    },
+    {
+      "id": "CUR-015",
+      "title": "E02 builds lexical retrieval with evidence",
+      "document": "02-CURRICULUM.md"
+    },
+    {
+      "id": "CUR-016",
+      "title": "Insert exact supplement cards without changing lessons 00–12",
+      "document": "02-CURRICULUM.md"
+    },
+    {
+      "id": "CUR-017",
+      "title": "Keep deterministic feedback separate from assessed reasoning",
+      "document": "02-CURRICULUM.md"
+    },
+    {
+      "id": "UX-001",
+      "title": "Application shell, routes, and navigation",
+      "document": "03-LEARNER-EXPERIENCE.md"
+    },
+    {
+      "id": "UX-002",
+      "title": "Home, learning path, and continuation",
+      "document": "03-LEARNER-EXPERIENCE.md"
+    },
+    {
+      "id": "UX-003",
+      "title": "Lesson reader and progressive disclosure",
+      "document": "03-LEARNER-EXPERIENCE.md"
+    },
+    {
+      "id": "UX-004",
+      "title": "Truthful provenance and runtime connection",
+      "document": "03-LEARNER-EXPERIENCE.md"
+    },
+    {
+      "id": "UX-005",
+      "title": "Data and job setup",
+      "document": "03-LEARNER-EXPERIENCE.md"
+    },
+    {
+      "id": "UX-006",
+      "title": "Job monitor, results, and checkpoints",
+      "document": "03-LEARNER-EXPERIENCE.md"
+    },
+    {
+      "id": "UX-007",
+      "title": "Playground, continuation, chat, and context disclosure",
+      "document": "03-LEARNER-EXPERIENCE.md"
+    },
+    {
+      "id": "UX-008",
+      "title": "Notebook, evidence, storage migration, and imports",
+      "document": "03-LEARNER-EXPERIENCE.md"
+    },
+    {
+      "id": "UX-009",
+      "title": "Visual system and responsive layouts",
+      "document": "03-LEARNER-EXPERIENCE.md"
+    },
+    {
+      "id": "UX-010",
+      "title": "Keyboard, focus, announcements, and display adaptations",
+      "document": "03-LEARNER-EXPERIENCE.md"
+    },
+    {
+      "id": "UX-011",
+      "title": "Empty, loading, failure, interruption, and recovery states",
+      "document": "03-LEARNER-EXPERIENCE.md"
+    },
+    {
+      "id": "UX-012",
+      "title": "Required end-to-end learner journeys",
+      "document": "03-LEARNER-EXPERIENCE.md"
+    },
+    {
+      "id": "RUN-001",
+      "title": "Modes, launch and discovery",
+      "document": "04-RUNTIME-AND-API.md"
+    },
+    {
+      "id": "RUN-002",
+      "title": "Package and process boundary",
+      "document": "04-RUNTIME-AND-API.md"
+    },
+    {
+      "id": "RUN-003",
+      "title": "Pairing, sessions and browser security",
+      "document": "04-RUNTIME-AND-API.md"
+    },
+    {
+      "id": "RUN-004",
+      "title": "Storage confinement and atomicity",
+      "document": "04-RUNTIME-AND-API.md"
+    },
+    {
+      "id": "RUN-005",
+      "title": "Transport limits and errors",
+      "document": "04-RUNTIME-AND-API.md"
+    },
+    {
+      "id": "RUN-006",
+      "title": "Registry and upload endpoints",
+      "document": "04-RUNTIME-AND-API.md"
+    },
+    {
+      "id": "RUN-007",
+      "title": "Job creation and idempotency",
+      "document": "04-RUNTIME-AND-API.md"
+    },
+    {
+      "id": "RUN-008",
+      "title": "Queue and state machine",
+      "document": "04-RUNTIME-AND-API.md"
+    },
+    {
+      "id": "RUN-009",
+      "title": "Budgets, deterministic cancellation and process ownership",
+      "document": "04-RUNTIME-AND-API.md"
+    },
+    {
+      "id": "RUN-010",
+      "title": "Crash recovery and reconnect",
+      "document": "04-RUNTIME-AND-API.md"
+    },
+    {
+      "id": "RUN-011",
+      "title": "Events, replay and fetch-stream SSE",
+      "document": "04-RUNTIME-AND-API.md"
+    },
+    {
+      "id": "RUN-012",
+      "title": "Concrete operation contracts",
+      "document": "04-RUNTIME-AND-API.md"
+    },
+    {
+      "id": "RUN-013",
+      "title": "Legacy correspondence and no shell execution",
+      "document": "04-RUNTIME-AND-API.md"
+    },
+    {
+      "id": "RUN-014",
+      "title": "Artifact access and output safety",
+      "document": "04-RUNTIME-AND-API.md"
+    },
+    {
+      "id": "RUN-015",
+      "title": "Backend, device and download failure",
+      "document": "04-RUNTIME-AND-API.md"
+    },
+    {
+      "id": "RUN-016",
+      "title": "Bundle validation and clean-root reuse",
+      "document": "04-RUNTIME-AND-API.md"
+    },
+    {
+      "id": "RUN-017",
+      "title": "Truthful fault records",
+      "document": "04-RUNTIME-AND-API.md"
+    },
+    {
+      "id": "RUN-018",
+      "title": "Observability and privacy",
+      "document": "04-RUNTIME-AND-API.md"
+    },
+    {
+      "id": "RUN-019",
+      "title": "Qualification target",
+      "document": "04-RUNTIME-AND-API.md"
+    },
+    {
+      "id": "DAT-001",
+      "title": "Storage authority and trust classes",
+      "document": "05-DATA-AND-ARTIFACTS.md"
+    },
+    {
+      "id": "DAT-002",
+      "title": "Identity and immutable artifacts",
+      "document": "05-DATA-AND-ARTIFACTS.md"
+    },
+    {
+      "id": "DAT-003",
+      "title": "Dataset registration, audit and fixtures",
+      "document": "05-DATA-AND-ARTIFACTS.md"
+    },
+    {
+      "id": "DAT-004",
+      "title": "Jobs, runs, metrics and results",
+      "document": "05-DATA-AND-ARTIFACTS.md"
+    },
+    {
+      "id": "DAT-005",
+      "title": "Checkpoint identity and lineage",
+      "document": "05-DATA-AND-ARTIFACTS.md"
+    },
+    {
+      "id": "DAT-006",
+      "title": "Progress, notebook, evidence and conversation",
+      "document": "05-DATA-AND-ARTIFACTS.md"
+    },
+    {
+      "id": "DAT-007",
+      "title": "Legacy v1 migration",
+      "document": "05-DATA-AND-ARTIFACTS.md"
+    },
+    {
+      "id": "DAT-008",
+      "title": "Merge, collisions and duplicate imports",
+      "document": "05-DATA-AND-ARTIFACTS.md"
+    },
+    {
+      "id": "DAT-009",
+      "title": "Bundle and path safety",
+      "document": "05-DATA-AND-ARTIFACTS.md"
+    },
+    {
+      "id": "DAT-010",
+      "title": "SQLite and atomic writes",
+      "document": "05-DATA-AND-ARTIFACTS.md"
+    },
+    {
+      "id": "DAT-011",
+      "title": "Disk-full, corruption and recovery",
+      "document": "05-DATA-AND-ARTIFACTS.md"
+    },
+    {
+      "id": "DAT-012",
+      "title": "Export trust, retention and deletion",
+      "document": "05-DATA-AND-ARTIFACTS.md"
+    },
+    {
+      "id": "DAT-013",
+      "title": "Contract validation",
+      "document": "05-DATA-AND-ARTIFACTS.md"
+    },
+    {
+      "id": "APP-001",
+      "title": "Operation and model identity boundaries",
+      "document": "06-APPLIED-MODELS.md"
+    },
+    {
+      "id": "APP-002",
+      "title": "Pinned acquisition and safe-file verification",
+      "document": "06-APPLIED-MODELS.md"
+    },
+    {
+      "id": "APP-003",
+      "title": "Exact model profile",
+      "document": "06-APPLIED-MODELS.md"
+    },
+    {
+      "id": "APP-004",
+      "title": "Chat serialization and supervised-loss mask",
+      "document": "06-APPLIED-MODELS.md"
+    },
+    {
+      "id": "APP-005",
+      "title": "Applied task and deterministic evaluation",
+      "document": "06-APPLIED-MODELS.md"
+    },
+    {
+      "id": "APP-006",
+      "title": "Fixed LoRA training preset",
+      "document": "06-APPLIED-MODELS.md"
+    },
+    {
+      "id": "APP-007",
+      "title": "Deterministic training, validation, and selection",
+      "document": "06-APPLIED-MODELS.md"
+    },
+    {
+      "id": "APP-008",
+      "title": "Safe checkpoints and exact resume",
+      "document": "06-APPLIED-MODELS.md"
+    },
+    {
+      "id": "APP-009",
+      "title": "Decoding, output events, and cancellation",
+      "document": "06-APPLIED-MODELS.md"
+    },
+    {
+      "id": "APP-010",
+      "title": "Conversation validation and context truncation",
+      "document": "06-APPLIED-MODELS.md"
+    },
+    {
+      "id": "APP-011",
+      "title": "Base, adapter, and checkpoint comparisons",
+      "document": "06-APPLIED-MODELS.md"
+    },
+    {
+      "id": "APP-012",
+      "title": "Applied packaging and reuse",
+      "document": "06-APPLIED-MODELS.md"
+    },
+    {
+      "id": "APP-013",
+      "title": "E02 lexical retrieval with evidence",
+      "document": "06-APPLIED-MODELS.md"
+    },
+    {
+      "id": "APP-014",
+      "title": "E01 weight-tying model variant",
+      "document": "06-APPLIED-MODELS.md"
+    },
+    {
+      "id": "APP-015",
+      "title": "Failure behavior and release evidence",
+      "document": "06-APPLIED-MODELS.md"
+    },
+    {
+      "id": "INT-001",
+      "title": "Bind each operation to its effects",
+      "document": "07-INTEGRATION-CONTRACT.md"
+    },
+    {
+      "id": "INT-002",
+      "title": "Join screens, APIs, and durable state",
+      "document": "07-INTEGRATION-CONTRACT.md"
+    },
+    {
+      "id": "INT-003",
+      "title": "Define the TinyLM v2 mechanics",
+      "document": "07-INTEGRATION-CONTRACT.md"
+    },
+    {
+      "id": "INT-004",
+      "title": "Serialize TinyLM checkpoints without pickle",
+      "document": "07-INTEGRATION-CONTRACT.md"
+    },
+    {
+      "id": "INT-005",
+      "title": "Define complete byte-normalized evaluation",
+      "document": "07-INTEGRATION-CONTRACT.md"
+    },
+    {
+      "id": "INT-006",
+      "title": "Freeze preview and decoding semantics",
+      "document": "07-INTEGRATION-CONTRACT.md"
+    },
+    {
+      "id": "INT-007",
+      "title": "Enforce numeric limits at their actual boundary",
+      "document": "07-INTEGRATION-CONTRACT.md"
+    },
+    {
+      "id": "INT-008",
+      "title": "Use one error vocabulary and validation order",
+      "document": "07-INTEGRATION-CONTRACT.md"
+    },
+    {
+      "id": "INT-009",
+      "title": "Keep progress, assessment, and test exposure independent",
+      "document": "07-INTEGRATION-CONTRACT.md"
+    },
+    {
+      "id": "INT-010",
+      "title": "Preserve complete import and reuse meaning",
+      "document": "07-INTEGRATION-CONTRACT.md"
+    },
+    {
+      "id": "INT-011",
+      "title": "Ship concrete teaching inputs and verifier profiles",
+      "document": "07-INTEGRATION-CONTRACT.md"
+    },
+    {
+      "id": "INT-012",
+      "title": "Resolve amendments before qualification",
+      "document": "07-INTEGRATION-CONTRACT.md"
+    },
+    {
+      "id": "DEL-001",
+      "title": "Deliver dependency-ordered vertical slices",
+      "document": "08-DELIVERY-AND-ACCEPTANCE.md"
+    },
+    {
+      "id": "DEL-002",
+      "title": "Produce installable profile artifacts",
+      "document": "08-DELIVERY-AND-ACCEPTANCE.md"
+    },
+    {
+      "id": "DEL-003",
+      "title": "Freeze candidate and acceptance denominator",
+      "document": "08-DELIVERY-AND-ACCEPTANCE.md"
+    },
+    {
+      "id": "DEL-004",
+      "title": "Keep verification stages separate",
+      "document": "08-DELIVERY-AND-ACCEPTANCE.md"
+    },
+    {
+      "id": "DEL-005",
+      "title": "Define executable acceptance evidence",
+      "document": "08-DELIVERY-AND-ACCEPTANCE.md"
+    },
+    {
+      "id": "DEL-006",
+      "title": "Run the mandatory integrated learner journeys",
+      "document": "08-DELIVERY-AND-ACCEPTANCE.md"
+    },
+    {
+      "id": "DEL-007",
+      "title": "Bound security and persistence release gates",
+      "document": "08-DELIVERY-AND-ACCEPTANCE.md"
+    },
+    {
+      "id": "DEL-008",
+      "title": "Complete accessible behavior, not CSS presence",
+      "document": "08-DELIVERY-AND-ACCEPTANCE.md"
+    },
+    {
+      "id": "DEL-009",
+      "title": "Publish only the qualified audience and artifacts",
+      "document": "08-DELIVERY-AND-ACCEPTANCE.md"
+    },
+    {
+      "id": "DEL-010",
+      "title": "State exact completion and remaining work",
+      "document": "08-DELIVERY-AND-ACCEPTANCE.md"
+    }
+  ]
+}

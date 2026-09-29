@@ -1,0 +1,80 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "preflight-child-report.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "format",
+    "backend_status",
+    "device_available",
+    "versions",
+    "error_text"
+  ],
+  "properties": {
+    "format": {
+      "const": "llm-foundations-preflight-child-v1"
+    },
+    "backend_status": {
+      "enum": [
+        "passed",
+        "missing",
+        "version_mismatch"
+      ]
+    },
+    "device_available": {
+      "type": "boolean"
+    },
+    "versions": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "torch",
+        "transformers",
+        "peft",
+        "accelerate",
+        "safetensors"
+      ],
+      "properties": {
+        "torch": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 80
+        },
+        "transformers": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 80
+        },
+        "peft": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 80
+        },
+        "accelerate": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 80
+        },
+        "safetensors": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 80
+        }
+      }
+    },
+    "error_text": {
+      "type": "string",
+      "maxLength": 2000
+    }
+  }
+}

@@ -1,0 +1,64 @@
+{
+  "format": "llm-foundations-semantic-rules-v1",
+  "rules": [
+    {
+      "id": "TINY_EVAL_CADENCE",
+      "applies_to": "TinyTrainRequest",
+      "predicate": "eval_every <= steps",
+      "rejection": {
+        "http_status": 400,
+        "code": "VALIDATION_FAILED",
+        "field_path": "eval_every"
+      }
+    },
+    {
+      "id": "TINY_HEAD_DIVISIBILITY",
+      "applies_to": "TinyTrainRequest",
+      "predicate": "width % heads == 0",
+      "rejection": {
+        "http_status": 400,
+        "code": "VALIDATION_FAILED",
+        "field_path": "heads"
+      }
+    },
+    {
+      "id": "TINY_PARAMETER_CAP",
+      "applies_to": "TinyTrainRequest",
+      "predicate": "unique parameter count from INT-003 <= 10000000",
+      "rejection": {
+        "http_status": 400,
+        "code": "VALIDATION_FAILED",
+        "field_path": "width"
+      }
+    },
+    {
+      "id": "ASSESSMENT_TOTAL",
+      "applies_to": "assessment-record.schema.json",
+      "predicate": "total_score == sum(rubric_rows.score)",
+      "rejection": {
+        "http_status": 400,
+        "code": "VALIDATION_FAILED",
+        "field_path": "total_score"
+      }
+    },
+    {
+      "id": "ASSESSMENT_DERIVATION",
+      "applies_to": "AssessmentRequest and assessment-record.schema.json",
+      "inputs": [
+        "all 10 ordered rubric_rows",
+        "server-derived current objective_gates_verified for linked evidence"
+      ],
+      "decision": {
+        "meets": "objective_gates_verified and total_score >= 80 and no score == 0",
+        "partially_meets": "not meets and total_score >= 50",
+        "does_not_meet": "total_score < 50"
+      },
+      "rejection": {
+        "http_status": 400,
+        "code": "VALIDATION_FAILED",
+        "field_path": "decision"
+      },
+      "invariant": "Server recomputes total and decision; a client mismatch is rejected. Imported records preserve original assertions as claims and do not confer verified gates."
+    }
+  ]
+}

@@ -1,1 +1,665 @@
-{"$schema":"https://json-schema.org/draft/2020-12/schema","$id":"checkpoint-descriptor.schema.json","type":"object","additionalProperties":false,"required":["checkpoint_id","artifact_id","sha256","format","origin","run_id","job_id","backend","step","model_identity","dataset_bindings","training_identity","seed","dependency_lock_sha256","dtype","runtime_profile","created_at"],"properties":{"checkpoint_id":{"$ref":"common.schema.json#/$defs/id"},"artifact_id":{"$ref":"common.schema.json#/$defs/id"},"sha256":{"$ref":"common.schema.json#/$defs/sha256"},"format":{"enum":["safetensors","tiny_v2_portable","legacy_opaque_checkpoint"]},"origin":{"$ref":"common.schema.json#/$defs/origin"},"run_id":{"$ref":"common.schema.json#/$defs/id"},"job_id":{"$ref":"common.schema.json#/$defs/id"},"backend":{"enum":["legacy_lab","tiny_v2","transformers_peft"]},"step":{"type":"integer","minimum":0,"maximum":2147483647},"model_identity":{"oneOf":[{"$ref":"#/$defs/tinyIdentity"},{"$ref":"#/$defs/appliedIdentity"},{"$ref":"#/$defs/legacyIdentity"}]},"dataset_bindings":{"type":"array","minItems":1,"maxItems":3,"items":{"$ref":"run-manifest.schema.json#/$defs/binding"}},"training_identity":{"oneOf":[{"$ref":"#/$defs/tinyTraining"},{"$ref":"#/$defs/appliedTraining"},{"$ref":"#/$defs/legacyTraining"}]},"seed":{"type":"integer","minimum":0,"maximum":4294967295},"dependency_lock_sha256":{"$ref":"common.schema.json#/$defs/sha256"},"dtype":{"const":"float32"},"runtime_profile":{"enum":["win-cpu","wsl-cpu","wsl-cuda"]},"parent_checkpoint_id":{"$ref":"common.schema.json#/$defs/id"},"source_identity":{"type":"object","additionalProperties":false,"required":["bundle_sha256","original_installation_id","original_object_type","original_object_id"],"properties":{"bundle_sha256":{"$ref":"common.schema.json#/$defs/sha256"},"original_installation_id":{"$ref":"common.schema.json#/$defs/id"},"original_object_type":{"const":"checkpoint"},"original_object_id":{"type":"string","minLength":1,"maxLength":120}}},"created_at":{"$ref":"common.schema.json#/$defs/time"}},"allOf":[{"if":{"properties":{"backend":{"const":"tiny_v2"}}},"then":{"properties":{"format":{"const":"tiny_v2_portable"},"model_identity":{"$ref":"#/$defs/tinyIdentity"},"training_identity":{"$ref":"#/$defs/tinyTraining"}}}},{"if":{"properties":{"backend":{"const":"transformers_peft"}}},"then":{"properties":{"format":{"const":"safetensors"},"model_identity":{"$ref":"#/$defs/appliedIdentity"},"training_identity":{"$ref":"#/$defs/appliedTraining"}}}},{"if":{"properties":{"backend":{"const":"legacy_lab"}}},"then":{"properties":{"format":{"const":"legacy_opaque_checkpoint"},"model_identity":{"$ref":"#/$defs/legacyIdentity"},"training_identity":{"$ref":"#/$defs/legacyTraining"}}}}],"$defs":{"tinyIdentity":{"type":"object","additionalProperties":false,"required":["kind","architecture_profile_id","config_sha256","tokenizer_sha256"],"properties":{"kind":{"const":"tiny_v2"},"architecture_profile_id":{"enum":["tiny-v2-standard-v1","tiny-v2-weight-tied-v1"]},"config_sha256":{"$ref":"common.schema.json#/$defs/sha256"},"tokenizer_sha256":{"$ref":"common.schema.json#/$defs/sha256"}}},"appliedIdentity":{"type":"object","additionalProperties":false,"required":["kind","model_repository","model_revision","model_manifest_sha256","tokenizer_sha256","chat_template_sha256","model_profile_id","model_profile_version","adapter_preset_id","adapter"],"properties":{"kind":{"const":"transformers_peft"},"model_repository":{"const":"HuggingFaceTB/SmolLM2-135M-Instruct"},"model_revision":{"const":"12fd25f77366fa6b3b4b768ec3050bf629380bac"},"model_manifest_sha256":{"$ref":"common.schema.json#/$defs/sha256"},"tokenizer_sha256":{"$ref":"common.schema.json#/$defs/sha256"},"chat_template_sha256":{"$ref":"common.schema.json#/$defs/sha256"},"model_profile_id":{"const":"smollm2-135m-instruct-v1"},"model_profile_version":{"const":1},"adapter_preset_id":{"const":"smollm2-135m-lora-teaching-v1"},"adapter":{"type":"object","additionalProperties":false,"required":["r","lora_alpha","lora_dropout","target_modules","bias","task_type"],"properties":{"r":{"const":8},"lora_alpha":{"const":16},"lora_dropout":{"const":0},"target_modules":{"const":["q_proj","v_proj"]},"bias":{"const":"none"},"task_type":{"const":"CAUSAL_LM"}}}}},"legacyIdentity":{"type":"object","additionalProperties":false,"required":["kind","tokenizer_sha256"],"properties":{"kind":{"const":"legacy_lab"},"tokenizer_sha256":{"$ref":"common.schema.json#/$defs/sha256"}}},"tinyTraining":{"type":"object","additionalProperties":false,"required":["batch_size","learning_rate","context","width","heads","layers","eval_every","save_every"],"properties":{"batch_size":{"type":"integer","minimum":1,"maximum":64},"learning_rate":{"type":"number","exclusiveMinimum":0,"maximum":0.1},"context":{"type":"integer","minimum":8,"maximum":512},"width":{"type":"integer","minimum":16,"maximum":512},"heads":{"type":"integer","minimum":1,"maximum":16},"layers":{"type":"integer","minimum":1,"maximum":12},"eval_every":{"type":"integer","minimum":1,"maximum":500},"save_every":{"type":"integer","minimum":1,"maximum":500}}},"appliedTraining":{"type":"object","additionalProperties":false,"required":["batch_size","gradient_accumulation","learning_rate","weight_decay","max_gradient_norm","context","eval_every","save_every"],"properties":{"batch_size":{"type":"integer","minimum":1,"maximum":64},"gradient_accumulation":{"type":"integer","minimum":1,"maximum":64},"learning_rate":{"const":0.0002},"weight_decay":{"type":"number","minimum":0,"maximum":1},"max_gradient_norm":{"type":"number","exclusiveMinimum":0,"maximum":100},"context":{"const":512},"eval_every":{"type":"integer","minimum":1,"maximum":500},"save_every":{"type":"integer","minimum":1,"maximum":500}}},"legacyTraining":{"type":"object","additionalProperties":false,"required":["batch_size","learning_rate","context"],"properties":{"batch_size":{"type":"integer","minimum":1},"learning_rate":{"type":"number","exclusiveMinimum":0},"context":{"type":"integer","minimum":1}}}}}
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "checkpoint-descriptor.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "checkpoint_id",
+    "artifact_id",
+    "sha256",
+    "format",
+    "origin",
+    "run_id",
+    "job_id",
+    "backend",
+    "step",
+    "model_identity",
+    "dataset_bindings",
+    "training_identity",
+    "seed",
+    "dependency_lock_sha256",
+    "dtype",
+    "runtime_profile",
+    "created_at",
+    "portability",
+    "contains_resume_state",
+    "parent_checkpoint_id",
+    "device",
+    "companion_source_revision"
+  ],
+  "properties": {
+    "checkpoint_id": {
+      "$ref": "common.schema.json#/$defs/id"
+    },
+    "artifact_id": {
+      "$ref": "common.schema.json#/$defs/id"
+    },
+    "sha256": {
+      "$ref": "common.schema.json#/$defs/sha256"
+    },
+    "format": {
+      "enum": [
+        "safetensors",
+        "tiny_v2_portable",
+        "legacy_opaque_checkpoint"
+      ]
+    },
+    "origin": {
+      "$ref": "common.schema.json#/$defs/origin"
+    },
+    "run_id": {
+      "$ref": "common.schema.json#/$defs/id"
+    },
+    "job_id": {
+      "$ref": "common.schema.json#/$defs/id"
+    },
+    "backend": {
+      "enum": [
+        "legacy_lab",
+        "tiny_v2",
+        "transformers_peft"
+      ]
+    },
+    "step": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 2147483647
+    },
+    "model_identity": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/tinyIdentity"
+        },
+        {
+          "$ref": "#/$defs/appliedIdentity"
+        },
+        {
+          "$ref": "#/$defs/legacyIdentity"
+        }
+      ]
+    },
+    "dataset_bindings": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 3,
+      "items": {
+        "$ref": "run-manifest.schema.json#/$defs/binding"
+      }
+    },
+    "training_identity": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/tinyTraining"
+        },
+        {
+          "$ref": "#/$defs/appliedTraining"
+        },
+        {
+          "$ref": "#/$defs/legacyTraining"
+        }
+      ]
+    },
+    "seed": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 4294967295
+    },
+    "dependency_lock_sha256": {
+      "$ref": "common.schema.json#/$defs/sha256"
+    },
+    "dtype": {
+      "const": "float32"
+    },
+    "runtime_profile": {
+      "enum": [
+        "win-cpu",
+        "wsl-cpu",
+        "wsl-cuda"
+      ]
+    },
+    "parent_checkpoint_id": {
+      "oneOf": [
+        {
+          "$ref": "common.schema.json#/$defs/id"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "source_identity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "bundle_sha256",
+        "original_installation_id",
+        "original_object_type",
+        "original_object_id"
+      ],
+      "properties": {
+        "bundle_sha256": {
+          "$ref": "common.schema.json#/$defs/sha256"
+        },
+        "original_installation_id": {
+          "$ref": "common.schema.json#/$defs/id"
+        },
+        "original_object_type": {
+          "const": "checkpoint"
+        },
+        "original_object_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 120
+        }
+      }
+    },
+    "created_at": {
+      "$ref": "common.schema.json#/$defs/time"
+    },
+    "portability": {
+      "enum": [
+        "metadata_only",
+        "inference_only",
+        "resume"
+      ]
+    },
+    "contains_resume_state": {
+      "type": "boolean"
+    },
+    "device": {
+      "enum": [
+        "cpu",
+        "cuda"
+      ]
+    },
+    "companion_source_revision": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{40}$"
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "backend": {
+            "const": "tiny_v2"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "format": {
+            "const": "tiny_v2_portable"
+          },
+          "model_identity": {
+            "$ref": "#/$defs/tinyIdentity"
+          },
+          "training_identity": {
+            "$ref": "#/$defs/tinyTraining"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "backend": {
+            "const": "transformers_peft"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "format": {
+            "const": "safetensors"
+          },
+          "model_identity": {
+            "$ref": "#/$defs/appliedIdentity"
+          },
+          "training_identity": {
+            "$ref": "#/$defs/appliedTraining"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "backend": {
+            "const": "legacy_lab"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "format": {
+            "const": "legacy_opaque_checkpoint"
+          },
+          "model_identity": {
+            "$ref": "#/$defs/legacyIdentity"
+          },
+          "training_identity": {
+            "$ref": "#/$defs/legacyTraining"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "portability": {
+            "const": "resume"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "contains_resume_state": {
+            "const": true
+          }
+        }
+      },
+      "else": {
+        "properties": {
+          "contains_resume_state": {
+            "const": false
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "backend": {
+            "const": "legacy_lab"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "portability": {
+            "const": "metadata_only"
+          }
+        }
+      },
+      "else": {
+        "properties": {
+          "portability": {
+            "enum": [
+              "inference_only",
+              "resume"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "backend": {
+            "const": "transformers_peft"
+          },
+          "model_identity": {
+            "properties": {
+              "adapter_preset_id": {
+                "const": "smollm2-intents-lora-v1"
+              }
+            },
+            "required": [
+              "adapter_preset_id"
+            ]
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "training_identity": {
+            "properties": {
+              "gradient_accumulation": {
+                "const": 4
+              },
+              "eval_every": {
+                "const": 10
+              },
+              "save_every": {
+                "const": 10
+              }
+            }
+          },
+          "seed": {
+            "const": 17
+          },
+          "step": {
+            "maximum": 120
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "backend": {
+            "const": "transformers_peft"
+          },
+          "model_identity": {
+            "properties": {
+              "adapter_preset_id": {
+                "const": "smollm2-capstone-lora-v1"
+              }
+            },
+            "required": [
+              "adapter_preset_id"
+            ]
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "training_identity": {
+            "properties": {
+              "gradient_accumulation": {
+                "const": 3
+              },
+              "eval_every": {
+                "const": 5
+              },
+              "save_every": {
+                "const": 5
+              }
+            }
+          },
+          "seed": {
+            "const": 29
+          },
+          "step": {
+            "maximum": 20
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "runtime_profile": {
+            "const": "wsl-cuda"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "device": {
+            "const": "cuda"
+          }
+        }
+      },
+      "else": {
+        "properties": {
+          "device": {
+            "const": "cpu"
+          }
+        }
+      }
+    }
+  ],
+  "$defs": {
+    "tinyIdentity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "architecture_profile_id",
+        "config_sha256",
+        "tokenizer_sha256"
+      ],
+      "properties": {
+        "kind": {
+          "const": "tiny_v2"
+        },
+        "architecture_profile_id": {
+          "enum": [
+            "tiny-v2-standard-v1",
+            "tiny-v2-weight-tied-v1"
+          ]
+        },
+        "config_sha256": {
+          "$ref": "common.schema.json#/$defs/sha256"
+        },
+        "tokenizer_sha256": {
+          "$ref": "common.schema.json#/$defs/sha256"
+        }
+      }
+    },
+    "appliedIdentity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "model_repository",
+        "model_revision",
+        "model_manifest_sha256",
+        "tokenizer_sha256",
+        "chat_template_sha256",
+        "model_profile_id",
+        "model_profile_version",
+        "adapter_preset_id",
+        "adapter",
+        "base_model_id"
+      ],
+      "properties": {
+        "kind": {
+          "const": "transformers_peft"
+        },
+        "model_repository": {
+          "const": "HuggingFaceTB/SmolLM2-135M-Instruct"
+        },
+        "model_revision": {
+          "const": "12fd25f77366fa6b3b4b768ec3050bf629380bac"
+        },
+        "model_manifest_sha256": {
+          "$ref": "common.schema.json#/$defs/sha256"
+        },
+        "tokenizer_sha256": {
+          "$ref": "common.schema.json#/$defs/sha256"
+        },
+        "chat_template_sha256": {
+          "$ref": "common.schema.json#/$defs/sha256"
+        },
+        "model_profile_id": {
+          "const": "smollm2-135m-instruct-v1"
+        },
+        "model_profile_version": {
+          "const": 1
+        },
+        "adapter_preset_id": {
+          "enum": [
+            "smollm2-intents-lora-v1",
+            "smollm2-capstone-lora-v1"
+          ]
+        },
+        "adapter": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "r",
+            "lora_alpha",
+            "lora_dropout",
+            "target_modules",
+            "bias",
+            "task_type",
+            "init_lora_weights"
+          ],
+          "properties": {
+            "r": {
+              "const": 8
+            },
+            "lora_alpha": {
+              "const": 16
+            },
+            "lora_dropout": {
+              "const": 0
+            },
+            "target_modules": {
+              "const": [
+                "q_proj",
+                "v_proj"
+              ]
+            },
+            "bias": {
+              "const": "none"
+            },
+            "task_type": {
+              "const": "CAUSAL_LM"
+            },
+            "init_lora_weights": {
+              "const": true
+            }
+          }
+        },
+        "base_model_id": {
+          "$ref": "common.schema.json#/$defs/id"
+        }
+      }
+    },
+    "legacyIdentity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "tokenizer_sha256"
+      ],
+      "properties": {
+        "kind": {
+          "const": "legacy_lab"
+        },
+        "tokenizer_sha256": {
+          "$ref": "common.schema.json#/$defs/sha256"
+        }
+      }
+    },
+    "tinyTraining": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "batch_size",
+        "learning_rate",
+        "context",
+        "width",
+        "heads",
+        "layers",
+        "eval_every",
+        "save_every"
+      ],
+      "properties": {
+        "batch_size": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 64
+        },
+        "learning_rate": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "maximum": 0.1
+        },
+        "context": {
+          "type": "integer",
+          "minimum": 8,
+          "maximum": 512
+        },
+        "width": {
+          "type": "integer",
+          "minimum": 16,
+          "maximum": 512
+        },
+        "heads": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 16
+        },
+        "layers": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 12
+        },
+        "eval_every": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 500
+        },
+        "save_every": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 500
+        }
+      }
+    },
+    "appliedTraining": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "batch_size",
+        "gradient_accumulation",
+        "learning_rate",
+        "weight_decay",
+        "max_gradient_norm",
+        "context",
+        "eval_every",
+        "save_every"
+      ],
+      "properties": {
+        "batch_size": {
+          "const": 1
+        },
+        "gradient_accumulation": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 64
+        },
+        "learning_rate": {
+          "const": 0.0002
+        },
+        "weight_decay": {
+          "const": 0.01
+        },
+        "max_gradient_norm": {
+          "const": 1
+        },
+        "context": {
+          "const": 512
+        },
+        "eval_every": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 500
+        },
+        "save_every": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 500
+        }
+      }
+    },
+    "legacyTraining": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "batch_size",
+        "learning_rate",
+        "context"
+      ],
+      "properties": {
+        "batch_size": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "learning_rate": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "context": {
+          "type": "integer",
+          "minimum": 1
+        }
+      }
+    }
+  }
+}

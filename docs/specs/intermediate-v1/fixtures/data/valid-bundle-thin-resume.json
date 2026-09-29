@@ -1,0 +1,23 @@
+{
+  "format": "llm-foundations-bundle-v1",
+  "schema_version": 1,
+  "edition": "intermediate-v1",
+  "bundle_mode": "thin",
+  "source": {
+    "installation_id": "13131313-1313-4313-8313-131313131313",
+    "app_version": "1.0.0"
+  },
+  "exported_at": "2026-09-28T12:00:00.000Z",
+  "dependency_closure_complete": true,
+  "contains_resume_state": true,
+  "checkpoint_exports": [
+    {
+      "original_checkpoint_id": "10101010-1010-4010-8010-101010101010",
+      "portability": "resume",
+      "contains_resume_state": true
+    }
+  ],
+  "omissions": [],
+  "entries": [],
+  "payload_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+}

@@ -353,6 +353,7 @@ def build_examples(model_files: list[dict[str, Any]]) -> tuple[
         },
         "export_bundle": {
             "operation": "export_bundle",
+            "content_options": {"include_dataset_bytes": True, "include_raw_outputs": True, "include_assessments": True},
             "bundle_mode": "full",
             "run_ids": [ids["run"]],
             "model_ids": [ids["model"]],
@@ -517,7 +518,8 @@ def build_examples(model_files: list[dict[str, Any]]) -> tuple[
             "bundle_artifact_id": ids["bundle"],
             "bundle_sha256": SHA_A,
             "valid": True,
-            "manifest_version": "1.0",
+            "schema_version": 1,
+            "readiness": "ready",
             "identity_counts": {"artifact": 1},
             "warnings": [],
             "artifact_ids": [ids["bundle"]],
@@ -730,6 +732,8 @@ def stored_assessment(request: dict[str, Any]) -> dict[str, Any]:
         "reviewer": request["reviewer"],
         "rubric_version": request["rubric_version"],
         "rubric_rows": request["rubric_rows"],
+        "total_score": sum(row["score"] for row in request["rubric_rows"]),
+        "objective_gates_verified": True,
         "decision": request["decision"],
         "rationale": request["rationale"],
         "origin": "locally_created",
@@ -740,8 +744,8 @@ def stored_assessment(request: dict[str, Any]) -> dict[str, Any]:
 def capstone_examples() -> tuple[dict[str, Any], dict[str, Any]]:
     create = {
         "reason": "first_attempt",
-        "baseline_subject": {"model_id": UUIDS["model"]},
-        "candidate_subject": {"checkpoint_id": UUIDS["checkpoint"]},
+        "baseline_subject": {"kind": "base_model", "model_id": UUIDS["model"]},
+        "candidate_subject": {"kind": "adapter", "checkpoint_id": UUIDS["checkpoint"]},
         "dataset_id": UUIDS["dataset"],
         "dataset_manifest_sha256": SHA_A,
         "evaluation_profile_id": "applied-intents-greedy-v1",
@@ -1290,7 +1294,11 @@ def run_review() -> tuple[Review, dict[str, str]]:
     invalid_tiny = copy.deepcopy(requests["tiny_train"])
     invalid_tiny["steps"] = 5
     invalid_tiny["eval_every"] = 10
-    if is_valid(bundle, "TinyTrainRequest", invalid_tiny):
+    cadence_shape_valid = is_valid(bundle, "TinyTrainRequest", invalid_tiny)
+    cadence_semantically_valid = invalid_tiny["eval_every"] <= invalid_tiny["steps"]
+    rule_ids = {item["id"] for item in read_json(CONTRACTS / "semantic-rules.json")["rules"]}
+    review.check("CEC-SEMANTIC-001", cadence_shape_valid and not cadence_semantically_valid and "TINY_EVAL_CADENCE" in rule_ids and "TINY_EVAL_CADENCE" in openapi["components"]["schemas"]["TinyTrainRequest"].get("x-semantic-rules", []), "relative eval cadence is shape-valid but rejected by the declared executable semantic invariant")
+    if cadence_semantically_valid or "TINY_EVAL_CADENCE" not in rule_ids:
         review.finding(
             "CEC-F008",
             "P2",
@@ -1310,6 +1318,74 @@ def run_review() -> tuple[Review, dict[str, str]]:
             "total_bytes remains 272437573. Runtime text requires eight exact files, "
             "sizes, digests, and exact total.",
         )
+
+    evidence_profiles = {
+        "CUR-004": "prerequisite-p00-v1", "FOUNDATION-12": "foundation-capstone-v1",
+        "CUR-005": "intermediate-data-clinic-v1", "CUR-006": "intermediate-training-diagnosis-v1",
+        "CUR-007": "intermediate-evaluation-report-v1", "CUR-008": "intermediate-pretrained-baseline-v1",
+        "CUR-009": "intermediate-adapter-comparison-v1", "CUR-010": "intermediate-conversation-boundary-v1",
+        "CUR-011": "intermediate-portable-reuse-v1", "CUR-012": "intermediate-capstone-v1",
+        "CUR-014": "elective-e01-v1", "CUR-015": "elective-e02-v1"}
+    for req, profile in evidence_profiles.items():
+        evidence_request = {"requirement_id": req, "artifact_ids": [], "claim_text": "Learner claim.", "note_refs": []}
+        if req == "CUR-012":
+            evidence_request["note_refs"] = [{"note_id": UUIDS["note"], "revision": 1}]
+        if req == "CUR-015":
+            evidence_request["structured_response"] = {"format": "retrieval-citation-submission-v1",
+                "citations": [{"query_id": f"RQ0{i}", "record_id": f"RM0{i}",
+                               "span_start_utf8": 0, "span_end_utf8": 1} for i in range(1,7)]}
+        verify_request = {"expected_revision": 1, "verification_profile_id": profile}
+        review.check("CEC-EVIDENCE-" + req,
+                     is_valid(bundle, "EvidenceCreateRequest", evidence_request)
+                     and is_valid(bundle, "EvidenceVerifyRequest", verify_request),
+                     "module submission and verification are representable; actual artifact checks remain native")
+    review.check("CEC-EVIDENCE-RETIRED",
+                 not is_valid(bundle, "EvidenceVerifyRequest", {"expected_revision": 1, "verification_profile_id": "intermediate-required-v1"}),
+                 "ambiguous umbrella verification profile is rejected")
+    duplicate_citations = copy.deepcopy(evidence_request)
+    duplicate_citations["structured_response"]["citations"][1]["query_id"] = "RQ01"
+    review.check("CEC-EVIDENCE-CITATION", not is_valid(bundle, "EvidenceCreateRequest", duplicate_citations),
+                 "six citations require exact query IDs in fixed order")
+    diagnostic = {"kind": "tiny_head_validation", "request": copy.deepcopy(requests["tiny_train"])}
+    diagnostic["request"].update(width=63, heads=4)
+    review.check("CEC-DIAGNOSTIC", is_valid(bundle, "DiagnosticReceiptRequest", diagnostic),
+                 "negative teaching request can reach pure validation receipt path without a compute job")
+
+    # Root final-review regression probes: shared API/storage types and option closure.
+    for variant in ("base", "adapter"):
+        stored = read_json(FIXTURES / "data" / f"valid-conversation-{variant}.json")
+        request = {"title": stored["title"], "subject": stored["subject"]}
+        review.check(f"CEC-CONVERSATION-{variant.upper()}",
+                     is_valid(bundle, "ConversationCreateRequest", request)
+                     and is_valid(bundle, schema_key(Path("conversation.schema.json")), stored),
+                     "create and storage share the same subject contract")
+    altered_export = copy.deepcopy(requests["export_bundle"])
+    altered_export.pop("content_options")
+    review.check("CEC-BUNDLE-OPTIONS", not is_valid(bundle, "ExportBundleRequest", altered_export),
+                 "all content inclusion choices must be explicit")
+    wrong_readiness = copy.deepcopy(results["validate_bundle"])
+    wrong_readiness["readiness"] = "runnable"
+    review.check("CEC-BUNDLE-READINESS", not is_valid(bundle, "ValidateBundleResult", wrong_readiness),
+                 "bundle readiness uses ready/base_required/metadata_only only")
+    for scores, gates, expected in [
+        ([10]*6+[5]*4, True, "meets"),
+        ([10]*8+[5,0], True, "partially_meets"),
+        ([10]*10, False, "partially_meets"),
+        ([5]*10, True, "partially_meets"),
+        ([5]*9+[0], True, "does_not_meet")
+    ]:
+        total = sum(scores)
+        derived = ("meets" if gates and total >= 80 and 0 not in scores else
+                   "partially_meets" if total >= 50 else "does_not_meet")
+        review.check(f"CEC-ASSESSMENT-{total}-{int(gates)}", derived == expected,
+                     "explicit score/gate boundary matches semantic-rules derivation")
+    child_report = {
+        "format": "llm-foundations-preflight-child-v1", "backend_status": "passed",
+        "device_available": True, "versions": {
+            "torch": "2.8.0", "transformers": "4.57.1", "peft": "0.17.1",
+            "accelerate": "1.10.1", "safetensors": "0.6.2"}, "error_text": ""}
+    review.check("CEC-PREFLIGHT-CHILD", is_valid(bundle, schema_key(Path("preflight-child-report.schema.json")), child_report),
+                 "fixed child report is representable without model execution")
 
     source_hashes = {
         "openapi.json": hashlib.sha256(OPENAPI_PATH.read_bytes()).hexdigest(),
@@ -1416,7 +1492,7 @@ def render_report(review: Review, source_hashes: dict[str, str]) -> str:
             "",
             "```bash",
             "python3 docs/specs/intermediate-v1/tools/check_contract_edges.py "
-            "--report docs/specs/intermediate-v1/reviews/<fresh-name>.md",
+            "--report reviews/<fresh-name>.md",
             "```",
             "",
             "The tool refuses to overwrite an existing report. It returns nonzero "

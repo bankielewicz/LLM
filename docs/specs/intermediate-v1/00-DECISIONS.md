@@ -1,6 +1,6 @@
 # Binding design decisions — Intermediate buildout v1
 
-Status: SPECIFICATION IN AUTHORING. This file defines target behavior, not implemented capability. Edition: 2026-09-28 America/New_York. Source baseline: 3a47ea48da53cb9de3ff4727ca5f0f0b6f2b9bf8.
+Status: IMPLEMENTATION SPECIFICATION, revision 1.0. Product qualification is NOT_RUN. This file defines target behavior, not implemented capability. Edition: 2026-09-28 America/New_York. Source baseline: 3a47ea48da53cb9de3ff4727ca5f0f0b6f2b9bf8.
 
 ## Authority and boundaries
 The user requests full specification documentation, iteration, assigned authors and root review. Only docs/specs/intermediate-v1/** may change in this task. No application, lab, original course, publishing, dependency installation, model downloads or training. Reading public metadata/documentation is permitted.
