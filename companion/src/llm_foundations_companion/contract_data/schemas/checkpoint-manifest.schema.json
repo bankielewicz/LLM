@@ -1,0 +1,456 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "checkpoint-manifest.schema.json",
+  "title": "Checkpoint manifest.json (its exact file bytes are the checkpoint digest)",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "format",
+    "portability",
+    "files",
+    "aliases"
+  ],
+  "properties": {
+    "format": {
+      "enum": [
+        "tiny-v2-checkpoint-v1",
+        "applied-adapter-checkpoint-v1"
+      ]
+    },
+    "portability": {
+      "enum": [
+        "resume",
+        "inference_only"
+      ]
+    },
+    "files": {
+      "type": "array",
+      "minItems": 2,
+      "maxItems": 6,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "name",
+          "size_bytes",
+          "sha256"
+        ],
+        "properties": {
+          "name": {
+            "type": "string",
+            "pattern": "^[a-z_]+\\.(safetensors|json|jsonl)$"
+          },
+          "size_bytes": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 2147483648
+          },
+          "sha256": {
+            "$ref": "common.schema.json#/$defs/sha256"
+          }
+        }
+      }
+    },
+    "aliases": {
+      "type": "object",
+      "maxProperties": 1,
+      "additionalProperties": {
+        "type": "string"
+      }
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "format": {
+            "const": "tiny-v2-checkpoint-v1"
+          },
+          "portability": {
+            "const": "resume"
+          }
+        },
+        "required": [
+          "format",
+          "portability"
+        ]
+      },
+      "then": {
+        "properties": {
+          "files": {
+            "minItems": 6,
+            "maxItems": 6,
+            "items": {
+              "properties": {
+                "name": {
+                  "enum": [
+                    "model.safetensors",
+                    "optimizer.safetensors",
+                    "rng.safetensors",
+                    "tokenizer.json",
+                    "config.json",
+                    "trainer_state.json"
+                  ]
+                }
+              }
+            },
+            "allOf": [
+              {
+                "contains": {
+                  "properties": {
+                    "name": {
+                      "const": "model.safetensors"
+                    }
+                  },
+                  "required": [
+                    "name"
+                  ]
+                }
+              },
+              {
+                "contains": {
+                  "properties": {
+                    "name": {
+                      "const": "optimizer.safetensors"
+                    }
+                  },
+                  "required": [
+                    "name"
+                  ]
+                }
+              },
+              {
+                "contains": {
+                  "properties": {
+                    "name": {
+                      "const": "rng.safetensors"
+                    }
+                  },
+                  "required": [
+                    "name"
+                  ]
+                }
+              },
+              {
+                "contains": {
+                  "properties": {
+                    "name": {
+                      "const": "tokenizer.json"
+                    }
+                  },
+                  "required": [
+                    "name"
+                  ]
+                }
+              },
+              {
+                "contains": {
+                  "properties": {
+                    "name": {
+                      "const": "config.json"
+                    }
+                  },
+                  "required": [
+                    "name"
+                  ]
+                }
+              },
+              {
+                "contains": {
+                  "properties": {
+                    "name": {
+                      "const": "trainer_state.json"
+                    }
+                  },
+                  "required": [
+                    "name"
+                  ]
+                }
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "format": {
+            "const": "tiny-v2-checkpoint-v1"
+          },
+          "portability": {
+            "const": "inference_only"
+          }
+        },
+        "required": [
+          "format",
+          "portability"
+        ]
+      },
+      "then": {
+        "properties": {
+          "files": {
+            "minItems": 3,
+            "maxItems": 3,
+            "items": {
+              "properties": {
+                "name": {
+                  "enum": [
+                    "model.safetensors",
+                    "tokenizer.json",
+                    "config.json"
+                  ]
+                }
+              }
+            },
+            "allOf": [
+              {
+                "contains": {
+                  "properties": {
+                    "name": {
+                      "const": "model.safetensors"
+                    }
+                  },
+                  "required": [
+                    "name"
+                  ]
+                }
+              },
+              {
+                "contains": {
+                  "properties": {
+                    "name": {
+                      "const": "tokenizer.json"
+                    }
+                  },
+                  "required": [
+                    "name"
+                  ]
+                }
+              },
+              {
+                "contains": {
+                  "properties": {
+                    "name": {
+                      "const": "config.json"
+                    }
+                  },
+                  "required": [
+                    "name"
+                  ]
+                }
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "format": {
+            "const": "applied-adapter-checkpoint-v1"
+          },
+          "portability": {
+            "const": "resume"
+          }
+        },
+        "required": [
+          "format",
+          "portability"
+        ]
+      },
+      "then": {
+        "properties": {
+          "files": {
+            "minItems": 6,
+            "maxItems": 6,
+            "items": {
+              "properties": {
+                "name": {
+                  "enum": [
+                    "adapter_model.safetensors",
+                    "adapter_config.json",
+                    "optimizer.safetensors",
+                    "rng.safetensors",
+                    "trainer_state.json",
+                    "metrics.jsonl"
+                  ]
+                }
+              }
+            },
+            "allOf": [
+              {
+                "contains": {
+                  "properties": {
+                    "name": {
+                      "const": "adapter_model.safetensors"
+                    }
+                  },
+                  "required": [
+                    "name"
+                  ]
+                }
+              },
+              {
+                "contains": {
+                  "properties": {
+                    "name": {
+                      "const": "adapter_config.json"
+                    }
+                  },
+                  "required": [
+                    "name"
+                  ]
+                }
+              },
+              {
+                "contains": {
+                  "properties": {
+                    "name": {
+                      "const": "optimizer.safetensors"
+                    }
+                  },
+                  "required": [
+                    "name"
+                  ]
+                }
+              },
+              {
+                "contains": {
+                  "properties": {
+                    "name": {
+                      "const": "rng.safetensors"
+                    }
+                  },
+                  "required": [
+                    "name"
+                  ]
+                }
+              },
+              {
+                "contains": {
+                  "properties": {
+                    "name": {
+                      "const": "trainer_state.json"
+                    }
+                  },
+                  "required": [
+                    "name"
+                  ]
+                }
+              },
+              {
+                "contains": {
+                  "properties": {
+                    "name": {
+                      "const": "metrics.jsonl"
+                    }
+                  },
+                  "required": [
+                    "name"
+                  ]
+                }
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "format": {
+            "const": "applied-adapter-checkpoint-v1"
+          },
+          "portability": {
+            "const": "inference_only"
+          }
+        },
+        "required": [
+          "format",
+          "portability"
+        ]
+      },
+      "then": {
+        "properties": {
+          "files": {
+            "minItems": 2,
+            "maxItems": 2,
+            "items": {
+              "properties": {
+                "name": {
+                  "enum": [
+                    "adapter_model.safetensors",
+                    "adapter_config.json"
+                  ]
+                }
+              }
+            },
+            "allOf": [
+              {
+                "contains": {
+                  "properties": {
+                    "name": {
+                      "const": "adapter_model.safetensors"
+                    }
+                  },
+                  "required": [
+                    "name"
+                  ]
+                }
+              },
+              {
+                "contains": {
+                  "properties": {
+                    "name": {
+                      "const": "adapter_config.json"
+                    }
+                  },
+                  "required": [
+                    "name"
+                  ]
+                }
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "format": {
+            "const": "applied-adapter-checkpoint-v1"
+          }
+        },
+        "required": [
+          "format"
+        ]
+      },
+      "then": {
+        "properties": {
+          "aliases": {
+            "maxProperties": 0
+          }
+        }
+      }
+    },
+    {
+      "properties": {
+        "aliases": {
+          "oneOf": [
+            {
+              "maxProperties": 0
+            },
+            {
+              "const": {
+                "output.weight": "tokens.weight"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

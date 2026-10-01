@@ -1,0 +1,2 @@
+# Tested base version. Choose the platform/CUDA wheel via the official PyTorch selector.
+torch==2.11.0

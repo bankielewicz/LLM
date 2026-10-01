@@ -1,0 +1,157 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "e01-receipt.schema.json",
+  "title": "E01 verify-e01-workspace receipt.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "format",
+    "template_sha256",
+    "edited_source_sha256",
+    "normalized_diff_sha256",
+    "harness_version",
+    "tests",
+    "python_version",
+    "torch_version",
+    "architecture_profile_id",
+    "architecture_variant",
+    "logs",
+    "started_at",
+    "finished_at",
+    "status"
+  ],
+  "properties": {
+    "format": {
+      "const": "llm-foundations-e01-receipt-v1"
+    },
+    "template_sha256": {
+      "$ref": "common.schema.json#/$defs/sha256"
+    },
+    "edited_source_sha256": {
+      "$ref": "common.schema.json#/$defs/sha256"
+    },
+    "normalized_diff_sha256": {
+      "$ref": "common.schema.json#/$defs/sha256"
+    },
+    "harness_version": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 50
+    },
+    "tests": {
+      "type": "array",
+      "minItems": 6,
+      "maxItems": 6,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "status",
+          "observed"
+        ],
+        "properties": {
+          "id": {
+            "enum": [
+              "E01-T01-SHARED-IDENTITY",
+              "E01-T02-PARAM-DELTA",
+              "E01-T03-FORWARD-SHAPE-FINITE",
+              "E01-T04-CAUSAL-INVARIANCE",
+              "E01-T05-SAVE-LOAD",
+              "E01-T06-CHECKPOINT-COMPAT"
+            ]
+          },
+          "status": {
+            "enum": [
+              "passed",
+              "failed",
+              "not_run"
+            ]
+          },
+          "observed": {
+            "type": "string",
+            "maxLength": 2000
+          }
+        }
+      }
+    },
+    "python_version": {
+      "type": "string",
+      "pattern": "^3\\.[0-9]+\\.[0-9]+$"
+    },
+    "torch_version": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 50
+    },
+    "architecture_profile_id": {
+      "const": "tiny-v2-weight-tied-v1"
+    },
+    "architecture_variant": {
+      "const": "tiny-v2-tied-v1"
+    },
+    "logs": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "stdout_sha256",
+        "stdout_truncated",
+        "stderr_sha256",
+        "stderr_truncated"
+      ],
+      "properties": {
+        "stdout_sha256": {
+          "$ref": "common.schema.json#/$defs/sha256"
+        },
+        "stdout_truncated": {
+          "type": "boolean"
+        },
+        "stderr_sha256": {
+          "$ref": "common.schema.json#/$defs/sha256"
+        },
+        "stderr_truncated": {
+          "type": "boolean"
+        }
+      }
+    },
+    "started_at": {
+      "$ref": "common.schema.json#/$defs/time"
+    },
+    "finished_at": {
+      "$ref": "common.schema.json#/$defs/time"
+    },
+    "status": {
+      "enum": [
+        "passed",
+        "failed"
+      ]
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "status": {
+            "const": "passed"
+          }
+        },
+        "required": [
+          "status"
+        ]
+      },
+      "then": {
+        "properties": {
+          "tests": {
+            "items": {
+              "properties": {
+                "status": {
+                  "const": "passed"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,110 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "conversation.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "conversation_id",
+    "revision",
+    "title",
+    "subject",
+    "turns",
+    "created_at",
+    "updated_at",
+    "origin",
+    "system_prompt"
+  ],
+  "properties": {
+    "conversation_id": {
+      "$ref": "common.schema.json#/$defs/id"
+    },
+    "revision": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "title": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 120
+    },
+    "subject": {
+      "$ref": "#/$defs/subject"
+    },
+    "turns": {
+      "type": "array",
+      "maxItems": 200,
+      "items": {
+        "$ref": "#/$defs/turn"
+      }
+    },
+    "created_at": {
+      "$ref": "common.schema.json#/$defs/time"
+    },
+    "updated_at": {
+      "$ref": "common.schema.json#/$defs/time"
+    },
+    "origin": {
+      "$ref": "common.schema.json#/$defs/origin"
+    },
+    "system_prompt": {
+      "oneOf": [
+        {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 8192
+        },
+        {
+          "type": "null"
+        }
+      ]
+    }
+  },
+  "$defs": {
+    "subject": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "model_id"
+      ],
+      "properties": {
+        "model_id": {
+          "$ref": "common.schema.json#/$defs/id"
+        },
+        "adapter_checkpoint_id": {
+          "$ref": "common.schema.json#/$defs/id"
+        }
+      }
+    },
+    "turn": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "turn_id",
+        "role",
+        "content",
+        "created_at"
+      ],
+      "properties": {
+        "turn_id": {
+          "$ref": "common.schema.json#/$defs/id"
+        },
+        "role": {
+          "enum": [
+            "user",
+            "assistant"
+          ]
+        },
+        "content": {
+          "type": "string",
+          "maxLength": 1048576
+        },
+        "created_at": {
+          "$ref": "common.schema.json#/$defs/time"
+        },
+        "generation_artifact_id": {
+          "$ref": "common.schema.json#/$defs/id"
+        }
+      }
+    }
+  }
+}

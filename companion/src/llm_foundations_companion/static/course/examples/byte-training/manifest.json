@@ -1,0 +1,45 @@
+{
+  "format": "foundations-lab-v1",
+  "config": {
+    "vocab_size": 257,
+    "context": 64,
+    "width": 64,
+    "heads": 4,
+    "layers": 2
+  },
+  "tokenizer": {
+    "format": "teaching-byte-bpe-v1",
+    "merges": []
+  },
+  "tokenizer_sha256": "0ab08b5f80c7c0853d6d2f1127f98837a8556c016dcc8b9552f0d868b4d6c3cf",
+  "data": {
+    "train": {
+      "path": "/home/bryan/Projects/LLM/llm-foundations-v2/data/demo/train.jsonl",
+      "sha256": "be35f4770dd82caac6a26e0671aa5a3d205801ac51e5d4ed7dfc7c89153df373",
+      "documents": 180,
+      "bytes": 54720
+    },
+    "validation": {
+      "path": "/home/bryan/Projects/LLM/llm-foundations-v2/data/demo/validation.jsonl",
+      "sha256": "5165215b547610f983a7f457573537e497301dae29639fd46d5df4ef7c56842d",
+      "documents": 36,
+      "bytes": 11052
+    }
+  },
+  "seed": 17,
+  "batch_size": 8,
+  "learning_rate": 0.0003,
+  "device": "cpu",
+  "python": "3.12.3",
+  "torch": "2.11.0+cu128",
+  "train_tokens": 48780,
+  "validation_tokens": 9684,
+  "parameters": 137088,
+  "parent_checkpoint": null,
+  "evaluation": {
+    "method": "8 fixed random windows per batch member",
+    "batches": 8,
+    "seed": 1017,
+    "context": 64
+  }
+}

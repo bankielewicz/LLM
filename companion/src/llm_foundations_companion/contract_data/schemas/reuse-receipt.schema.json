@@ -1,0 +1,193 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "reuse-receipt.schema.json",
+  "title": "Clean-root reuse receipt exported by the destination root and registered by the origin root (learner-carried, digest-bound, not an attestation)",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "format",
+    "destination_instance_id",
+    "destination_root_empty_before_import",
+    "runtime_profile",
+    "bundle_sha256",
+    "validation",
+    "import",
+    "duplicate_skip",
+    "tamper",
+    "inference",
+    "created_at"
+  ],
+  "properties": {
+    "format": {
+      "const": "llm-foundations-reuse-receipt-v1"
+    },
+    "destination_instance_id": {
+      "$ref": "common.schema.json#/$defs/id"
+    },
+    "destination_root_empty_before_import": {
+      "const": true
+    },
+    "runtime_profile": {
+      "enum": [
+        "win-cpu",
+        "win-cuda",
+        "wsl-cpu",
+        "wsl-cuda"
+      ]
+    },
+    "bundle_sha256": {
+      "$ref": "common.schema.json#/$defs/sha256"
+    },
+    "validation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "job_id",
+        "result_sha256",
+        "readiness"
+      ],
+      "properties": {
+        "job_id": {
+          "$ref": "common.schema.json#/$defs/id"
+        },
+        "result_sha256": {
+          "$ref": "common.schema.json#/$defs/sha256"
+        },
+        "readiness": {
+          "enum": [
+            "ready",
+            "base_required"
+          ]
+        }
+      }
+    },
+    "import": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "job_id",
+        "result_sha256",
+        "duplicate_policy",
+        "created_count"
+      ],
+      "properties": {
+        "job_id": {
+          "$ref": "common.schema.json#/$defs/id"
+        },
+        "result_sha256": {
+          "$ref": "common.schema.json#/$defs/sha256"
+        },
+        "duplicate_policy": {
+          "enum": [
+            "skip",
+            "copy"
+          ]
+        },
+        "created_count": {
+          "type": "integer",
+          "minimum": 1
+        }
+      }
+    },
+    "duplicate_skip": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "job_id",
+        "result_sha256",
+        "duplicate_policy",
+        "skipped_count",
+        "created_count"
+      ],
+      "properties": {
+        "job_id": {
+          "$ref": "common.schema.json#/$defs/id"
+        },
+        "result_sha256": {
+          "$ref": "common.schema.json#/$defs/sha256"
+        },
+        "duplicate_policy": {
+          "const": "skip"
+        },
+        "skipped_count": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "created_count": {
+          "const": 0
+        }
+      }
+    },
+    "tamper": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "job_id",
+        "archive_sha256",
+        "error_code",
+        "mutation_count"
+      ],
+      "properties": {
+        "job_id": {
+          "$ref": "common.schema.json#/$defs/id"
+        },
+        "archive_sha256": {
+          "$ref": "common.schema.json#/$defs/sha256"
+        },
+        "error_code": {
+          "enum": [
+            "ARCHIVE_UNSAFE",
+            "CHECKSUM_MISMATCH",
+            "SEMANTIC_INVALID"
+          ]
+        },
+        "mutation_count": {
+          "const": 0
+        }
+      }
+    },
+    "inference": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "job_id",
+        "generation_artifact_sha256",
+        "input_sha256",
+        "temperature",
+        "output_token_ids",
+        "stop_reason"
+      ],
+      "properties": {
+        "job_id": {
+          "$ref": "common.schema.json#/$defs/id"
+        },
+        "generation_artifact_sha256": {
+          "$ref": "common.schema.json#/$defs/sha256"
+        },
+        "input_sha256": {
+          "$ref": "common.schema.json#/$defs/sha256"
+        },
+        "temperature": {
+          "const": 0
+        },
+        "output_token_ids": {
+          "type": "array",
+          "maxItems": 512,
+          "items": {
+            "type": "integer",
+            "minimum": 0
+          }
+        },
+        "stop_reason": {
+          "enum": [
+            "eos",
+            "length"
+          ]
+        }
+      }
+    },
+    "created_at": {
+      "$ref": "common.schema.json#/$defs/time"
+    }
+  }
+}

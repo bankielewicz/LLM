@@ -1,0 +1,176 @@
+{
+  "schema_version": 1,
+  "title": "LLM Foundations: build, measure, explain",
+  "edition": "2026-09-26",
+  "content_authority": "lessons/*.md",
+  "runtime_scope": "local Python lab; no live browser training service",
+  "modules": [
+    {
+      "id": "00",
+      "sequence": 0,
+      "title": "Know what you are running",
+      "path": "lessons/00-setup.md",
+      "outcome": "Run the lab in the intended Python environment",
+      "suggested_minutes": 20,
+      "prerequisites": [],
+      "lab": "A",
+      "check_type": "worked exercise with answer explanation"
+    },
+    {
+      "id": "01",
+      "sequence": 1,
+      "title": "Follow one prediction",
+      "path": "lessons/01-prediction.md",
+      "outcome": "Trace text, IDs, scores, and the next token",
+      "suggested_minutes": 15,
+      "prerequisites": [
+        "00"
+      ],
+      "lab": "A",
+      "check_type": "worked exercise with answer explanation"
+    },
+    {
+      "id": "02",
+      "sequence": 2,
+      "title": "A tokenizer is the model's vocabulary contract",
+      "path": "lessons/02-tokenizers.md",
+      "outcome": "Separate tokenizer learning from model learning and verify exact text round trips",
+      "suggested_minutes": 25,
+      "prerequisites": [
+        "01"
+      ],
+      "lab": "A",
+      "check_type": "worked exercise with answer explanation"
+    },
+    {
+      "id": "03",
+      "sequence": 3,
+      "title": "Make data you can trust",
+      "path": "lessons/03-data.md",
+      "outcome": "Prepare explicit training and validation document inputs",
+      "suggested_minutes": 20,
+      "prerequisites": [
+        "02"
+      ],
+      "lab": "A",
+      "check_type": "worked exercise with answer explanation"
+    },
+    {
+      "id": "04",
+      "sequence": 4,
+      "title": "Turn addresses into learnable vectors",
+      "path": "lessons/04-embeddings.md",
+      "outcome": "Connect vocabulary IDs to vectors and tensor shapes",
+      "suggested_minutes": 20,
+      "prerequisites": [
+        "03"
+      ],
+      "lab": "B",
+      "check_type": "worked exercise with answer explanation"
+    },
+    {
+      "id": "05",
+      "sequence": 5,
+      "title": "Use only the available context",
+      "path": "lessons/05-attention.md",
+      "outcome": "Explain attention and the causal mask",
+      "suggested_minutes": 25,
+      "prerequisites": [
+        "04"
+      ],
+      "lab": "B",
+      "check_type": "worked exercise with answer explanation"
+    },
+    {
+      "id": "06",
+      "sequence": 6,
+      "title": "Build the model before it knows anything",
+      "path": "lessons/06-architecture.md",
+      "outcome": "Trace the model and explain its configuration",
+      "suggested_minutes": 25,
+      "prerequisites": [
+        "05"
+      ],
+      "lab": "B",
+      "check_type": "worked exercise with answer explanation"
+    },
+    {
+      "id": "07",
+      "sequence": 7,
+      "title": "Turn mistakes into weight updates",
+      "path": "lessons/07-training.md",
+      "outcome": "Run and interpret a bounded training experiment",
+      "suggested_minutes": 25,
+      "prerequisites": [
+        "06"
+      ],
+      "lab": "B",
+      "check_type": "worked exercise with answer explanation"
+    },
+    {
+      "id": "08",
+      "sequence": 8,
+      "title": "Decide what the result demonstrates",
+      "path": "lessons/08-evaluation.md",
+      "outcome": "Interpret validation evidence within its limits",
+      "suggested_minutes": 20,
+      "prerequisites": [
+        "07"
+      ],
+      "lab": "B",
+      "check_type": "worked exercise with answer explanation"
+    },
+    {
+      "id": "09",
+      "sequence": 9,
+      "title": "Save the experiment, then use it",
+      "path": "lessons/09-checkpoints.md",
+      "outcome": "Generate and resume using the saved model/tokenizer identity",
+      "suggested_minutes": 20,
+      "prerequisites": [
+        "08"
+      ],
+      "lab": "C",
+      "check_type": "worked exercise with answer explanation"
+    },
+    {
+      "id": "10",
+      "sequence": 10,
+      "title": "Change one thing",
+      "path": "lessons/10-experiments.md",
+      "outcome": "Design a controlled comparison and explain tokenizer tradeoffs",
+      "suggested_minutes": 25,
+      "prerequisites": [
+        "09"
+      ],
+      "lab": "D",
+      "check_type": "worked exercise with answer explanation"
+    },
+    {
+      "id": "11",
+      "sequence": 11,
+      "title": "Connect to current practice",
+      "path": "lessons/11-modern-models.md",
+      "outcome": "Distinguish modern architectures, fine-tuning, retrieval, and inference",
+      "suggested_minutes": 25,
+      "prerequisites": [
+        "10"
+      ],
+      "lab": "D",
+      "check_type": "worked exercise with answer explanation"
+    },
+    {
+      "id": "12",
+      "sequence": 12,
+      "title": "Prove the complete workflow",
+      "path": "lessons/12-capstone.md",
+      "outcome": "Deliver and explain a reproducible small experiment",
+      "suggested_minutes": 60,
+      "prerequisites": [
+        "11"
+      ],
+      "lab": "D",
+      "check_type": "evidence rubric"
+    }
+  ]
+}

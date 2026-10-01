@@ -1,0 +1,3 @@
+{"phase": "initial", "step": 0, "train_loss": 5.779992461204529, "validation_loss": 5.775861084461212, "validation_perplexity": 322.4219477494106, "elapsed_seconds": 0.026}
+{"phase": "training", "step": 2, "train_loss": 5.678559064865112, "validation_loss": 5.671608805656433, "validation_perplexity": 290.5015191343498, "elapsed_seconds": 0.164}
+{"phase": "training", "step": 4, "train_loss": 5.591208577156067, "validation_loss": 5.582946300506592, "validation_perplexity": 265.8537380251569, "elapsed_seconds": 0.204}

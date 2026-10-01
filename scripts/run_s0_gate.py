@@ -18,6 +18,11 @@ import xml.etree.ElementTree as ET
 
 from check_custody import audit, canonical, contained, sha256, strict_json
 
+S0_UNIT_FILES = tuple("companion/tests/" + name for name in (
+    "test_contracts.py", "test_custody.py", "test_dependency_locks.py",
+    "test_edition_compiler.py", "test_s0_gate.py",
+))
+
 GATE_PLAN = (
     "python-runtime", "custody-before", "spec-index", "contract-edges", "fixture-oracles",
     "fixture-materialization", "spec-seal", "contract-catalog", "dependency-locks", "authoring-environment", "s0-unit-tests",
@@ -276,7 +281,7 @@ def execute(args, repo: Path, reports: Path, runner: Runner) -> int:
                                       "llm_foundations_companion.contracts", "--spec-root", str(spec)])
     runner.command("dependency-locks", [sys.executable, "-B", "companion/locks/validate.py"])
     runner.observation("authoring-environment", lambda: authoring_environment(repo))
-    runner.command("s0-unit-tests", [sys.executable, "-B", "-m", "pytest", "companion/tests",
+    runner.command("s0-unit-tests", [sys.executable, "-B", "-m", "pytest", *S0_UNIT_FILES,
                                     "-p", "no:cacheprovider", "-v", "--strict-markers", "--strict-config",
                                     "--junitxml", str(reports / "unit-tests.xml")])
     runner.observation("unit-denominator", lambda: unit_denominator(reports / "unit-tests.xml"))
