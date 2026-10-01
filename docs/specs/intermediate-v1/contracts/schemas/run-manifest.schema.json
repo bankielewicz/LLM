@@ -88,6 +88,7 @@
     "runtime_profile": {
       "enum": [
         "win-cpu",
+        "win-cuda",
         "wsl-cpu",
         "wsl-cuda"
       ]
@@ -481,6 +482,32 @@
           "type": "integer",
           "minimum": 1,
           "maximum": 12
+        },
+        "e01": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "verification_id",
+            "receipt_artifact_id",
+            "receipt_sha256"
+          ],
+          "properties": {
+            "verification_id": {
+              "$ref": "common.schema.json#/$defs/id"
+            },
+            "receipt_artifact_id": {
+              "$ref": "common.schema.json#/$defs/id"
+            },
+            "receipt_sha256": {
+              "$ref": "common.schema.json#/$defs/sha256"
+            }
+          }
+        },
+        "exercise_profile_id": {
+          "const": "tiny-v2-diagnosis-v1"
+        },
+        "curriculum_hold_after_step": {
+          "const": 25
         }
       }
     },
@@ -524,7 +551,7 @@
           "maximum": 64
         },
         "learning_rate": {
-          "const": 0.0002
+          "const": 0.001
         },
         "weight_decay": {
           "const": 0.01
@@ -634,7 +661,8 @@
         "max_new_tokens",
         "temperature",
         "top_p",
-        "context_preview_digest"
+        "context_preview_digest",
+        "checkpoint_id"
       ],
       "properties": {
         "preview_artifact_id": {
@@ -648,7 +676,11 @@
         "temperature": {
           "type": "number",
           "minimum": 0,
-          "maximum": 2
+          "maximum": 2,
+          "not": {
+            "exclusiveMinimum": 0,
+            "exclusiveMaximum": 0.01
+          }
         },
         "top_p": {
           "type": "number",
@@ -657,6 +689,9 @@
         },
         "context_preview_digest": {
           "$ref": "common.schema.json#/$defs/sha256"
+        },
+        "checkpoint_id": {
+          "$ref": "common.schema.json#/$defs/id"
         }
       },
       "allOf": [
@@ -701,7 +736,11 @@
         "temperature": {
           "type": "number",
           "minimum": 0,
-          "maximum": 2
+          "maximum": 2,
+          "not": {
+            "exclusiveMinimum": 0,
+            "exclusiveMaximum": 0.01
+          }
         },
         "top_p": {
           "type": "number",

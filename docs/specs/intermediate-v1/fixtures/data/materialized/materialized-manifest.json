@@ -1,5 +1,17 @@
 {
   "audits": {
+    "applied-intents-v1": {
+      "exact_duplicate_pairs": 0,
+      "group_overlap_count": 0,
+      "normalized_near_duplicate_pairs": 0,
+      "records": 84
+    },
+    "capstone-support-v1": {
+      "exact_duplicate_pairs": 0,
+      "group_overlap_count": 0,
+      "normalized_near_duplicate_pairs": 0,
+      "records": 48
+    },
     "data-clinic-leaky-v1": {
       "exact_duplicate_pairs": 1,
       "group_overlap_count": 1,
@@ -17,38 +29,38 @@
     {
       "path": "applied-intents-v1/test.jsonl",
       "records": 12,
-      "sha256": "53b1f2c077aa6d1e3fa2682504c478bc9c6ebe0d655b4fc0e139d3c1fb00845d",
-      "utf8_bytes": 4154
+      "sha256": "cf9e5c26eed70bdcce11dfa416b8dd57479b7d0a0dec3dd580573035f5a88c47",
+      "utf8_bytes": 4699
     },
     {
       "path": "applied-intents-v1/train.jsonl",
       "records": 60,
-      "sha256": "987d32cc2ee7eade5b860ea4a24ab9dc6024f0b89ba5c61afc9c32291de6f3dc",
-      "utf8_bytes": 20770
+      "sha256": "35444adfd92af623a172ad1f1c9f8234ea715fe9491cd75132baccf4c1517578",
+      "utf8_bytes": 23524
     },
     {
       "path": "applied-intents-v1/validation.jsonl",
       "records": 12,
-      "sha256": "f5faa58929a13b374d55265456227de3ff01b2bda38ec9f157e78d36ee4710a5",
-      "utf8_bytes": 4154
+      "sha256": "0f277bff692766150a3c209749d04edc442eccf46afa45bcab3a147dbe246701",
+      "utf8_bytes": 4690
     },
     {
       "path": "capstone-support-v1/sealed_test.jsonl",
       "records": 12,
-      "sha256": "8bf6eb3e153e38ff0b5700cdec21da7bf422bd2b092d945be94eb6f87d68811e",
-      "utf8_bytes": 3970
+      "sha256": "912c322aa0e866c5a068eb7a99b8fde7dce70703ba50b6294a231f74bb18d468",
+      "utf8_bytes": 4643
     },
     {
       "path": "capstone-support-v1/train.jsonl",
       "records": 30,
-      "sha256": "8451fd5597d2fa87172a42724b233875b020b1967374c7804a0bab79e1d46cdb",
-      "utf8_bytes": 9925
+      "sha256": "f9df332048393acc0e18837cb4cc92435eea94aab03870a8cbaefcffd306a1c9",
+      "utf8_bytes": 11641
     },
     {
       "path": "capstone-support-v1/validation.jsonl",
       "records": 6,
-      "sha256": "f61ff62c7adc9967421c83411415e044f2df1b5c4ee7b764e89debc4370c3366",
-      "utf8_bytes": 1985
+      "sha256": "7ad81ba5adf400a252ead08440467bb125845fac1cc762ac92a2e0eddcd035b7",
+      "utf8_bytes": 2333
     },
     {
       "path": "data-clinic-leaky-v1/test.jsonl",
@@ -89,14 +101,14 @@
     {
       "path": "retrieval-manual-v1/documents.jsonl",
       "records": 8,
-      "sha256": "d6cca516a0c75b7aaa3cb85ca04fea6da06d0837b0592cf43dafcbb292a538aa",
-      "utf8_bytes": 973
+      "sha256": "8f49152f9023dd55608539b83bfe2e1388063dc90eefa34affd9fe6b95092734",
+      "utf8_bytes": 1132
     },
     {
       "path": "retrieval-manual-v1/queries.jsonl",
       "records": 6,
-      "sha256": "c6e0a692eaccf5427e68fdb231bfcbb6c1dcf7c0c91b9edbcc934e74dccd33f5",
-      "utf8_bytes": 2794
+      "sha256": "3f027760fe289a86d648996656ca635eb42d07afb39b8e9a3bc91ecce6f853e1",
+      "utf8_bytes": 893
     }
   ],
   "format": "llm-foundations-materialized-fixtures-v1"

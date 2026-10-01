@@ -1,0 +1,72 @@
+{
+  "kind": "specification_document_check",
+  "product_tests_executed": false,
+  "created_utc": "2026-10-01T03:03:17.063606+00:00",
+  "checks": [
+    {
+      "name": "json_parse",
+      "result": "PASS",
+      "detail": "121 JSON documents parsed; failures listed separately"
+    },
+    {
+      "name": "requirements_and_links",
+      "result": "PASS",
+      "detail": "108 normative headings indexed"
+    },
+    {
+      "name": "traceability",
+      "result": "PASS",
+      "detail": "108 requirements; 128 cases; 605 frozen case/profile/browser execution units"
+    },
+    {
+      "name": "schemas_and_refs",
+      "result": "PASS",
+      "detail": "31 draft-2020-12 schemas checked; all contract refs traversed"
+    },
+    {
+      "name": "schema_fixtures",
+      "result": "PASS",
+      "detail": "50 positive/negative schema fixture cases evaluated"
+    },
+    {
+      "name": "semantic_fixture_cases",
+      "result": "PASS",
+      "detail": "3 semantic/source fixture cases evaluated; product-only clauses listed as not_document_checkable"
+    },
+    {
+      "name": "openapi_structure",
+      "result": "PASS",
+      "detail": "46 paths and 57 operations structurally checked; not full OpenAPI runtime validation"
+    },
+    {
+      "name": "error_vocabulary",
+      "result": "PASS",
+      "detail": "104 vocabulary codes equal the OpenAPI enums; prose and case census clean"
+    },
+    {
+      "name": "baseline_preservation",
+      "result": "PASS",
+      "detail": "107 pre-existing tracked files checked byte-for-byte"
+    },
+    {
+      "name": "semantic_rules",
+      "result": "PASS",
+      "detail": "33 semantic rules well-formed; 29 referenced by schema annotations"
+    },
+    {
+      "name": "evidence_roles",
+      "result": "PASS",
+      "detail": "12 profiles and 114 frozen check IDs"
+    }
+  ],
+  "errors": [],
+  "not_document_checkable": [
+    "DATA-SEM-002.one_paired_evaluation: product rule, NOT_RUN"
+  ],
+  "result": "PASS",
+  "requirement_count": 108,
+  "case_count": 128,
+  "execution_unit_count": 605,
+  "schema_count": 31,
+  "schema_fixture_count": 50
+}

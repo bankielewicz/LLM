@@ -15,7 +15,9 @@
     "origin",
     "note_snapshots",
     "intermediate_evidence_packet_complete",
-    "verification_checks"
+    "verification_checks",
+    "completion_status",
+    "latest_decision"
   ],
   "properties": {
     "evidence_id": {
@@ -458,6 +460,30 @@
           }
         }
       }
+    },
+    "completion_status": {
+      "enum": [
+        "not_complete",
+        "packet_complete_not_assessed",
+        "packet_complete_not_meeting",
+        "completed_self_reviewed",
+        "completed_independently_reviewed"
+      ],
+      "description": "Read-only; derived for CUR-012 only (all other records: not_complete) from packet completeness and the latest local assessment."
+    },
+    "latest_decision": {
+      "oneOf": [
+        {
+          "enum": [
+            "meets",
+            "partially_meets",
+            "does_not_meet"
+          ]
+        },
+        {
+          "type": "null"
+        }
+      ]
     }
   },
   "allOf": [

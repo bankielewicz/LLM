@@ -1,0 +1,144 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "evaluation-record-row.schema.json",
+  "title": "One JSONL row of an evaluation records artifact",
+  "oneOf": [
+    {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "subject_index",
+        "record_id",
+        "utf8_bytes",
+        "token_count",
+        "negative_log_likelihood",
+        "nll_per_utf8_byte"
+      ],
+      "properties": {
+        "subject_index": {
+          "enum": [
+            0,
+            1
+          ]
+        },
+        "record_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 120
+        },
+        "utf8_bytes": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "token_count": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "negative_log_likelihood": {
+          "type": "number",
+          "minimum": 0
+        },
+        "nll_per_utf8_byte": {
+          "type": "number",
+          "minimum": 0
+        }
+      }
+    },
+    {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "subject_index",
+        "record_id",
+        "slice",
+        "expected_intent",
+        "parsed_intent",
+        "exact_intent_match",
+        "response_schema_valid",
+        "raw_text",
+        "token_ids",
+        "stop_reason"
+      ],
+      "properties": {
+        "subject_index": {
+          "enum": [
+            0,
+            1
+          ]
+        },
+        "record_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 120
+        },
+        "slice": {
+          "enum": [
+            "account_access",
+            "billing_refund",
+            "order_status",
+            "password_reset",
+            "product_information",
+            "technical_issue"
+          ]
+        },
+        "expected_intent": {
+          "enum": [
+            "account_access",
+            "billing_refund",
+            "order_status",
+            "password_reset",
+            "product_information",
+            "technical_issue"
+          ]
+        },
+        "parsed_intent": {
+          "oneOf": [
+            {
+              "type": "null"
+            },
+            {
+              "enum": [
+                "account_access",
+                "billing_refund",
+                "order_status",
+                "password_reset",
+                "product_information",
+                "technical_issue"
+              ]
+            }
+          ]
+        },
+        "exact_intent_match": {
+          "enum": [
+            0,
+            1
+          ]
+        },
+        "response_schema_valid": {
+          "enum": [
+            0,
+            1
+          ]
+        },
+        "raw_text": {
+          "type": "string",
+          "maxLength": 65536
+        },
+        "token_ids": {
+          "type": "array",
+          "maxItems": 64,
+          "items": {
+            "type": "integer",
+            "minimum": 0
+          }
+        },
+        "stop_reason": {
+          "enum": [
+            "eos",
+            "length"
+          ]
+        }
+      }
+    }
+  ]
+}

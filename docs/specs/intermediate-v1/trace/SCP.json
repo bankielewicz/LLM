@@ -53,6 +53,7 @@
       "profiles": [
         "static",
         "win-cpu",
+        "win-cuda",
         "wsl-cpu",
         "wsl-cuda"
       ],
@@ -62,11 +63,11 @@
       ],
       "steps": [
         "Resolve the immutable base commit/tree and verify the source receipt digest. Fail before further checks on identity mismatch.",
-        "Compare all43 source receipt entries against course/ and dist/course/.",
+        "Compare all 43 source receipt entries against course/ and dist/course/.",
         "Compare dist/content.json and dist/course.zip with the immutable base hashes."
       ],
       "expected": [
-        "All86 source copies and both protected content/archive files match the anchored hashes; changing the receipt cannot establish a new baseline."
+        "All 86 source copies and both protected content/archive files match the anchored hashes; changing the receipt cannot establish a new baseline."
       ],
       "status": "NOT_RUN"
     },
@@ -80,6 +81,7 @@
       "profiles": [
         "static",
         "win-cpu",
+        "win-cuda",
         "wsl-cpu",
         "wsl-cuda"
       ],
@@ -105,6 +107,7 @@
       "profiles": [
         "static",
         "win-cpu",
+        "win-cuda",
         "wsl-cpu",
         "wsl-cuda"
       ],
@@ -116,7 +119,7 @@
         "Remove one answer or destination module in a test fixture and rerun compilation."
       ],
       "expected": [
-        "All24 listed modules ship (21 numbered +P00+2 electives); incomplete content compilation fails and no placeholder satisfies a module."
+        "All 24 listed modules ship (21 numbered + P00 + 2 electives); incomplete content compilation fails and no placeholder satisfies a module."
       ],
       "status": "NOT_RUN"
     },
@@ -151,6 +154,7 @@
       "method": "integration",
       "profiles": [
         "win-cpu",
+        "win-cuda",
         "wsl-cpu",
         "wsl-cuda"
       ],
@@ -159,10 +163,10 @@
       ],
       "steps": [
         "Run preflight under each selected runtime profile, recording exact environment/hardware.",
-        "Select CUDA while unavailable and verify no automatic CPU substitution."
+        "Start a CUDA profile whose preflight fails and verify that startup stops with the reason and the CPU launch command, with no automatic CPU substitution.", "On a win-cuda and a wsl-cuda instance submit tiny_train and adapter_train; on win-cpu and wsl-cpu submit the same; inspect run manifests and checkpoint descriptors."
       ],
       "expected": [
-        "Receipt meets named profile conditions; unavailable CUDA gives a documented preflight error and no job/device fallback."
+        "Receipt meets named profile conditions; unavailable CUDA gives a documented preflight error and no job/device fallback.","Device is cuda for every operation on win-cuda and wsl-cuda and cpu on the CPU profiles; no request carries a device field; descriptors satisfy the runtime_profile/device rule.","On each CUDA reference machine the receipt's cuda.result is passed and records the GPU query line, compute capability, compiled architecture list, total and free memory and the measured relative difference; on CPU profiles cuda is null."
       ],
       "status": "NOT_RUN"
     },
@@ -175,6 +179,7 @@
       "method": "integration",
       "profiles": [
         "win-cpu",
+        "win-cuda",
         "wsl-cpu",
         "wsl-cuda"
       ],
@@ -199,6 +204,7 @@
       "method": "integration",
       "profiles": [
         "win-cpu",
+        "win-cuda",
         "wsl-cpu",
         "wsl-cuda"
       ],
@@ -224,6 +230,7 @@
       "profiles": [
         "static",
         "win-cpu",
+        "win-cuda",
         "wsl-cpu",
         "wsl-cuda"
       ],
@@ -249,6 +256,7 @@
       "profiles": [
         "static",
         "win-cpu",
+        "win-cuda",
         "wsl-cpu",
         "wsl-cuda"
       ],
@@ -274,6 +282,7 @@
       "profiles": [
         "static",
         "win-cpu",
+        "win-cuda",
         "wsl-cpu",
         "wsl-cuda"
       ],
@@ -285,7 +294,7 @@
         "Change one required case to BLOCKED and inspect the release summary and historical baseline labels."
       ],
       "expected": [
-        "All statuses remain stage-specific; one BLOCKED mandatory case prevents completion and previous36-test evidence is not assigned to new features."
+        "All statuses remain stage-specific; one BLOCKED mandatory case prevents completion and previous 36-test evidence is not assigned to new features."
       ],
       "status": "NOT_RUN"
     },
@@ -298,6 +307,7 @@
       "method": "browser",
       "profiles": [
         "win-cpu",
+        "win-cuda",
         "wsl-cpu",
         "wsl-cuda"
       ],
@@ -323,6 +333,7 @@
       "method": "integration",
       "profiles": [
         "win-cpu",
+        "win-cuda",
         "wsl-cpu",
         "wsl-cuda"
       ],
@@ -347,6 +358,7 @@
       "method": "integration",
       "profiles": [
         "win-cpu",
+        "win-cuda",
         "wsl-cpu",
         "wsl-cuda"
       ],

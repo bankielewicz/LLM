@@ -147,8 +147,27 @@
       ],
       "properties": {
         "object_type": {
-          "type": "string",
-          "pattern": "^[a-z][a-z0-9_]{0,63}$"
+          "enum": [
+            "dataset_manifest",
+            "dataset_split",
+            "dataset_audit",
+            "tokenizer",
+            "checkpoint_manifest",
+            "checkpoint_file",
+            "base_model_file",
+            "run_manifest",
+            "run_result",
+            "metrics",
+            "evaluation_records",
+            "paired_evaluation",
+            "generation",
+            "evidence",
+            "assessment",
+            "note",
+            "conversation",
+            "retrieval_index",
+            "artifact"
+          ]
         },
         "original_object_id": {
           "type": "string",
@@ -179,7 +198,8 @@
       "properties": {
         "path": {
           "type": "string",
-          "pattern": "^llm-foundations-bundle/objects/[A-Za-z0-9._/-]{1,190}$"
+          "pattern": "^llm-foundations-bundle/objects/[a-z_]{1,32}/[A-Za-z0-9-]{1,120}/[A-Za-z0-9._-]{1,120}$",
+          "description": "objects/<object_type>/<original_object_id>/<safe-name>; unique per logical object (BUNDLE_UNIQUE_PATHS); physical deduplication happens on extraction into the digest store."
         },
         "size_bytes": {
           "type": "integer",
@@ -195,8 +215,27 @@
           "maxLength": 120
         },
         "object_type": {
-          "type": "string",
-          "pattern": "^[a-z][a-z0-9_]{0,63}$"
+          "enum": [
+            "dataset_manifest",
+            "dataset_split",
+            "dataset_audit",
+            "tokenizer",
+            "checkpoint_manifest",
+            "checkpoint_file",
+            "base_model_file",
+            "run_manifest",
+            "run_result",
+            "metrics",
+            "evaluation_records",
+            "paired_evaluation",
+            "generation",
+            "evidence",
+            "assessment",
+            "note",
+            "conversation",
+            "retrieval_index",
+            "artifact"
+          ]
         },
         "original_object_id": {
           "type": "string",
@@ -245,6 +284,89 @@
           }
         }
       }
+    },
+    {
+      "if": {
+        "properties": {
+          "bundle_mode": {
+            "const": "full"
+          }
+        },
+        "required": [
+          "bundle_mode"
+        ]
+      },
+      "then": {
+        "properties": {
+          "entries": {
+            "contains": {
+              "properties": {
+                "object_type": {
+                  "const": "base_model_file"
+                }
+              },
+              "required": [
+                "object_type"
+              ]
+            },
+            "minContains": 8,
+            "maxContains": 8
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "bundle_mode": {
+            "const": "thin"
+          }
+        },
+        "required": [
+          "bundle_mode"
+        ]
+      },
+      "then": {
+        "properties": {
+          "entries": {
+            "not": {
+              "contains": {
+                "properties": {
+                  "object_type": {
+                    "const": "base_model_file"
+                  }
+                },
+                "required": [
+                  "object_type"
+                ]
+              }
+            }
+          },
+          "omissions": {
+            "contains": {
+              "properties": {
+                "object_type": {
+                  "const": "base_model_file"
+                },
+                "reason": {
+                  "const": "thin_bundle"
+                }
+              },
+              "required": [
+                "object_type",
+                "reason"
+              ]
+            }
+          }
+        }
+      }
     }
+  ],
+  "x-semantic-rules": [
+    "BUNDLE_UNIQUE_PATHS",
+    "BUNDLE_RESUME_COMPLETE",
+    "BUNDLE_BASE_IDENTITY",
+    "BUNDLE_ENTRY_DIGEST",
+    "BUNDLE_NO_ABSOLUTE_PATHS"
   ]
 }

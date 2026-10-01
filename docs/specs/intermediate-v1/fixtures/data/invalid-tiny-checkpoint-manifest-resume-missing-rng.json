@@ -1,0 +1,32 @@
+{
+  "format": "tiny-v2-checkpoint-v1",
+  "portability": "resume",
+  "files": [
+    {
+      "name": "model.safetensors",
+      "size_bytes": 1024,
+      "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    },
+    {
+      "name": "optimizer.safetensors",
+      "size_bytes": 1025,
+      "sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+    },
+    {
+      "name": "tokenizer.json",
+      "size_bytes": 1027,
+      "sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+    },
+    {
+      "name": "config.json",
+      "size_bytes": 1028,
+      "sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+    },
+    {
+      "name": "trainer_state.json",
+      "size_bytes": 1029,
+      "sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+    }
+  ],
+  "aliases": {}
+}

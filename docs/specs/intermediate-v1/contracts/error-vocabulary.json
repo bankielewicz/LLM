@@ -1,0 +1,1285 @@
+{
+  "format": "llm-foundations-error-vocabulary-v1",
+  "description": "Closed error vocabulary. kinds: top_level = Error.code; reason = Error.reason_code (with http_status/top_level_code); job = JobError.code; terminal = Job.terminal_reason and TerminalPayload.reason_code. OpenAPI enums ReasonCode, JobErrorCode and TerminalReason are generated from this file and check_spec.py verifies equality and a prose census.",
+  "codes": [
+    {
+      "code": "ADAPTER_TARGET_MISMATCH",
+      "kinds": [
+        "job"
+      ],
+      "stage": "job",
+      "http_status": null,
+      "top_level_code": null,
+      "retryable": false,
+      "owner": "APP-006",
+      "meaning": "LoRA target module dimensions or trainable count differ."
+    },
+    {
+      "code": "ADAPTER_UPDATE_LIMIT",
+      "kinds": [
+        "reason"
+      ],
+      "stage": "semantic",
+      "http_status": 400,
+      "top_level_code": "VALIDATION_FAILED",
+      "retryable": false,
+      "owner": "INT-007",
+      "meaning": "Adapter updates exceed 120 per job or per lineage."
+    },
+    {
+      "code": "ARCHIVE_UNSAFE",
+      "kinds": [
+        "reason",
+        "job"
+      ],
+      "stage": "archive",
+      "http_status": 400,
+      "top_level_code": "VALIDATION_FAILED",
+      "retryable": false,
+      "owner": "DAT-009",
+      "meaning": "Unsafe archive member, path, link, ratio or expansion."
+    },
+    {
+      "code": "ASSISTANT_BOUNDARY_MISMATCH",
+      "kinds": [
+        "job"
+      ],
+      "stage": "job",
+      "http_status": null,
+      "top_level_code": null,
+      "retryable": false,
+      "owner": "APP-004",
+      "meaning": "Chat-template assistant boundary check failed."
+    },
+    {
+      "code": "ATTEMPT_ALREADY_OPEN",
+      "kinds": [
+        "reason"
+      ],
+      "stage": "state",
+      "http_status": 409,
+      "top_level_code": "STATE_CONFLICT",
+      "retryable": false,
+      "owner": "DAT-013",
+      "meaning": "Another attempt for the same manifest_sha256 still has an available token."
+    },
+    {
+      "code": "ATTEMPT_NOT_AVAILABLE",
+      "kinds": [
+        "reason"
+      ],
+      "stage": "state",
+      "http_status": 409,
+      "top_level_code": "STATE_CONFLICT",
+      "retryable": false,
+      "owner": "DAT-013",
+      "meaning": "Abandon requested for an attempt whose token is not available."
+    },
+    {
+      "code": "AUTH_REQUIRED",
+      "kinds": [
+        "top_level"
+      ],
+      "stage": "boundary",
+      "http_status": 401,
+      "top_level_code": null,
+      "retryable": false,
+      "owner": "RUN-005",
+      "meaning": "Top-level HTTP error code"
+    },
+    {
+      "code": "BACKEND_MISSING",
+      "kinds": [
+        "reason"
+      ],
+      "stage": "backend",
+      "http_status": 503,
+      "top_level_code": "BACKEND_UNAVAILABLE",
+      "retryable": false,
+      "owner": "RUN-015",
+      "meaning": "Required backend import unavailable."
+    },
+    {
+      "code": "BACKEND_UNAVAILABLE",
+      "kinds": [
+        "top_level"
+      ],
+      "stage": "boundary",
+      "http_status": 503,
+      "top_level_code": null,
+      "retryable": true,
+      "owner": "RUN-005",
+      "meaning": "Top-level HTTP error code"
+    },
+    {
+      "code": "BACKEND_VERSION_MISMATCH",
+      "kinds": [
+        "reason"
+      ],
+      "stage": "backend",
+      "http_status": 503,
+      "top_level_code": "BACKEND_UNAVAILABLE",
+      "retryable": false,
+      "owner": "RUN-015",
+      "meaning": "Installed backend version differs from the lock."
+    },
+    {
+      "code": "BACKUP_TOO_LARGE",
+      "kinds": [
+        "top_level"
+      ],
+      "stage": "boundary",
+      "http_status": 413,
+      "top_level_code": null,
+      "retryable": false,
+      "owner": "RUN-005",
+      "meaning": "Top-level HTTP error code"
+    },
+    {
+      "code": "CAPABILITY_UNAVAILABLE",
+      "kinds": [
+        "top_level"
+      ],
+      "stage": "boundary",
+      "http_status": 503,
+      "top_level_code": null,
+      "retryable": false,
+      "owner": "RUN-005",
+      "meaning": "Top-level HTTP error code"
+    },
+    {
+      "code": "CAPSTONE_REASON_INVALID",
+      "kinds": [
+        "reason"
+      ],
+      "stage": "semantic",
+      "http_status": 400,
+      "top_level_code": "VALIDATION_FAILED",
+      "retryable": false,
+      "owner": "DAT-013",
+      "meaning": "Attempt reason does not match the prior attempt's recorded state."
+    },
+    {
+      "code": "CFG_HEAD_DIVISIBILITY",
+      "kinds": [
+        "reason"
+      ],
+      "stage": "semantic",
+      "http_status": 400,
+      "top_level_code": "VALIDATION_FAILED",
+      "retryable": false,
+      "owner": "RUN-006",
+      "meaning": "Tiny width is not divisible by heads."
+    },
+    {
+      "code": "CHAT_TEMPLATE_MISMATCH",
+      "kinds": [
+        "reason",
+        "job"
+      ],
+      "stage": "semantic",
+      "http_status": 400,
+      "top_level_code": "VALIDATION_FAILED",
+      "retryable": false,
+      "owner": "APP-015",
+      "meaning": "Chat-template digest differs from the pinned profile."
+    },
+    {
+      "code": "CHECKPOINT_INCOMPATIBLE",
+      "kinds": [
+        "reason",
+        "job"
+      ],
+      "stage": "semantic",
+      "http_status": 400,
+      "top_level_code": "VALIDATION_FAILED",
+      "retryable": false,
+      "owner": "INT-004",
+      "meaning": "Checkpoint identity, profile, lock, dataset, tokenizer or config mismatch."
+    },
+    {
+      "code": "CHECKPOINT_NOT_RESUMABLE",
+      "kinds": [
+        "reason"
+      ],
+      "stage": "semantic",
+      "http_status": 400,
+      "top_level_code": "VALIDATION_FAILED",
+      "retryable": false,
+      "owner": "INT-010",
+      "meaning": "Resume requested for a checkpoint whose portability is not resume."
+    },
+    {
+      "code": "CHECKPOINT_WRITE_FAILED",
+      "kinds": [
+        "job"
+      ],
+      "stage": "job",
+      "http_status": null,
+      "top_level_code": null,
+      "retryable": false,
+      "owner": "RUN-009",
+      "meaning": "A cancellation checkpoint could not be written; job ends interrupted with this error."
+    },
+    {
+      "code": "CHECKSUM_MISMATCH",
+      "kinds": [
+        "reason",
+        "job"
+      ],
+      "stage": "digest",
+      "http_status": 400,
+      "top_level_code": "VALIDATION_FAILED",
+      "retryable": false,
+      "owner": "DAT-013",
+      "meaning": "Declared and actual size/SHA-256 differ."
+    },
+    {
+      "code": "CONTEXT_PREVIEW_STALE",
+      "kinds": [
+        "reason",
+        "job"
+      ],
+      "stage": "semantic",
+      "http_status": 400,
+      "top_level_code": "VALIDATION_FAILED",
+      "retryable": false,
+      "owner": "INT-006",
+      "meaning": "Generation request does not match its preview."
+    },
+    {
+      "code": "CONTEXT_TOO_LONG",
+      "kinds": [
+        "job"
+      ],
+      "stage": "job",
+      "http_status": null,
+      "top_level_code": null,
+      "retryable": false,
+      "owner": "APP-010",
+      "meaning": "Required context exceeds the effective budget after permitted drops."
+    },
+    {
+      "code": "CSRF_REJECTED",
+      "kinds": [
+        "top_level"
+      ],
+      "stage": "boundary",
+      "http_status": 403,
+      "top_level_code": null,
+      "retryable": false,
+      "owner": "RUN-005",
+      "meaning": "Top-level HTTP error code"
+    },
+    {
+      "code": "CUDA_ARCH_NOT_IN_BUILD",
+      "kinds": [
+        "reason"
+      ],
+      "stage": "backend",
+      "http_status": 503,
+      "top_level_code": "DEVICE_UNAVAILABLE",
+      "retryable": false,
+      "owner": "RUN-015",
+      "meaning": "No compiled architecture of the pinned Torch build is binary-compatible with the GPU."
+    },
+    {
+      "code": "CUDA_CAPABILITY_UNSUPPORTED",
+      "kinds": [
+        "reason"
+      ],
+      "stage": "backend",
+      "http_status": 503,
+      "top_level_code": "DEVICE_UNAVAILABLE",
+      "retryable": false,
+      "owner": "RUN-015",
+      "meaning": "The GPU's compute capability is below 7.5."
+    },
+    {
+      "code": "CUDA_DEVICE_NOT_FOUND",
+      "kinds": [
+        "reason"
+      ],
+      "stage": "backend",
+      "http_status": 503,
+      "top_level_code": "DEVICE_UNAVAILABLE",
+      "retryable": false,
+      "owner": "RUN-015",
+      "meaning": "The GPU query or Torch found no usable NVIDIA GPU for a CUDA profile."
+    },
+    {
+      "code": "CUDA_DRIVER_TOO_OLD",
+      "kinds": [
+        "reason"
+      ],
+      "stage": "backend",
+      "http_status": 503,
+      "top_level_code": "DEVICE_UNAVAILABLE",
+      "retryable": false,
+      "owner": "RUN-015",
+      "meaning": "The Windows NVIDIA driver is older than 572.61, the minimum for the CUDA 12.8 Update 1 runtime."
+    },
+    {
+      "code": "CUDA_MEMORY_INSUFFICIENT",
+      "kinds": [
+        "reason"
+      ],
+      "stage": "backend",
+      "http_status": 503,
+      "top_level_code": "DEVICE_UNAVAILABLE",
+      "retryable": false,
+      "owner": "RUN-015",
+      "meaning": "GPU memory is below 3,584 MiB total or 2,048 MiB free at preflight."
+    },
+    {
+      "code": "CUDA_NUMERIC_CHECK_FAILED",
+      "kinds": [
+        "reason"
+      ],
+      "stage": "backend",
+      "http_status": 503,
+      "top_level_code": "DEVICE_UNAVAILABLE",
+      "retryable": false,
+      "owner": "RUN-015",
+      "meaning": "The fixed float32 CPU/CUDA agreement check exceeded 1e-5 relative difference."
+    },
+    {
+      "code": "DATASET_DIGEST_MISMATCH",
+      "kinds": [
+        "reason"
+      ],
+      "stage": "semantic",
+      "http_status": 400,
+      "top_level_code": "VALIDATION_FAILED",
+      "retryable": false,
+      "owner": "DAT-003",
+      "meaning": "Client-supplied dataset_manifest_sha256 differs from the registered manifest digest."
+    },
+    {
+      "code": "DATASET_INELIGIBLE",
+      "kinds": [
+        "reason",
+        "job"
+      ],
+      "stage": "eligibility",
+      "http_status": 400,
+      "top_level_code": "VALIDATION_FAILED",
+      "retryable": false,
+      "owner": "DAT-003",
+      "meaning": "Dataset is audit_only or otherwise not eligible for the operation."
+    },
+    {
+      "code": "DETERMINISTIC_KERNEL_UNAVAILABLE",
+      "kinds": [
+        "job"
+      ],
+      "stage": "job",
+      "http_status": null,
+      "top_level_code": null,
+      "retryable": false,
+      "owner": "APP-007",
+      "meaning": "A required deterministic kernel is unsupported (tiny and applied)."
+    },
+    {
+      "code": "DEVICE_UNAVAILABLE",
+      "kinds": [
+        "top_level",
+        "job"
+      ],
+      "stage": "boundary",
+      "http_status": 503,
+      "top_level_code": null,
+      "retryable": false,
+      "owner": "RUN-005",
+      "meaning": "Top-level HTTP error code"
+    },
+    {
+      "code": "DIAGNOSIS_HOLD_INVALID",
+      "kinds": [
+        "reason"
+      ],
+      "stage": "semantic",
+      "http_status": 400,
+      "top_level_code": "VALIDATION_FAILED",
+      "retryable": false,
+      "owner": "RUN-009",
+      "meaning": "Teaching-hold fields present with a request shape that cannot reach an evaluation/checkpoint boundary at step 25."
+    },
+    {
+      "code": "DISK_FULL",
+      "kinds": [
+        "top_level",
+        "job"
+      ],
+      "stage": "boundary",
+      "http_status": 503,
+      "top_level_code": null,
+      "retryable": true,
+      "owner": "RUN-005",
+      "meaning": "Top-level HTTP error code"
+    },
+    {
+      "code": "DOWNLOAD_INTEGRITY_FAILED",
+      "kinds": [
+        "job"
+      ],
+      "stage": "job",
+      "http_status": null,
+      "top_level_code": null,
+      "retryable": false,
+      "owner": "APP-002",
+      "meaning": "Downloaded bytes/size/digest differ from the manifest."
+    },
+    {
+      "code": "DOWNLOAD_SOURCE_REJECTED",
+      "kinds": [
+        "job"
+      ],
+      "stage": "job",
+      "http_status": null,
+      "top_level_code": null,
+      "retryable": false,
+      "owner": "RUN-015",
+      "meaning": "model_prepare received a redirect whose host is not huggingface.co or a subdomain of huggingface.co or hf.co, a third redirect, or a Location with userinfo, a fragment, a non-HTTPS scheme or a port other than 443."
+    },
+    {
+      "code": "DOWNLOAD_TIMEOUT",
+      "kinds": [
+        "job"
+      ],
+      "stage": "job",
+      "http_status": null,
+      "top_level_code": null,
+      "retryable": true,
+      "owner": "RUN-015",
+      "meaning": "Connect or no-byte timeout during model_prepare."
+    },
+    {
+      "code": "DUPLICATE_SOURCE",
+      "kinds": [
+        "reason"
+      ],
+      "stage": "semantic",
+      "http_status": 400,
+      "top_level_code": "VALIDATION_FAILED",
+      "retryable": false,
+      "owner": "DAT-013",
+      "meaning": "One upload contains a repeated record_id within or across its split files."
+    },
+    {
+      "code": "EMPTY_SUPERVISED_TARGET",
+      "kinds": [
+        "job"
+      ],
+      "stage": "job",
+      "http_status": null,
+      "top_level_code": null,
+      "retryable": false,
+      "owner": "APP-004",
+      "meaning": "A record has zero supervised tokens."
+    },
+    {
+      "code": "ESTIMATE_EXCEEDS_ROOT_QUOTA",
+      "kinds": [
+        "reason"
+      ],
+      "stage": "semantic",
+      "http_status": 400,
+      "top_level_code": "VALIDATION_FAILED",
+      "retryable": false,
+      "owner": "INT-007",
+      "meaning": "The request's own storage estimate exceeds the 50 GiB root quota, so no root can accept it."
+    },
+    {
+      "code": "EXERCISE_UNKNOWN",
+      "kinds": [
+        "reason"
+      ],
+      "stage": "reference",
+      "http_status": 400,
+      "top_level_code": "VALIDATION_FAILED",
+      "retryable": false,
+      "owner": "CUR-003",
+      "meaning": "exercise_id is not declared for the module in the compiled curriculum."
+    },
+    {
+      "code": "FETCH_SITE_REJECTED",
+      "kinds": [
+        "reason"
+      ],
+      "stage": "auth",
+      "http_status": 403,
+      "top_level_code": "ORIGIN_REJECTED",
+      "retryable": false,
+      "owner": "RUN-003",
+      "meaning": "Sec-Fetch-Site absent or not same-origin/none on a GET."
+    },
+    {
+      "code": "HOST_MISMATCH",
+      "kinds": [
+        "reason"
+      ],
+      "stage": "auth",
+      "http_status": 403,
+      "top_level_code": "ORIGIN_REJECTED",
+      "retryable": false,
+      "owner": "RUN-003",
+      "meaning": "Host header is not exactly 127.0.0.1:8765."
+    },
+    {
+      "code": "IDEMPOTENCY_CONFLICT",
+      "kinds": [
+        "top_level"
+      ],
+      "stage": "boundary",
+      "http_status": 409,
+      "top_level_code": null,
+      "retryable": false,
+      "owner": "RUN-005",
+      "meaning": "Top-level HTTP error code"
+    },
+    {
+      "code": "INSUFFICIENT_STORAGE",
+      "kinds": [
+        "reason"
+      ],
+      "stage": "storage",
+      "http_status": 503,
+      "top_level_code": "DISK_FULL",
+      "retryable": true,
+      "owner": "DAT-011",
+      "meaning": "Free space is below the estimate plus 1 GiB at acceptance."
+    },
+    {
+      "code": "INTERNAL_ERROR",
+      "kinds": [
+        "top_level",
+        "job"
+      ],
+      "stage": "boundary",
+      "http_status": 500,
+      "top_level_code": null,
+      "retryable": true,
+      "owner": "RUN-005",
+      "meaning": "Top-level HTTP error code"
+    },
+    {
+      "code": "INVALID_CONVERSATION",
+      "kinds": [
+        "reason"
+      ],
+      "stage": "semantic",
+      "http_status": 400,
+      "top_level_code": "VALIDATION_FAILED",
+      "retryable": false,
+      "owner": "APP-010",
+      "meaning": "Role order or system-message rule violated."
+    },
+    {
+      "code": "INVALID_ENCODING",
+      "kinds": [
+        "reason"
+      ],
+      "stage": "encoding",
+      "http_status": 400,
+      "top_level_code": "VALIDATION_FAILED",
+      "retryable": false,
+      "owner": "DAT-013",
+      "meaning": "Bytes are not strict UTF-8."
+    },
+    {
+      "code": "INVALID_JSON",
+      "kinds": [
+        "reason"
+      ],
+      "stage": "encoding",
+      "http_status": 400,
+      "top_level_code": "VALIDATION_FAILED",
+      "retryable": false,
+      "owner": "DAT-013",
+      "meaning": "Malformed JSON/JSONL, duplicate key, non-finite number or trailing data."
+    },
+    {
+      "code": "INVALID_REQUEST",
+      "kinds": [
+        "top_level"
+      ],
+      "stage": "boundary",
+      "http_status": 400,
+      "top_level_code": null,
+      "retryable": false,
+      "owner": "RUN-005",
+      "meaning": "Top-level HTTP error code"
+    },
+    {
+      "code": "INVALID_SAMPLING_PARAMETERS",
+      "kinds": [
+        "reason"
+      ],
+      "stage": "semantic",
+      "http_status": 400,
+      "top_level_code": "VALIDATION_FAILED",
+      "retryable": false,
+      "owner": "APP-009",
+      "meaning": "Invalid temperature/top_p combination."
+    },
+    {
+      "code": "METHOD_NOT_ALLOWED",
+      "kinds": [
+        "top_level"
+      ],
+      "stage": "boundary",
+      "http_status": 405,
+      "top_level_code": null,
+      "retryable": false,
+      "owner": "RUN-005",
+      "meaning": "Top-level HTTP error code"
+    },
+    {
+      "code": "MODEL_NOT_PREPARED",
+      "kinds": [
+        "reason",
+        "job"
+      ],
+      "stage": "state",
+      "http_status": 409,
+      "top_level_code": "STATE_CONFLICT",
+      "retryable": false,
+      "owner": "APP-012",
+      "meaning": "The pinned base is not prepared in this root."
+    },
+    {
+      "code": "MODEL_PROFILE_MISMATCH",
+      "kinds": [
+        "job"
+      ],
+      "stage": "job",
+      "http_status": null,
+      "top_level_code": null,
+      "retryable": false,
+      "owner": "APP-003",
+      "meaning": "A verified file parses to a different architecture/profile."
+    },
+    {
+      "code": "MODEL_REVISION_MISMATCH",
+      "kinds": [
+        "job"
+      ],
+      "stage": "job",
+      "http_status": null,
+      "top_level_code": null,
+      "retryable": false,
+      "owner": "APP-002",
+      "meaning": "Resolved commit differs from the pinned revision."
+    },
+    {
+      "code": "NETWORK_UNAVAILABLE",
+      "kinds": [
+        "job"
+      ],
+      "stage": "job",
+      "http_status": null,
+      "top_level_code": null,
+      "retryable": true,
+      "owner": "RUN-015",
+      "meaning": "Model download could not connect."
+    },
+    {
+      "code": "NONFINITE_TRAINING_VALUE",
+      "kinds": [
+        "job"
+      ],
+      "stage": "job",
+      "http_status": null,
+      "top_level_code": null,
+      "retryable": false,
+      "owner": "APP-007",
+      "meaning": "Nonfinite loss or gradient (tiny and applied)."
+    },
+    {
+      "code": "NOT_FOUND",
+      "kinds": [
+        "top_level"
+      ],
+      "stage": "boundary",
+      "http_status": 404,
+      "top_level_code": null,
+      "retryable": false,
+      "owner": "RUN-005",
+      "meaning": "Top-level HTTP error code"
+    },
+    {
+      "code": "ORIGIN_MISMATCH",
+      "kinds": [
+        "reason"
+      ],
+      "stage": "auth",
+      "http_status": 403,
+      "top_level_code": "ORIGIN_REJECTED",
+      "retryable": false,
+      "owner": "RUN-003",
+      "meaning": "Origin present and not exactly http://127.0.0.1:8765."
+    },
+    {
+      "code": "ORIGIN_MISSING",
+      "kinds": [
+        "reason"
+      ],
+      "stage": "auth",
+      "http_status": 403,
+      "top_level_code": "ORIGIN_REJECTED",
+      "retryable": false,
+      "owner": "RUN-003",
+      "meaning": "Origin absent on a mutation or session exchange."
+    },
+    {
+      "code": "ORIGIN_REJECTED",
+      "kinds": [
+        "top_level"
+      ],
+      "stage": "boundary",
+      "http_status": 403,
+      "top_level_code": null,
+      "retryable": false,
+      "owner": "RUN-005",
+      "meaning": "Top-level HTTP error code"
+    },
+    {
+      "code": "OUT_OF_MEMORY",
+      "kinds": [
+        "job"
+      ],
+      "stage": "job",
+      "http_status": null,
+      "top_level_code": null,
+      "retryable": false,
+      "owner": "RUN-015",
+      "meaning": "Runtime out-of-memory."
+    },
+    {
+      "code": "PAYLOAD_TOO_LARGE",
+      "kinds": [
+        "top_level",
+        "reason"
+      ],
+      "stage": "boundary",
+      "http_status": 413,
+      "top_level_code": "VALIDATION_FAILED",
+      "retryable": false,
+      "owner": "RUN-005",
+      "meaning": "Top-level HTTP error code"
+    },
+    {
+      "code": "PREFLIGHT_REJECTED",
+      "kinds": [
+        "reason"
+      ],
+      "stage": "auth",
+      "http_status": 403,
+      "top_level_code": "ORIGIN_REJECTED",
+      "retryable": false,
+      "owner": "RUN-003",
+      "meaning": "OPTIONS/CORS preflight request."
+    },
+    {
+      "code": "PREREQUISITE_NOT_VERIFIED",
+      "kinds": [
+        "reason"
+      ],
+      "stage": "state",
+      "http_status": 409,
+      "top_level_code": "STATE_CONFLICT",
+      "retryable": false,
+      "owner": "CUR-002",
+      "meaning": "A blocking prerequisite module's evidence is not artifact_verified in this registry."
+    },
+    {
+      "code": "PROGRESS_DERIVED_FLAG",
+      "kinds": [
+        "reason"
+      ],
+      "stage": "semantic",
+      "http_status": 400,
+      "top_level_code": "VALIDATION_FAILED",
+      "retryable": false,
+      "owner": "CUR-002",
+      "meaning": "practiced/self_checked can only be set by the server from exercise records."
+    },
+    {
+      "code": "QUEUE_FULL",
+      "kinds": [
+        "top_level"
+      ],
+      "stage": "boundary",
+      "http_status": 429,
+      "top_level_code": null,
+      "retryable": true,
+      "owner": "RUN-005",
+      "meaning": "Top-level HTTP error code"
+    },
+    {
+      "code": "RANGE_NOT_SATISFIABLE",
+      "kinds": [
+        "top_level"
+      ],
+      "stage": "boundary",
+      "http_status": 416,
+      "top_level_code": null,
+      "retryable": false,
+      "owner": "RUN-005",
+      "meaning": "Top-level HTTP error code"
+    },
+    {
+      "code": "REFERENCE_MISSING",
+      "kinds": [
+        "reason",
+        "job"
+      ],
+      "stage": "reference",
+      "http_status": 400,
+      "top_level_code": "VALIDATION_FAILED",
+      "retryable": false,
+      "owner": "DAT-013",
+      "meaning": "A referenced registry identity does not exist."
+    },
+    {
+      "code": "REGISTRY_COUNT_EXCEEDED",
+      "kinds": [
+        "reason"
+      ],
+      "stage": "registry",
+      "http_status": 409,
+      "top_level_code": "REGISTRY_LIMIT",
+      "retryable": false,
+      "owner": "INT-007",
+      "meaning": "A registry count limit would be exceeded."
+    },
+    {
+      "code": "REGISTRY_LIMIT",
+      "kinds": [
+        "top_level"
+      ],
+      "stage": "boundary",
+      "http_status": 409,
+      "top_level_code": null,
+      "retryable": false,
+      "owner": "RUN-005",
+      "meaning": "Top-level HTTP error code"
+    },
+    {
+      "code": "RETRIEVAL_DOCUMENT_NO_RETAINED_TERMS",
+      "kinds": [
+        "job"
+      ],
+      "stage": "job",
+      "http_status": null,
+      "top_level_code": null,
+      "retryable": false,
+      "owner": "APP-013",
+      "meaning": "A document has no term left after max_features truncation."
+    },
+    {
+      "code": "RETRIEVAL_QUERY_NO_TERMS",
+      "kinds": [
+        "job"
+      ],
+      "stage": "job",
+      "http_status": null,
+      "top_level_code": null,
+      "retryable": false,
+      "owner": "APP-013",
+      "meaning": "Query has no term in the index vocabulary."
+    },
+    {
+      "code": "REUSE_RECEIPT_MISMATCH",
+      "kinds": [
+        "reason"
+      ],
+      "stage": "semantic",
+      "http_status": 400,
+      "top_level_code": "VALIDATION_FAILED",
+      "retryable": false,
+      "owner": "CUR-011",
+      "meaning": "Registered reuse receipt does not bind a bundle exported by this root or its profile differs."
+    },
+    {
+      "code": "REVISION_MISMATCH",
+      "kinds": [
+        "reason"
+      ],
+      "stage": "state",
+      "http_status": 409,
+      "top_level_code": "STATE_CONFLICT",
+      "retryable": false,
+      "owner": "DAT-006",
+      "meaning": "expected revision differs from the current revision."
+    },
+    {
+      "code": "ROOT_QUOTA_EXCEEDED",
+      "kinds": [
+        "reason"
+      ],
+      "stage": "registry",
+      "http_status": 409,
+      "top_level_code": "REGISTRY_LIMIT",
+      "retryable": false,
+      "owner": "INT-007",
+      "meaning": "Committed+staging+reserved bytes would exceed 50 GiB."
+    },
+    {
+      "code": "SCHEMA_INVALID",
+      "kinds": [
+        "reason",
+        "job"
+      ],
+      "stage": "schema",
+      "http_status": 400,
+      "top_level_code": "VALIDATION_FAILED",
+      "retryable": false,
+      "owner": "DAT-013",
+      "meaning": "Instance fails its JSON Schema."
+    },
+    {
+      "code": "SEALED_SPLIT_REQUIRES_TOKEN",
+      "kinds": [
+        "reason"
+      ],
+      "stage": "state",
+      "http_status": 409,
+      "top_level_code": "STATE_CONFLICT",
+      "retryable": false,
+      "owner": "DAT-003",
+      "meaning": "A sealed split is read without a valid capstone release token."
+    },
+    {
+      "code": "SECRET_ALREADY_DELIVERED",
+      "kinds": [
+        "reason"
+      ],
+      "stage": "state",
+      "http_status": 409,
+      "top_level_code": "STATE_CONFLICT",
+      "retryable": false,
+      "owner": "RUN-007",
+      "meaning": "An idempotent replay would re-deliver a once-only secret."
+    },
+    {
+      "code": "SEMANTIC_INVALID",
+      "kinds": [
+        "reason",
+        "job"
+      ],
+      "stage": "semantic",
+      "http_status": 400,
+      "top_level_code": "VALIDATION_FAILED",
+      "retryable": false,
+      "owner": "DAT-013",
+      "meaning": "A semantic invariant or role mapping fails."
+    },
+    {
+      "code": "SESSION_EXPIRED",
+      "kinds": [
+        "top_level"
+      ],
+      "stage": "boundary",
+      "http_status": 401,
+      "top_level_code": null,
+      "retryable": false,
+      "owner": "RUN-005",
+      "meaning": "Top-level HTTP error code"
+    },
+    {
+      "code": "SESSION_LIMIT",
+      "kinds": [
+        "reason"
+      ],
+      "stage": "registry",
+      "http_status": 409,
+      "top_level_code": "REGISTRY_LIMIT",
+      "retryable": false,
+      "owner": "RUN-003",
+      "meaning": "32 unexpired sessions already exist for this instance."
+    },
+    {
+      "code": "SPLIT_TOO_SHORT",
+      "kinds": [
+        "job"
+      ],
+      "stage": "job",
+      "http_status": null,
+      "top_level_code": null,
+      "retryable": false,
+      "owner": "INT-003",
+      "meaning": "A tiny train/validation token stream is not longer than the context."
+    },
+    {
+      "code": "STATE_CONFLICT",
+      "kinds": [
+        "top_level"
+      ],
+      "stage": "boundary",
+      "http_status": 409,
+      "top_level_code": null,
+      "retryable": false,
+      "owner": "RUN-005",
+      "meaning": "Top-level HTTP error code"
+    },
+    {
+      "code": "STORAGE_CORRUPT",
+      "kinds": [
+        "reason",
+        "job"
+      ],
+      "stage": "storage",
+      "http_status": 503,
+      "top_level_code": "STORAGE_UNAVAILABLE",
+      "retryable": false,
+      "owner": "DAT-011",
+      "meaning": "Integrity check failed; root is in read-only recovery."
+    },
+    {
+      "code": "STORAGE_IN_USE",
+      "kinds": [
+        "top_level"
+      ],
+      "stage": "boundary",
+      "http_status": 423,
+      "top_level_code": null,
+      "retryable": true,
+      "owner": "RUN-005",
+      "meaning": "Top-level HTTP error code"
+    },
+    {
+      "code": "STORAGE_UNAVAILABLE",
+      "kinds": [
+        "top_level"
+      ],
+      "stage": "boundary",
+      "http_status": 503,
+      "top_level_code": null,
+      "retryable": true,
+      "owner": "RUN-005",
+      "meaning": "Top-level HTTP error code"
+    },
+    {
+      "code": "SUBJECT_INCOMPATIBLE",
+      "kinds": [
+        "reason",
+        "job"
+      ],
+      "stage": "semantic",
+      "http_status": 400,
+      "top_level_code": "VALIDATION_FAILED",
+      "retryable": false,
+      "owner": "APP-001",
+      "meaning": "Model family or comparison identities are incompatible."
+    },
+    {
+      "code": "TINY_CHECKPOINT_ALIAS_INVALID",
+      "kinds": [
+        "reason",
+        "job"
+      ],
+      "stage": "semantic",
+      "http_status": 400,
+      "top_level_code": "VALIDATION_FAILED",
+      "retryable": false,
+      "owner": "APP-014",
+      "meaning": "Tied-weight alias invalid."
+    },
+    {
+      "code": "TINY_STEP_OVERFLOW",
+      "kinds": [
+        "reason"
+      ],
+      "stage": "semantic",
+      "http_status": 400,
+      "top_level_code": "VALIDATION_FAILED",
+      "retryable": false,
+      "owner": "INT-004",
+      "meaning": "Parent step plus additional steps exceeds 2,147,483,647."
+    },
+    {
+      "code": "TOKENIZER_MISMATCH",
+      "kinds": [
+        "reason",
+        "job"
+      ],
+      "stage": "semantic",
+      "http_status": 400,
+      "top_level_code": "VALIDATION_FAILED",
+      "retryable": false,
+      "owner": "APP-015",
+      "meaning": "Tokenizer identity differs from the bound identity."
+    },
+    {
+      "code": "TOKEN_CONSUMED",
+      "kinds": [
+        "reason"
+      ],
+      "stage": "state",
+      "http_status": 409,
+      "top_level_code": "STATE_CONFLICT",
+      "retryable": false,
+      "owner": "RUN-012",
+      "meaning": "The release token was already consumed."
+    },
+    {
+      "code": "UNSUPPORTED_MEDIA_TYPE",
+      "kinds": [
+        "top_level"
+      ],
+      "stage": "boundary",
+      "http_status": 415,
+      "top_level_code": null,
+      "retryable": false,
+      "owner": "RUN-005",
+      "meaning": "Top-level HTTP error code"
+    },
+    {
+      "code": "VALIDATION_FAILED",
+      "kinds": [
+        "top_level"
+      ],
+      "stage": "boundary",
+      "http_status": 400,
+      "top_level_code": null,
+      "retryable": false,
+      "owner": "RUN-005",
+      "meaning": "Top-level HTTP error code"
+    },
+    {
+      "code": "WORKER_OWNERSHIP_UNKNOWN",
+      "kinds": [
+        "job"
+      ],
+      "stage": "job",
+      "http_status": null,
+      "top_level_code": null,
+      "retryable": false,
+      "owner": "RUN-009",
+      "meaning": "Worker ownership could not be proven; job ends interrupted with this error and no replacement worker starts for the root."
+    },
+    {
+      "code": "WORKER_PROTOCOL_ERROR",
+      "kinds": [
+        "job"
+      ],
+      "stage": "job",
+      "http_status": null,
+      "top_level_code": null,
+      "retryable": false,
+      "owner": "RUN-008",
+      "meaning": "Worker violated the IPC/result protocol."
+    },
+    {
+      "code": "completed",
+      "kinds": [
+        "terminal"
+      ],
+      "stage": "terminal",
+      "http_status": null,
+      "top_level_code": null,
+      "retryable": false,
+      "owner": "RUN-008",
+      "meaning": "Job completed with a typed result."
+    },
+    {
+      "code": "exercise_timeout",
+      "kinds": [
+        "terminal"
+      ],
+      "stage": "terminal",
+      "http_status": null,
+      "top_level_code": null,
+      "retryable": false,
+      "owner": "RUN-008",
+      "meaning": "Module-14 teaching hold expired at step 25."
+    },
+    {
+      "code": "service_restarted",
+      "kinds": [
+        "terminal"
+      ],
+      "stage": "terminal",
+      "http_status": null,
+      "top_level_code": null,
+      "retryable": false,
+      "owner": "RUN-008",
+      "meaning": "Recovery found the job nonterminal after an unclean stop."
+    },
+    {
+      "code": "service_shutdown",
+      "kinds": [
+        "terminal"
+      ],
+      "stage": "terminal",
+      "http_status": null,
+      "top_level_code": null,
+      "retryable": false,
+      "owner": "RUN-008",
+      "meaning": "Clean service stop interrupted the active job."
+    },
+    {
+      "code": "timeout",
+      "kinds": [
+        "terminal"
+      ],
+      "stage": "terminal",
+      "http_status": null,
+      "top_level_code": null,
+      "retryable": false,
+      "owner": "RUN-008",
+      "meaning": "60-minute compute deadline reached."
+    },
+    {
+      "code": "user_cancelled",
+      "kinds": [
+        "terminal"
+      ],
+      "stage": "terminal",
+      "http_status": null,
+      "top_level_code": null,
+      "retryable": false,
+      "owner": "RUN-008",
+      "meaning": "Learner or owner requested cancellation (including queued cancellation)."
+    },
+    {
+      "code": "worker_lost",
+      "kinds": [
+        "terminal"
+      ],
+      "stage": "terminal",
+      "http_status": null,
+      "top_level_code": null,
+      "retryable": false,
+      "owner": "RUN-008",
+      "meaning": "Worker exited without protocol while cancellation, deadline or shutdown was in progress."
+    },
+    {
+      "code": "worker_ownership_unknown",
+      "kinds": [
+        "terminal"
+      ],
+      "stage": "terminal",
+      "http_status": null,
+      "top_level_code": null,
+      "retryable": false,
+      "owner": "RUN-008",
+      "meaning": "Worker ownership could not be proven; the process was not signalled."
+    }
+  ],
+  "ignored_tokens": {
+    "NOT_RUN": "acceptance status value",
+    "NOT_APPLICABLE": "WCAG inventory status value",
+    "CAUSAL_LM": "PEFT task_type value",
+    "RECORD_ID": "E02 citation placeholder in the system prompt",
+    "E01_EDIT_BEGIN": "E01 source marker text",
+    "E01_EDIT_END": "E01 source marker text",
+    "DATASET_LEAKAGE_BLOCK": "module-14 diagnosis oracle label (teaching label, not an API code)",
+    "NON_FINITE_LOSS": "module-14 diagnosis oracle label (teaching label, not an API code)",
+    "NO_QUALITY_FAILURE": "module-14 diagnosis oracle label (teaching label, not an API code)",
+    "USER_CANCELLED_SAFE_BOUNDARY": "module-14 diagnosis oracle label (teaching label, not an API code)",
+    "CUBLAS_WORKSPACE_CONFIG": "CUDA environment variable"
+  }
+}

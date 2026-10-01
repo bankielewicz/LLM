@@ -64,6 +64,7 @@
       "method": "integration",
       "profiles": [
         "win-cpu",
+        "win-cuda",
         "wsl-cpu",
         "wsl-cuda"
       ],
@@ -92,6 +93,7 @@
       "method": "unit",
       "profiles": [
         "win-cpu",
+        "win-cuda",
         "wsl-cpu",
         "wsl-cuda"
       ],
@@ -119,6 +121,7 @@
       "method": "integration",
       "profiles": [
         "win-cpu",
+        "win-cuda",
         "wsl-cpu",
         "wsl-cuda"
       ],
@@ -129,13 +132,13 @@
         "Generate fixtures twice",
         "Audit clean and leaky fixtures",
         "Request training on leaky fixture",
-        "Request sealed test before token use"
+        "Request sealed test before token use","Upload capstone-support-v1 twice under different names with sealed_test.jsonl as the test part; upload documents.jsonl as a retrieval_v1 train part; upload a document_text_v1 file whose record 17 is whitespace-only; evaluate the sealed test split without a token; create a capstone attempt with a wrong dataset_manifest_sha256."
       ],
       "expected": [
         "Byte-identical generation",
         "Clean counts 48/0/0/0",
         "Leaky counts 48/1/2/1 and audit_only",
-        "Training and premature sealed access rejected without mutation"
+        "Training and premature sealed access rejected without mutation","Both uploads have sealed test splits and the same manifest_sha256, so the exposure ledger key is shared; the retrieval corpus registers with eligibility eligible and empty rejections; the whitespace record rejects the whole upload with 400 VALIDATION_FAILED reason SEMANTIC_INVALID and a line-17 field error; the tokenless evaluation returns 409 STATE_CONFLICT reason SEALED_SPLIT_REQUIRES_TOKEN; the wrong digest returns 400 VALIDATION_FAILED reason DATASET_DIGEST_MISMATCH."
       ],
       "status": "NOT_RUN"
     },
@@ -148,6 +151,7 @@
       "method": "unit",
       "profiles": [
         "win-cpu",
+        "win-cuda",
         "wsl-cpu",
         "wsl-cuda"
       ],
@@ -161,7 +165,7 @@
       "expected": [
         "Completed requires equal requested/final step",
         "Interrupted retains durable step",
-        "Failed may omit requested step",
+        "A failed record with no requested_final_step validates, the same record with requested_final_step also validates, and a completed record lacking requested_final_step or final_step is rejected",
         "Nonfinite metric rejected",
         "Recovered running job becomes interrupted"
       ],
@@ -176,6 +180,7 @@
       "method": "integration",
       "profiles": [
         "win-cpu",
+        "win-cuda",
         "wsl-cpu",
         "wsl-cuda"
       ],
@@ -203,6 +208,7 @@
       "profiles": [
         "static",
         "win-cpu",
+        "win-cuda",
         "wsl-cpu",
         "wsl-cuda"
       ],
@@ -233,6 +239,7 @@
       "profiles": [
         "static",
         "win-cpu",
+        "win-cuda",
         "wsl-cpu",
         "wsl-cuda"
       ],
@@ -261,6 +268,7 @@
       "method": "integration",
       "profiles": [
         "win-cpu",
+        "win-cuda",
         "wsl-cpu",
         "wsl-cuda"
       ],
@@ -289,6 +297,7 @@
       "method": "integration",
       "profiles": [
         "win-cpu",
+        "win-cuda",
         "wsl-cpu",
         "wsl-cuda"
       ],
@@ -314,6 +323,7 @@
       "method": "integration",
       "profiles": [
         "win-cpu",
+        "win-cuda",
         "wsl-cpu",
         "wsl-cuda"
       ],
@@ -340,6 +350,7 @@
       "method": "integration",
       "profiles": [
         "win-cpu",
+        "win-cuda",
         "wsl-cpu",
         "wsl-cuda"
       ],
@@ -371,6 +382,7 @@
       "method": "manual",
       "profiles": [
         "win-cpu",
+        "win-cuda",
         "wsl-cpu",
         "wsl-cuda"
       ],
@@ -400,6 +412,7 @@
       "profiles": [
         "static",
         "win-cpu",
+        "win-cuda",
         "wsl-cpu",
         "wsl-cuda"
       ],
@@ -410,13 +423,13 @@
       "steps": [
         "Compile every schema",
         "Validate fixtures",
-        "Submit invalid object through each import boundary"
+        "Submit invalid object through each import boundary","Preview a 3,000,000-byte legacy v1 backup exported by the preserved app with 20 runs; a 25,000,001-byte legacy file; a legacy backup missing one of the ten note fields; a legacy backup with a reviewed evidence entry whose note is blank."
       ],
       "expected": [
         "All schemas compile",
         "Valid fixtures pass and invalid fail",
         "Error envelope identifies fields",
-        "Database revision/counts/tree unchanged"
+        "Database revision/counts/tree unchanged","The 3,000,000-byte backup previews; 25,000,001 bytes returns 413 PAYLOAD_TOO_LARGE; the other two return 400 VALIDATION_FAILED/SCHEMA_INVALID exactly where the preserved validateState rejects them; the localStorage key llm-foundations-v1 is never written."
       ],
       "status": "NOT_RUN"
     },
@@ -430,6 +443,7 @@
       ],
       "profiles": [
         "win-cpu",
+        "win-cuda",
         "wsl-cpu",
         "wsl-cuda"
       ],
@@ -459,6 +473,7 @@
       ],
       "profiles": [
         "win-cpu",
+        "win-cuda",
         "wsl-cpu",
         "wsl-cuda"
       ],
@@ -467,7 +482,7 @@
       ],
       "steps": [
         "Exercise thin/full crossed with resume included/excluded; verify aggregate flag matches any checkpoint resume flag.",
-        "Reject initial capstone steps19, wrong preset accumulation, missing adapter chat subject, and greedy top_p0.5.",
+        "Reject initial capstone steps 19, wrong preset accumulation, missing adapter chat subject, and greedy top_p 0.5.",
         "Round-trip applied checkpoint null/UUID parent, base ID, device, source revision and init_lora_weights identity."
       ],
       "expected": [

@@ -244,7 +244,7 @@ def build_examples(model_files: list[dict[str, Any]]) -> tuple[
 
     generate_request = {
         "operation": "generate",
-        "model_id": ids["model"],
+        "checkpoint_id": ids["checkpoint"],
         "prompt": "The next token is",
         "max_new_tokens": 16,
         "temperature": 0,
@@ -279,7 +279,6 @@ def build_examples(model_files: list[dict[str, Any]]) -> tuple[
             "operation": "tiny_train",
             "dataset_id": ids["dataset"],
             "tokenizer_id": ids["tokenizer"],
-            "device": "cpu",
             "steps": 30,
             "eval_every": 10,
             "batch_size": 4,
@@ -294,7 +293,6 @@ def build_examples(model_files: list[dict[str, Any]]) -> tuple[
         "tiny_resume": {
             "operation": "tiny_resume",
             "checkpoint_id": ids["checkpoint"],
-            "device": "cpu",
             "additional_steps": 10,
         },
         "evaluate": {
@@ -330,7 +328,7 @@ def build_examples(model_files: list[dict[str, Any]]) -> tuple[
         "context_preview": {
             "operation": "context_preview",
             "backend": "tiny",
-            "model_id": ids["model"],
+            "checkpoint_id": ids["checkpoint"],
             "prompt": generate_request["prompt"],
             "max_new_tokens": generate_request["max_new_tokens"],
             "temperature": generate_request["temperature"],
@@ -392,7 +390,9 @@ def build_examples(model_files: list[dict[str, Any]]) -> tuple[
             "operation": "tiny_train",
             "run_id": ids["run"],
             "model_id": ids["model"],
-            "checkpoint_id": ids["checkpoint"],
+            "best_checkpoint_id": ids["best_checkpoint"],
+            "last_checkpoint_id": ids["last_checkpoint"],
+            "metrics_artifact_id": ids["metrics"],
             "completed_step": 30,
             "requested_final_step": 30,
             "artifact_ids": artifact_ids,
@@ -401,7 +401,9 @@ def build_examples(model_files: list[dict[str, Any]]) -> tuple[
             "operation": "tiny_resume",
             "run_id": ids["run"],
             "model_id": ids["model"],
-            "checkpoint_id": ids["checkpoint"],
+            "best_checkpoint_id": ids["best_checkpoint"],
+            "last_checkpoint_id": ids["last_checkpoint"],
+            "metrics_artifact_id": ids["metrics"],
             "completed_step": 40,
             "requested_final_step": 40,
             "parent_checkpoint_id": ids["parent_checkpoint"],
@@ -419,7 +421,7 @@ def build_examples(model_files: list[dict[str, Any]]) -> tuple[
         "generate": {
             "operation": "generate",
             "run_id": ids["run"],
-            "model_id": ids["model"],
+            "checkpoint_id": ids["checkpoint"],
             "generated_text": " a model.",
             "generated_token_count": 3,
             "stop_reason": "eos",
@@ -469,7 +471,7 @@ def build_examples(model_files: list[dict[str, Any]]) -> tuple[
             "serialized_text": generate_request["prompt"],
             "dropped_message_indices": [],
             "cropped_input_tokens": 0,
-            "effective_context_budget": 496,
+            "effective_context_budget": 32,
             "canonical_generation_request_sha256": request_digest(generate_request),
             "artifact_ids": [ids["preview"]],
             "context_preview_digest": preview_digest,
@@ -477,6 +479,7 @@ def build_examples(model_files: list[dict[str, Any]]) -> tuple[
         },
         "chat_generate": {
             "operation": "chat_generate",
+            "run_id": ids["run"],
             "generation_id": ids["generation"],
             "output_artifact_id": ids["artifact"],
             "text": "account_access",
@@ -531,8 +534,8 @@ def build_examples(model_files: list[dict[str, Any]]) -> tuple[
                 {
                     "entity_type": "artifact",
                     "original_id": ids["artifact"],
-                    "local_id": None,
-                    "disposition": "skipped",
+                    "local_id": ids["artifact"],
+                    "disposition": "skipped_existing",
                 }
             ],
             "imported_counts": {"artifact": 0},
@@ -578,6 +581,31 @@ def runtime_example() -> dict[str, Any]:
         "text_preview_bytes": 262144,
         "bundle_archive_bytes": 1073741824,
         "bundle_expanded_bytes": 2147483648,
+        "tiny_training_text_bytes": 200000,
+        "sft_text_bytes": 20971520,
+        "dataset_records": 100000,
+        "tiny_updates_per_job": 2000,
+        "adapter_updates_per_lineage": 120,
+        "tiny_prompt_bytes": 16384,
+        "tiny_new_tokens": 512,
+        "chat_messages": 64,
+        "chat_message_bytes": 8192,
+        "chat_total_bytes": 32768,
+        "chat_new_tokens": 128,
+        "applied_context_tokens": 512,
+        "retrieval_query_bytes": 4096,
+        "retrieval_top_k": 20,
+        "backup_wrapper_bytes": 8388608,
+        "progress_import_bytes": 1048576,
+        "list_page_items": 100,
+        "event_page_items": 500,
+        "worker_stream_bytes": 1048576,
+        "free_space_reserve_bytes": 1073741824,
+        "teaching_hold_seconds": 600,
+        "cancel_grace_seconds": 30,
+        "max_sessions": 32,
+        "legacy_backup_bytes": 25000000,
+        "max_exercise_records": 10000,
     }
     return {
         "mode": "local",
@@ -586,6 +614,8 @@ def runtime_example() -> dict[str, Any]:
         "instance_id": UUIDS["installation"],
         "profile": "wsl-cpu",
         "device": "cpu",
+        "gpu_offer": {"status": "not_detected", "gpu": None, "cuda_profile": "wsl-cuda", "reason_code": None,
+                      "cuda_environment_installed": False, "explicit_profile": False},
         "storage_root_display": "Learner storage",
         "storage_writable": True,
         "server_time": WHEN,
@@ -626,13 +656,22 @@ def base_job(operation: str = "tokenizer_train") -> dict[str, Any]:
         "warning_suppressed_count": 0,
         "checkpoint_boundary": None,
         "terminal_reason": None,
+        "request": {"canonical_sha256": SHA_A, "artifact_id": UUIDS["artifact"]},
+        "idempotency_key": UUIDS["verification"],
+        "run_id": None,
+        "committed_artifact_count": 0,
+        "log_artifact_ids": {"stdout": None, "stderr": None},
+        "queue_position": 1,
+        "phase_started_at": None,
+        "hold_deadline_at": None,
     }
 
 
 def job_state_examples(results: dict[str, dict[str, Any]]) -> dict[str, dict[str, Any]]:
-    queued = base_job()
+    queued = base_job("tiny_train")
     starting = copy.deepcopy(queued)
     starting.update(
+        queue_position=None,
         state="starting",
         started_at=WHEN,
         phase="loading",
@@ -660,7 +699,7 @@ def job_state_examples(results: dict[str, dict[str, Any]]) -> dict[str, dict[str
         finished_at=WHEN,
         phase=None,
         step=30,
-        result=results["tokenizer_train"],
+        result=results["tiny_train"],
         last_cursor=5,
         terminal_reason="completed",
     )
@@ -676,7 +715,7 @@ def job_state_examples(results: dict[str, dict[str, Any]]) -> dict[str, dict[str
             "field_errors": [],
         },
         last_cursor=3,
-        terminal_reason="worker_protocol_error",
+        terminal_reason="WORKER_PROTOCOL_ERROR",
     )
     interrupted = copy.deepcopy(running)
     interrupted.update(
@@ -684,6 +723,7 @@ def job_state_examples(results: dict[str, dict[str, Any]]) -> dict[str, dict[str
         finished_at=WHEN,
         phase=None,
         step=25,
+        requested_final_step=50,
         last_cursor=6,
         checkpoint_boundary={
             "checkpoint_id": UUIDS["checkpoint"],
@@ -738,6 +778,7 @@ def stored_assessment(request: dict[str, Any]) -> dict[str, Any]:
         "rationale": request["rationale"],
         "origin": "locally_created",
         "created_at": WHEN,
+        "evidence_revision": 1,
     }
 
 
@@ -765,10 +806,13 @@ def capstone_examples() -> tuple[dict[str, Any], dict[str, Any]]:
             "dataset_id": UUIDS["dataset"],
             "dataset_manifest_sha256": SHA_A,
             "evaluation_profile_id": "applied-intents-greedy-v1",
-            "prior_release_count": 0,
+            "prior_release_count": None,
             "token_sha256": hashlib.sha256(RELEASE_TOKEN.encode("ascii")).hexdigest(),
             "token_state": "available",
-            "test_exposure": "fresh_test",
+            "test_exposure": None,
+            "attempt_number": 1,
+            "outcome": None,
+            "evaluate_request_sha256": None,
             "created_at": WHEN,
         },
         "release_token": RELEASE_TOKEN,
@@ -963,6 +1007,17 @@ def run_review() -> tuple[Review, dict[str, str]]:
         "CEC-API-002",
         is_valid(bundle, "RuntimeInfo", runtime),
         "normal GET /api/v1/runtime response validates with every fixed limit",
+    )
+    rtx = {"name": "NVIDIA GeForce RTX 5070", "compute_capability": "12.0", "driver_version": "616.92", "memory_total_mib": 12227}
+    offer = dict(runtime["gpu_offer"], status="available", gpu=rtx, cuda_environment_installed=True)
+    review.check(
+        "CEC-GPU-OFFER",
+        is_valid(bundle, "GpuOffer", offer)
+        and is_valid(bundle, "GpuOffer", dict(offer, status="unsupported", reason_code="CUDA_DRIVER_TOO_OLD", gpu=dict(rtx, driver_version="572.60")))
+        and not is_valid(bundle, "GpuOffer", dict(offer, status="unsupported"))
+        and not is_valid(bundle, "GpuOffer", dict(offer, status="not_detected"))
+        and not is_valid(bundle, "GpuOffer", dict(offer, reason_code="CUDA_ARCH_NOT_IN_BUILD")),
+        "GPU offer statuses carry exactly the GPU and reason fields RUN-001 allows",
     )
 
     state_examples = job_state_examples(results)
@@ -1248,6 +1303,18 @@ def run_review() -> tuple[Review, dict[str, str]]:
         state_examples["failed"]
     )
     impossible_jobs["failed_without_error"]["error"] = None
+    impossible_jobs["queued_with_phase"] = copy.deepcopy(state_examples["queued"])
+    impossible_jobs["queued_with_phase"].update(phase="training", step=10)
+    impossible_jobs["interrupted_terminal_completed"] = copy.deepcopy(state_examples["interrupted"])
+    impossible_jobs["interrupted_terminal_completed"]["terminal_reason"] = "completed"
+    impossible_jobs["cancelling_with_error"] = copy.deepcopy(state_examples["cancelling"])
+    impossible_jobs["cancelling_with_error"]["error"] = copy.deepcopy(state_examples["failed"]["error"])
+    impossible_jobs["unstarted_interrupted_with_checkpoint"] = copy.deepcopy(state_examples["interrupted"])
+    impossible_jobs["unstarted_interrupted_with_checkpoint"].update(started_at=None, terminal_reason="user_cancelled")
+    impossible_jobs["failed_lowercase_reason"] = copy.deepcopy(state_examples["failed"])
+    impossible_jobs["failed_lowercase_reason"]["terminal_reason"] = "worker_protocol_error"
+    impossible_jobs["interrupted_with_other_error"] = copy.deepcopy(state_examples["interrupted"])
+    impossible_jobs["interrupted_with_other_error"]["error"] = {"code": "OUT_OF_MEMORY", "message": "x", "retryable": False, "field_errors": []}
     accepted_impossible = [
         name
         for name, example in impossible_jobs.items()
@@ -1383,9 +1450,21 @@ def run_review() -> tuple[Review, dict[str, str]]:
         "format": "llm-foundations-preflight-child-v1", "backend_status": "passed",
         "device_available": True, "versions": {
             "torch": "2.8.0", "transformers": "4.57.1", "peft": "0.17.1",
-            "accelerate": "1.10.1", "safetensors": "0.6.2"}, "error_text": ""}
+            "accelerate": "1.10.1", "safetensors": "0.6.2"}, "error_text": "", "cuda": None}
     review.check("CEC-PREFLIGHT-CHILD", is_valid(bundle, schema_key(Path("preflight-child-report.schema.json")), child_report),
                  "fixed child report is representable without model execution")
+    cuda_report = dict(child_report, cuda={
+        "result": "passed", "reason_code": None, "device": {
+            "name": "NVIDIA GeForce RTX 5070", "count": 1, "compute_capability": "12.0",
+            "arch_list": ["sm_70", "sm_75", "sm_80", "sm_86", "sm_90", "sm_100", "sm_120"],
+            "total_memory_mib": 12227, "free_memory_mib": 11000, "max_relative_difference": 2e-07}})
+    failed_report = dict(child_report, cuda={"result": "failed", "reason_code": "CUDA_ARCH_NOT_IN_BUILD", "device": dict(
+        cuda_report["cuda"]["device"], arch_list=["sm_50", "sm_60", "sm_70", "sm_75", "sm_80", "sm_86", "sm_90"], max_relative_difference=None)})
+    child_key = schema_key(Path("preflight-child-report.schema.json"))
+    review.check("CEC-PREFLIGHT-CHILD-CUDA",
+                 is_valid(bundle, child_key, cuda_report) and is_valid(bundle, child_key, failed_report)
+                 and not is_valid(bundle, child_key, dict(cuda_report, cuda={"result": "passed", "reason_code": "CUDA_ARCH_NOT_IN_BUILD", "device": None})),
+                 "CUDA child reports record device facts; a passed result cannot carry a reason code or omit the device")
 
     source_hashes = {
         "openapi.json": hashlib.sha256(OPENAPI_PATH.read_bytes()).hexdigest(),

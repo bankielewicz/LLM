@@ -1,0 +1,16 @@
+{
+  "record_id": "31313131-3131-4131-8131-313131313131",
+  "module_id": "16",
+  "exercise_id": "M16-INDEPENDENT",
+  "kind": "independent_submission",
+  "response": {
+    "baseline_run_id": "32323232-3232-4232-8232-323232323232"
+  },
+  "linked_job_id": null,
+  "supersedes_record_id": null,
+  "feedback_opened_early": true,
+  "revised_after_job_start": false,
+  "hints_used": 1,
+  "created_at": "2026-09-28T12:00:00.000Z",
+  "origin": "locally_created"
+}

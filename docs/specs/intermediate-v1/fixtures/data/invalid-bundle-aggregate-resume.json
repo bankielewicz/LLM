@@ -17,7 +17,13 @@
       "contains_resume_state": true
     }
   ],
-  "omissions": [],
+  "omissions": [
+    {
+      "object_type": "base_model_file",
+      "original_object_id": "smollm2-135m-instruct-v1",
+      "reason": "thin_bundle"
+    }
+  ],
   "entries": [],
   "payload_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
 }

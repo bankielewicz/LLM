@@ -6,39 +6,121 @@
   "cases": [
     {
       "case_id": "D14-01",
-      "request": {"width":63,"heads":4},
-      "events": [{"phase":"preflight","state":"rejected"}],
+      "request": {
+        "width": 63,
+        "heads": 4
+      },
+      "events": [],
       "expected_label": "CFG_HEAD_DIVISIBILITY",
-      "expected_next_action": "choose a positive width evenly divisible by heads"
+      "expected_next_action": "choose a positive width evenly divisible by heads",
+      "synchronous_rejection": {
+        "http_status": 400,
+        "error": {
+          "code": "VALIDATION_FAILED",
+          "reason_code": "CFG_HEAD_DIVISIBILITY",
+          "field_path": "heads"
+        }
+      }
     },
     {
       "case_id": "D14-02",
-      "request": {"dataset_id":"data-clinic-leaky-v1"},
-      "events": [{"phase":"preflight","state":"rejected","exact_duplicate_pairs":1,"normalized_near_duplicate_pairs":2,"group_overlap_count":1}],
+      "request": {
+        "dataset_id": "data-clinic-leaky-v1"
+      },
+      "events": [],
       "expected_label": "DATASET_LEAKAGE_BLOCK",
-      "expected_next_action": "repair and re-audit the split before compute"
+      "expected_next_action": "repair and re-audit the split before compute",
+      "synchronous_rejection": {
+        "http_status": 400,
+        "error": {
+          "code": "VALIDATION_FAILED",
+          "reason_code": "DATASET_INELIGIBLE",
+          "field_path": "dataset_id"
+        },
+        "audit": {
+          "exact_duplicate_pairs": 1,
+          "normalized_near_duplicate_pairs": 2,
+          "group_overlap_count": 1
+        }
+      }
     },
     {
       "case_id": "D14-03",
-      "request": {"learning_rate":10.0},
-      "events": [{"step":0,"train_loss":5.4,"validation_loss":5.5},{"step":25,"train_loss":1e308,"validation_loss":1e308},{"step":26,"train_loss":"NaN","state":"failed"}],
+      "request": {
+        "learning_rate": 0.1
+      },
+      "events": [
+        {
+          "step": 0,
+          "train_loss": 5.4,
+          "validation_loss": 5.5
+        },
+        {
+          "step": 25,
+          "train_loss": 812.7,
+          "validation_loss": 905.3
+        },
+        {
+          "step": 26,
+          "state": "failed",
+          "error_code": "NONFINITE_TRAINING_VALUE",
+          "last_checkpoint_step": 25
+        }
+      ],
       "expected_label": "NON_FINITE_LOSS",
       "expected_next_action": "retain the failure and test a bounded lower learning rate with all other fields fixed"
     },
     {
       "case_id": "D14-04",
-      "request": {"exercise_profile_id":"tiny-v2-diagnosis-v1","curriculum_hold_after_step":25},
-      "events": [{"step":25,"phase":"evaluation_checkpointed"},{"step":25,"phase":"cancellable_hold"},{"step":25,"state":"interrupted","reason":"user_cancelled"}],
+      "request": {
+        "exercise_profile_id": "tiny-v2-diagnosis-v1",
+        "curriculum_hold_after_step": 25
+      },
+      "events": [
+        {
+          "step": 25,
+          "phase": "evaluation_checkpointed"
+        },
+        {
+          "step": 25,
+          "phase": "cancellable_hold"
+        },
+        {
+          "step": 25,
+          "state": "interrupted",
+          "reason": "user_cancelled"
+        }
+      ],
       "expected_label": "USER_CANCELLED_SAFE_BOUNDARY",
       "expected_resume_step": 25
     },
     {
       "case_id": "D14-05",
-      "request": {"steps":50},
-      "events": [{"step":0,"train_loss":5.4,"validation_loss":5.5},{"step":25,"train_loss":4.8,"validation_loss":5.0},{"step":50,"train_loss":4.4,"validation_loss":4.9,"state":"completed"}],
+      "request": {
+        "steps": 50
+      },
+      "events": [
+        {
+          "step": 0,
+          "train_loss": 5.4,
+          "validation_loss": 5.5
+        },
+        {
+          "step": 25,
+          "train_loss": 4.8,
+          "validation_loss": 5.0
+        },
+        {
+          "step": 50,
+          "train_loss": 4.4,
+          "validation_loss": 4.9,
+          "state": "completed"
+        }
+      ],
       "sample": "the the the the",
       "expected_label": "NO_QUALITY_FAILURE",
       "expected_next_action": "report the completed bounded run and weak sample separately"
     }
-  ]
+  ],
+  "representation_note": "Request rejections are synchronous HTTP 400 envelopes with no job or events; only accepted jobs have events. Every value is finite JSON; a nonfinite loss is represented only by the job's NONFINITE_TRAINING_VALUE failure. Oracle labels are teaching labels, not API codes. D14-03 is illustrative: it shows the failure's event shape, and AC-APP-019 produces NONFINITE_TRAINING_VALUE with a worker test double rather than relying on learning rate 0.1 to diverge."
 }

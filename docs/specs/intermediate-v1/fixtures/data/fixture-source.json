@@ -1,48 +1,776 @@
 {
-  "format":"llm-foundations-authored-fixture-source-v1",
-  "serialization":{"encoding":"UTF-8","bom":false,"newline":"LF","json_keys":"Unicode code-point order","json_separators":", and : without spaces","terminal_newline":true,"ordinal":"two-digit ASCII decimal"},
-  "data_clinic":{"variants":[
-    {"id":"summary","template":"{issue}. Observation: {observation}. Action: {action}."},
-    {"id":"timeline","template":"At 09:{minute} UTC, {observation}. The reported issue was: {issue}. The recorded action was: {action}."},
-    {"id":"symptom","template":"Symptom for {group}: {issue}. Evidence: {observation}."},
-    {"id":"resolution","template":"Resolution for {group}: {action}. It responds to this observation: {observation}."}
-  ],"scenarios":[
-    {"group":"DC01","minute":"01","issue":"The password-reset link expired","observation":"the browser displayed link expired","action":"send one fresh reset link"},
-    {"group":"DC02","minute":"02","issue":"The invoice total looked unfamiliar","observation":"the invoice listed a duplicate service line","action":"route the invoice for billing review"},
-    {"group":"DC03","minute":"03","issue":"The parcel had not arrived","observation":"tracking remained at the regional depot","action":"open a carrier trace"},
-    {"group":"DC04","minute":"04","issue":"The desktop app closed at launch","observation":"the log ended after configuration load","action":"collect the version and sanitized log"},
-    {"group":"DC05","minute":"05","issue":"The account email was outdated","observation":"the profile still showed the former address","action":"verify identity before changing email"},
-    {"group":"DC06","minute":"06","issue":"The refund was not visible","observation":"the bank status remained pending","action":"confirm the settlement reference"},
-    {"group":"DC07","minute":"07","issue":"The order page showed the wrong item","observation":"the receipt and page item codes differed","action":"record both codes for order support"},
-    {"group":"DC08","minute":"08","issue":"The security code was rejected","observation":"the device clock was seven minutes slow","action":"synchronize the clock and retry once"},
-    {"group":"DC09","minute":"09","issue":"The export file was empty","observation":"the selected date range contained no records","action":"choose a populated date range"},
-    {"group":"DC10","minute":"10","issue":"The plan name was unclear","observation":"the product page used an abbreviated label","action":"show the matching plan glossary entry"},
-    {"group":"DC11","minute":"11","issue":"The upload stopped halfway","observation":"the file exceeded the displayed size limit","action":"select a file within the limit"},
-    {"group":"DC12","minute":"12","issue":"The notification arrived twice","observation":"two active rules matched the same event","action":"disable one duplicate rule"}
-  ]},
-  "instruction_sets":{"slices":[
-    {"slice":"account_access","applied_user":"Account access case AA{ordinal}: my sign-in is locked.","applied_reply":"Use the account recovery flow and reference case AA{ordinal} if support is needed.","capstone_user":"Access request CA{ordinal}: the account cannot sign in.","capstone_reply":"Start account recovery and keep reference CA{ordinal}."},
-    {"slice":"billing_refund","applied_user":"Billing case BR{ordinal}: I need the refund status.","applied_reply":"Check the refund settlement record and reference BR{ordinal} with billing support.","capstone_user":"Refund request CB{ordinal}: the credit is not visible.","capstone_reply":"Check the settlement record and keep reference CB{ordinal}."},
-    {"slice":"order_status","applied_user":"Order case OS{ordinal}: where is my parcel?","applied_reply":"Open the carrier tracking record for OS{ordinal} and review its latest scan.","capstone_user":"Delivery request CO{ordinal}: the parcel has not arrived.","capstone_reply":"Review the carrier trace and keep reference CO{ordinal}."},
-    {"slice":"password_reset","applied_user":"Password case PR{ordinal}: my reset link expired.","applied_reply":"Request one fresh password-reset link for PR{ordinal} and discard the expired link.","capstone_user":"Reset request CP{ordinal}: the recovery link is expired.","capstone_reply":"Request a fresh recovery link and discard CP{ordinal}'s expired link."},
-    {"slice":"product_information","applied_user":"Product case PI{ordinal}: which plan includes exports?","applied_reply":"Consult the current plan comparison for PI{ordinal} before choosing a plan.","capstone_user":"Plan request CI{ordinal}: I need export availability.","capstone_reply":"Check the current plan comparison for CI{ordinal}."},
-    {"slice":"technical_issue","applied_user":"Technical case TI{ordinal}: the app closes at launch.","applied_reply":"Collect the app version and sanitized launch log for TI{ordinal}.","capstone_user":"App request CT{ordinal}: launch closes immediately.","capstone_reply":"Collect the version and sanitized launch log for CT{ordinal}."}
-  ],"applied_ordinals":[1,2,3,4,5,6,7,8,9,10,11,12,13,14],"capstone_ordinals":[1,2,3,4,5,6,7,8],"record_shape":{"messages":[{"role":"user","content":"rendered user template"}],"expected":{"intent":"slice","response":"INTENT={slice} LF REPLY={rendered reply template}"}},"evaluation_serialization":"expected.response is the exact two-line assistant content"},
-  "retrieval_manual":{"documents":[
-    {"record_id":"RM01","text":"Account recovery uses the recovery page. Verify identity before changing an account email."},
-    {"record_id":"RM02","text":"Refund status appears in the billing settlement record. Pending refunds include a settlement reference."},
-    {"record_id":"RM03","text":"Password reset links expire after use. Request one fresh reset link and discard the old link."},
-    {"record_id":"RM04","text":"Order tracking shows carrier scans. A parcel without a recent scan can receive a carrier trace."},
-    {"record_id":"RM05","text":"Sign-in security codes depend on an accurate device clock. Synchronize the clock before retrying."},
-    {"record_id":"RM06","text":"Invoices list service lines and totals. A duplicate service line should be sent to billing review."},
-    {"record_id":"RM07","text":"Application launch failures need the app version and a sanitized launch log."},
-    {"record_id":"RM08","text":"Plan comparisons describe export availability and current product limits."}
-  ],"queries":[
-    {"query_id":"RQ01","text":"How do I recover account access?","top3":["RM01","RM02","RM03"],"citation_supported":["RM01"]},
-    {"query_id":"RQ02","text":"Where can I check a pending refund?","top3":["RM02","RM04","RM07"],"citation_supported":["RM02"]},
-    {"query_id":"RQ03","text":"What should I do with an expired password reset link?","top3":["RM03","RM06","RM05"],"citation_supported":["RM03"]},
-    {"query_id":"RQ04","text":"My parcel has no recent tracking scan.","top3":["RM04","RM01","RM02"],"citation_supported":["RM04"]},
-    {"query_id":"RQ05","text":"A sign-in code fails when my device clock is wrong.","top3":["RM05","RM02","RM04"],"citation_supported":["RM05"]},
-    {"query_id":"RQ06","text":"The invoice contains a duplicate service line.","top3":["RM06","RM04","RM07"],"citation_supported":["RM06"]}
-  ],"ranking":"APP lexical TF-IDF; score descending, record_id ascending; top_k accepts 1..20 and returns min(top_k,N) including zero-score ties"}
+  "format": "llm-foundations-authored-fixture-source-v1",
+  "serialization": {
+    "encoding": "UTF-8",
+    "bom": false,
+    "newline": "LF",
+    "json_keys": "Unicode code-point order",
+    "json_separators": ", and : without spaces",
+    "terminal_newline": true,
+    "ordinal": "two-digit ASCII decimal"
+  },
+  "data_clinic": {
+    "variants": [
+      {
+        "id": "summary",
+        "template": "{issue}. Observation: {observation}. Action: {action}."
+      },
+      {
+        "id": "timeline",
+        "template": "At 09:{minute} UTC, {observation}. The reported issue was: {issue}. The recorded action was: {action}."
+      },
+      {
+        "id": "symptom",
+        "template": "Symptom for {group}: {issue}. Evidence: {observation}."
+      },
+      {
+        "id": "resolution",
+        "template": "Resolution for {group}: {action}. It responds to this observation: {observation}."
+      }
+    ],
+    "scenarios": [
+      {
+        "group": "DC01",
+        "minute": "01",
+        "issue": "The password-reset link expired",
+        "observation": "the browser displayed link expired",
+        "action": "send one fresh reset link"
+      },
+      {
+        "group": "DC02",
+        "minute": "02",
+        "issue": "The invoice total looked unfamiliar",
+        "observation": "the invoice listed a duplicate service line",
+        "action": "route the invoice for billing review"
+      },
+      {
+        "group": "DC03",
+        "minute": "03",
+        "issue": "The parcel had not arrived",
+        "observation": "tracking remained at the regional depot",
+        "action": "open a carrier trace"
+      },
+      {
+        "group": "DC04",
+        "minute": "04",
+        "issue": "The desktop app closed at launch",
+        "observation": "the log ended after configuration load",
+        "action": "collect the version and sanitized log"
+      },
+      {
+        "group": "DC05",
+        "minute": "05",
+        "issue": "The account email was outdated",
+        "observation": "the profile still showed the former address",
+        "action": "verify identity before changing email"
+      },
+      {
+        "group": "DC06",
+        "minute": "06",
+        "issue": "The refund was not visible",
+        "observation": "the bank status remained pending",
+        "action": "confirm the settlement reference"
+      },
+      {
+        "group": "DC07",
+        "minute": "07",
+        "issue": "The order page showed the wrong item",
+        "observation": "the receipt and page item codes differed",
+        "action": "record both codes for order support"
+      },
+      {
+        "group": "DC08",
+        "minute": "08",
+        "issue": "The security code was rejected",
+        "observation": "the device clock was seven minutes slow",
+        "action": "synchronize the clock and retry once"
+      },
+      {
+        "group": "DC09",
+        "minute": "09",
+        "issue": "The export file was empty",
+        "observation": "the selected date range contained no records",
+        "action": "choose a populated date range"
+      },
+      {
+        "group": "DC10",
+        "minute": "10",
+        "issue": "The plan name was unclear",
+        "observation": "the product page used an abbreviated label",
+        "action": "show the matching plan glossary entry"
+      },
+      {
+        "group": "DC11",
+        "minute": "11",
+        "issue": "The upload stopped halfway",
+        "observation": "the file exceeded the displayed size limit",
+        "action": "select a file within the limit"
+      },
+      {
+        "group": "DC12",
+        "minute": "12",
+        "issue": "The notification arrived twice",
+        "observation": "two active rules matched the same event",
+        "action": "disable one duplicate rule"
+      }
+    ]
+  },
+  "instruction_sets": {
+    "slices": [
+      {
+        "slice": "account_access",
+        "applied_groups": [
+          {
+            "reply": "Wait for the one-hour lock to expire, then sign in once with the correct password; the lock clears on its own.",
+            "users": [
+              "I typed my password wrong too many times and now the account says it is locked for an hour.",
+              "After several failed password attempts my account is now locked and says to wait an hour."
+            ]
+          },
+          {
+            "reply": "Verify your identity with your recovery phone number, then replace the old work email in account settings.",
+            "users": [
+              "I changed jobs and my old work email no longer receives the sign-in verification messages.",
+              "My previous employer's email address is on the account, so the verification codes never reach me."
+            ]
+          },
+          {
+            "reply": "Confirm the security review from that email, then set a new password and review your recent sign-in history.",
+            "users": [
+              "I got an email saying my account was suspended after a suspicious login from another country.",
+              "An alert said my account got suspended because someone logged in from abroad."
+            ]
+          },
+          {
+            "reply": "Allow cookies for our site in that browser so the device verification can be saved, then verify it once more.",
+            "users": [
+              "Every time I sign in on my new laptop it asks me to verify the device again, in a loop.",
+              "The new laptop makes me confirm the device over and over whenever I log in."
+            ]
+          },
+          {
+            "reply": "Sign out, then sign in with the email that owns the workspace you need; accounts are not merged automatically.",
+            "users": [
+              "I have two accounts with different emails and I'm signed into the wrong one.",
+              "I own two accounts under separate email addresses and ended up logged into the other one."
+            ]
+          },
+          {
+            "reply": "Turn off the VPN for the first sign-in so the location can be confirmed, then you can use it again.",
+            "users": [
+              "After I turned on a VPN the site keeps rejecting my login as unusual activity.",
+              "With my VPN switched on, every login attempt is blocked as suspicious."
+            ]
+          },
+          {
+            "reply": "Request reactivation within 90 days of closure through the reactivation form; after that the account cannot be restored.",
+            "users": [
+              "My account was closed for inactivity and I want to get back in.",
+              "You closed my account because I hadn't used it in a while; how do I reopen it?"
+            ]
+          }
+        ],
+        "capstone_groups": [
+          {
+            "reply": "Update the app to the latest version and clear its stored session, then sign in again.",
+            "users": [
+              "The mobile app keeps saying my session expired right after I sign in.",
+              "Right after logging in on my phone, the app tells me my session has ended.",
+              "On the phone app I get signed out immediately with a session expired message."
+            ]
+          },
+          {
+            "reply": "Wait for the review decision email, which arrives within two business days; no action is needed until then.",
+            "users": [
+              "I was told my account is under review and I can't access anything.",
+              "My account is locked while it is being reviewed and I cannot open anything."
+            ]
+          },
+          {
+            "reply": "Sign out of the desktop app completely, then sign in with the browser link it opens instead of typing the password.",
+            "users": [
+              "I can sign in on the website but the desktop app says my credentials are invalid."
+            ]
+          },
+          {
+            "reply": "Report the unauthorized change through the account recovery form so support can restore your original email.",
+            "users": [
+              "Someone else changed the email on my account and I can't get in anymore.",
+              "My login email was changed by somebody else and now I'm locked out."
+            ]
+          }
+        ]
+      },
+      {
+        "slice": "billing_refund",
+        "applied_groups": [
+          {
+            "reply": "Refunds post five to ten business days after the return is received; check that the return was marked received.",
+            "users": [
+              "I returned the headphones two weeks ago and still haven't seen the refund.",
+              "Two weeks after sending back the headphones there is still no refund on my card."
+            ]
+          },
+          {
+            "reply": "The bank redirects refunds for closed cards to your account; contact your bank with the refund reference.",
+            "users": [
+              "The refund went to a card I already cancelled.",
+              "My refund was sent to a card that I had already closed."
+            ]
+          },
+          {
+            "reply": "Send the cancellation confirmation date so billing can refund any charge made after that date.",
+            "users": [
+              "I cancelled my plan but was charged for another month anyway.",
+              "Even after cancelling the subscription I was billed for one more month."
+            ]
+          },
+          {
+            "reply": "Downgrades apply a prorated credit to your next invoice rather than a card refund.",
+            "users": [
+              "I downgraded halfway through the year and expected some money back.",
+              "I moved to a cheaper plan mid-year and thought I would get part of the fee back."
+            ]
+          },
+          {
+            "reply": "Pending means the payment processor has not settled it yet; allow up to ten business days before escalating.",
+            "users": [
+              "My refund was approved but the status says pending for over a week.",
+              "The refund is approved yet it has shown pending for more than seven days."
+            ]
+          },
+          {
+            "reply": "Upload your tax exemption certificate so billing can refund the tax and exempt future orders.",
+            "users": [
+              "The store charged tax on an order that should have been tax-exempt.",
+              "Tax was added to my purchase although my organization is exempt."
+            ]
+          },
+          {
+            "reply": "Request that the overpayment be refunded or kept as credit on the account, and include both payment references.",
+            "users": [
+              "An old invoice was paid twice by our accounts team.",
+              "Our finance team accidentally settled the same old invoice two times."
+            ]
+          }
+        ],
+        "capstone_groups": [
+          {
+            "reply": "Give your bank the refund reference number from the confirmation email so they can trace the incoming credit.",
+            "users": [
+              "The refund shows as completed but my bank says nothing arrived.",
+              "My bank cannot find the refund that your site marks as completed.",
+              "The refund status is complete, but no money has shown up in my account."
+            ]
+          },
+          {
+            "reply": "Store credit refunds can be converted to the original payment method once, within 30 days, on request.",
+            "users": [
+              "I got a refund in store credit but wanted it back on my card.",
+              "You gave me store credit as the refund, but I want the money on my card."
+            ]
+          },
+          {
+            "reply": "Payments made on the due date can take a day to post; request removal of the late fee with the payment date.",
+            "users": [
+              "I was charged a late fee even though I paid on the due date."
+            ]
+          },
+          {
+            "reply": "Set the new card as the default payment method; this renewal can be moved to it if you ask within seven days.",
+            "users": [
+              "The subscription renewed on my old card after I added a new one.",
+              "My renewal was charged to the card I replaced instead of my new one."
+            ]
+          }
+        ]
+      },
+      {
+        "slice": "order_status",
+        "applied_groups": [
+          {
+            "reply": "Open the order's tracking page to see the latest carrier scan; late parcels usually update within one business day.",
+            "users": [
+              "My parcel was supposed to arrive yesterday and there is no delivery update.",
+              "The parcel was due yesterday but the tracking shows nothing new."
+            ]
+          },
+          {
+            "reply": "Check with neighbors and any safe place, then report the missing parcel within 48 hours so a claim can start.",
+            "users": [
+              "It says delivered but nothing is at my door.",
+              "Tracking claims the package was delivered, yet there is no package here."
+            ]
+          },
+          {
+            "reply": "Items can ship separately; check the order page for a second tracking number before reporting missing items.",
+            "users": [
+              "Only one of the three items in my order arrived.",
+              "I ordered three items and only a single one showed up."
+            ]
+          },
+          {
+            "reply": "Processing longer than five days means a stock delay; the order page shows the new dispatch estimate.",
+            "users": [
+              "The order still says processing and I placed it a week ago.",
+              "It has been a week and my order is still stuck in processing."
+            ]
+          },
+          {
+            "reply": "Rebook delivery or choose a pickup point using the reference printed on the card.",
+            "users": [
+              "The delivery driver left a card saying they couldn't deliver.",
+              "A courier left a note that the delivery attempt failed."
+            ]
+          },
+          {
+            "reply": "Parcels are returned after failed delivery attempts; you can reorder or request a refund from the order page.",
+            "users": [
+              "My order was marked returned to sender and I don't know why.",
+              "The shipment went back to the sender and nobody told me the reason."
+            ]
+          },
+          {
+            "reply": "Report the wrong delivery from your order page; a return label is provided and your correct order is resent.",
+            "users": [
+              "I received someone else's order instead of mine.",
+              "The box I got contains another customer's order, not mine."
+            ]
+          }
+        ],
+        "capstone_groups": [
+          {
+            "reply": "Repeated date changes mean the carrier is rerouting the parcel; the tracking page shows the current hub.",
+            "users": [
+              "The estimated delivery date moved back twice this week.",
+              "My delivery estimate has been pushed later two times in the same week.",
+              "The expected arrival keeps slipping; it changed twice in a few days."
+            ]
+          },
+          {
+            "reply": "Shipping speed cannot change after dispatch; for undelivered orders, contact the carrier about express redelivery.",
+            "users": [
+              "I need the order before Friday; can it be sped up?",
+              "Is there a way to get this order faster so it arrives by Friday?"
+            ]
+          },
+          {
+            "reply": "The parcel is legally delivered once signed for; arrange collection with your neighbor when they return.",
+            "users": [
+              "A neighbor signed for my parcel and now they're away."
+            ]
+          },
+          {
+            "reply": "Pre-orders ship on the release date shown on the product page; you'll get tracking once it ships.",
+            "users": [
+              "My pre-order still has no shipping date.",
+              "There is still no ship date for the item I pre-ordered."
+            ]
+          }
+        ]
+      },
+      {
+        "slice": "password_reset",
+        "applied_groups": [
+          {
+            "reply": "Reset links last 30 minutes; request a new link and use it straight away.",
+            "users": [
+              "The password reset link in the email says it has expired.",
+              "When I open the reset email the link tells me it has timed out."
+            ]
+          },
+          {
+            "reply": "Each reset link works once; request a new link if you did not finish setting the password.",
+            "users": [
+              "The reset link says it was already used.",
+              "Clicking the reset link shows a message that it has been used before."
+            ]
+          },
+          {
+            "reply": "Your browser may be filling in the old password; clear the saved password and type the new one.",
+            "users": [
+              "After resetting, it still says my password is wrong.",
+              "I changed my password with the reset form but login still rejects it."
+            ]
+          },
+          {
+            "reply": "Use the account recovery form to verify your identity and change the email before resetting.",
+            "users": [
+              "I want to reset my password but I no longer have access to my email.",
+              "I need a new password, but I can't get into the mailbox the reset would go to."
+            ]
+          },
+          {
+            "reply": "Sign out of the mobile app and sign in again with the new password to refresh its stored login.",
+            "users": [
+              "I reset my password on the website but the mobile app still asks for the old one.",
+              "The website accepts my new password while the phone app keeps wanting the previous one."
+            ]
+          },
+          {
+            "reply": "Someone may be requesting resets with your email; ignore the emails and turn on two-step verification.",
+            "users": [
+              "I get a reset email every morning that I didn't ask for.",
+              "Password reset emails keep arriving daily even though I never requested them."
+            ]
+          },
+          {
+            "reply": "A forced reset follows a security alert or a password found in a data breach; choose a new unique password.",
+            "users": [
+              "Today the site made me pick a new password without any warning.",
+              "Without warning the site forced me to choose a different password this morning."
+            ]
+          }
+        ],
+        "capstone_groups": [
+          {
+            "reply": "Resetting the password ends every session for safety; sign in again on each device.",
+            "users": [
+              "I set a new password but now all my devices are signed out.",
+              "Changing my password logged me out on every device I own.",
+              "Since I updated my password, my laptop, phone and tablet all lost their sessions."
+            ]
+          },
+          {
+            "reply": "Change the language in account preferences, then request the reset email again.",
+            "users": [
+              "The reset email arrived in a language I can't read.",
+              "The password reset message came in a language I don't understand."
+            ]
+          },
+          {
+            "reply": "Add a password from security settings while signed in with Google; no reset link is needed.",
+            "users": [
+              "I want to set a password but I only ever signed in with Google."
+            ]
+          },
+          {
+            "reply": "Open the most recent email only; requesting several links invalidates the earlier ones.",
+            "users": [
+              "The reset email says the link is invalid right after I receive it.",
+              "The link in the reset email is rejected as invalid the moment it arrives."
+            ]
+          }
+        ]
+      },
+      {
+        "slice": "product_information",
+        "applied_groups": [
+          {
+            "reply": "Spreadsheet export is included in the Standard plan and above.",
+            "users": [
+              "Which plan lets me export my data to a spreadsheet?",
+              "Which subscription includes exporting data as a spreadsheet?"
+            ]
+          },
+          {
+            "reply": "The Team plan includes 1 TB of shared storage, and more can be added in 100 GB blocks.",
+            "users": [
+              "How much storage do I get with the team plan?",
+              "What is the storage allowance on the team subscription?"
+            ]
+          },
+          {
+            "reply": "The desktop app works offline and syncs changes when you reconnect; the web app needs a connection.",
+            "users": [
+              "Does the app work without an internet connection?",
+              "Can I keep using the app while I'm offline?"
+            ]
+          },
+          {
+            "reply": "Deleted files stay in the trash for 30 days before they are removed permanently.",
+            "users": [
+              "How long do you keep deleted files?",
+              "How many days do deleted files stay recoverable?"
+            ]
+          },
+          {
+            "reply": "Annual billing costs the same features as monthly but saves two months of fees.",
+            "users": [
+              "What's the difference between the monthly and annual plans?",
+              "How do the annual and monthly subscriptions differ?"
+            ]
+          },
+          {
+            "reply": "Data is stored in the region chosen at sign-up; enterprise plans can pick a specific region.",
+            "users": [
+              "Where is my data stored?",
+              "In which region do you keep my data?"
+            ]
+          },
+          {
+            "reply": "Single files can be up to 5 GB on paid plans and 250 MB on the free plan.",
+            "users": [
+              "Is there a limit on file upload size?",
+              "What is the largest file I can upload?"
+            ]
+          }
+        ],
+        "capstone_groups": [
+          {
+            "reply": "The free plan keeps seven days of version history; paid plans keep one year.",
+            "users": [
+              "Does the free plan include version history?",
+              "Is version history available without paying?",
+              "Can free accounts see earlier versions of a file?"
+            ]
+          },
+          {
+            "reply": "The mobile app supports tablets on both iOS and Android with the same features as phones.",
+            "users": [
+              "Is there a mobile app for tablets?",
+              "Do you have an app I can use on my tablet?"
+            ]
+          },
+          {
+            "reply": "Registered nonprofits receive 30 percent off any paid plan after verification.",
+            "users": [
+              "Do you offer a nonprofit discount?"
+            ]
+          },
+          {
+            "reply": "Spreadsheet import is available on all plans from the import menu in any project.",
+            "users": [
+              "Can I import data from a spreadsheet?",
+              "Is it possible to bring in data from a spreadsheet file?"
+            ]
+          }
+        ]
+      },
+      {
+        "slice": "technical_issue",
+        "applied_groups": [
+          {
+            "reply": "Update to the latest version; if it still closes, send the app version and the crash log from settings.",
+            "users": [
+              "The app closes as soon as I open it.",
+              "Right after launching, the app shuts down by itself."
+            ]
+          },
+          {
+            "reply": "Cancel the stuck upload and retry on a stable connection; large files resume from where they stopped.",
+            "users": [
+              "An upload has been stuck at 99 percent for an hour.",
+              "My file upload has been frozen near the end for an hour."
+            ]
+          },
+          {
+            "reply": "Run the connection test from the help menu and send the result if loading stays slow.",
+            "users": [
+              "Pages take a very long time to load.",
+              "Every page loads extremely slowly for me."
+            ]
+          },
+          {
+            "reply": "Clear the app cache from settings, then restart the app to reload the updated files.",
+            "users": [
+              "After the latest update the screen is completely blank.",
+              "Since updating the app I only see an empty white screen."
+            ]
+          },
+          {
+            "reply": "Rebuild the search index from settings; new files can take a few minutes to appear.",
+            "users": [
+              "The search bar returns no results for files I know exist.",
+              "Searching finds nothing even for files that are definitely there."
+            ]
+          },
+          {
+            "reply": "The app needs the operating system version listed on the requirements page; update the system if possible.",
+            "users": [
+              "The app says my device is not supported.",
+              "I'm told my phone is not compatible with the app."
+            ]
+          },
+          {
+            "reply": "Message attachments are limited to 25 MB; share larger files as links instead.",
+            "users": [
+              "I can't attach files larger than a few megabytes to messages.",
+              "Attachments over a few megabytes fail when I send a message."
+            ]
+          }
+        ],
+        "capstone_groups": [
+          {
+            "reply": "Reset shortcuts to default in the editor preferences; another app may also be capturing the same keys.",
+            "users": [
+              "My keyboard shortcuts stopped working in the editor.",
+              "Shortcut keys no longer do anything inside the editor.",
+              "The editor ignores my keyboard shortcuts now."
+            ]
+          },
+          {
+            "reply": "Check that your computer's date and time are correct; wrong clocks cause certificate warnings.",
+            "users": [
+              "I see a certificate warning when opening the website.",
+              "My browser shows a security certificate warning for your site."
+            ]
+          },
+          {
+            "reply": "Set the document language to match the text in the language menu so the right dictionary is used.",
+            "users": [
+              "Spell check underlines every word in my document."
+            ]
+          },
+          {
+            "reply": "Re-enable the extension from the browser's extensions page; updates sometimes turn it off.",
+            "users": [
+              "The browser extension disappeared after an update.",
+              "After updating the browser, your extension is gone."
+            ]
+          }
+        ]
+      }
+    ],
+    "applied_ordinals": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14
+    ],
+    "capstone_ordinals": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8
+    ],
+    "record_shape": {
+      "messages": [
+        {
+          "role": "user",
+          "content": "rendered user template"
+        }
+      ],
+      "expected": {
+        "intent": "slice",
+        "response": "INTENT={slice} LF REPLY={rendered reply template}"
+      }
+    },
+    "evaluation_serialization": "expected.response is the exact two-line assistant content"
+  },
+  "retrieval_manual": {
+    "documents": [
+      {
+        "record_id": "RM01",
+        "text": "Account recovery uses the recovery page. Verify your identity before you change the account email."
+      },
+      {
+        "record_id": "RM02",
+        "text": "Refund status appears in the billing settlement record. A pending refund shows a settlement reference."
+      },
+      {
+        "record_id": "RM03",
+        "text": "A password reset link works once and stops working after one hour. Request one fresh reset link and discard the old link."
+      },
+      {
+        "record_id": "RM04",
+        "text": "Order tracking shows carrier scans. A parcel without a recent scan can receive a carrier trace."
+      },
+      {
+        "record_id": "RM05",
+        "text": "Sign-in security codes depend on an accurate device clock. Synchronize the clock before you retry the code."
+      },
+      {
+        "record_id": "RM06",
+        "text": "Invoices list service lines and totals. Send a duplicate service line on an invoice to billing review."
+      },
+      {
+        "record_id": "RM07",
+        "text": "A refund for a returned parcel starts after the parcel is scanned at the returns desk. Check the parcel scan, not the refund page."
+      },
+      {
+        "record_id": "RM08",
+        "text": "Expired passwords must be changed at sign-in. When your password has expired, the sign-in page asks you to choose a new password."
+      }
+    ],
+    "queries": [
+      {
+        "query_id": "RQ01",
+        "text": "How do I get back into my account and change the account email?",
+        "top3": [
+          "RM01",
+          "RM03",
+          "RM07"
+        ],
+        "citation_supported": [
+          "RM01"
+        ]
+      },
+      {
+        "query_id": "RQ02",
+        "text": "Where do I see the status of a pending refund for a returned parcel?",
+        "top3": [
+          "RM07",
+          "RM02",
+          "RM04"
+        ],
+        "citation_supported": [
+          "RM02"
+        ]
+      },
+      {
+        "query_id": "RQ03",
+        "text": "What do I do when the password reset link for my account no longer works?",
+        "top3": [
+          "RM03",
+          "RM01",
+          "RM08"
+        ],
+        "citation_supported": [
+          "RM03"
+        ]
+      },
+      {
+        "query_id": "RQ04",
+        "text": "My parcel has no recent tracking scan from the carrier.",
+        "top3": [
+          "RM04",
+          "RM07",
+          "RM08"
+        ],
+        "citation_supported": [
+          "RM04"
+        ]
+      },
+      {
+        "query_id": "RQ05",
+        "text": "My sign-in code is rejected at the sign-in page.",
+        "top3": [
+          "RM08",
+          "RM05",
+          "RM07"
+        ],
+        "citation_supported": [
+          "RM05"
+        ]
+      },
+      {
+        "query_id": "RQ06",
+        "text": "The invoice shows the same service line twice.",
+        "top3": [
+          "RM06",
+          "RM07",
+          "RM02"
+        ],
+        "citation_supported": [
+          "RM06"
+        ]
+      }
+    ],
+    "ranking": "APP lexical TF-IDF; score descending, record_id ascending; top_k accepts 1..20 and returns min(top_k,N) including zero-score ties"
+  }
 }

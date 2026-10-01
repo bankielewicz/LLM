@@ -1,0 +1,1908 @@
+{
+  "kind": "specification_oracle_check",
+  "created_utc": "2026-10-01T03:03:19.807081+00:00",
+  "product_tests_executed": false,
+  "result": "PASS",
+  "case_count": 155,
+  "errors": [],
+  "checks": [
+    {
+      "name": "metric parser ORACLE-001",
+      "result": "PASS",
+      "actual": {
+        "parsed_intent": "billing_refund",
+        "exact_intent_match": 1,
+        "response_schema_valid": 1
+      },
+      "expected": {
+        "parsed_intent": "billing_refund",
+        "exact_intent_match": 1,
+        "response_schema_valid": 1
+      }
+    },
+    {
+      "name": "metric parser ORACLE-002",
+      "result": "PASS",
+      "actual": {
+        "parsed_intent": "technical_issue",
+        "exact_intent_match": 0,
+        "response_schema_valid": 1
+      },
+      "expected": {
+        "parsed_intent": "technical_issue",
+        "exact_intent_match": 0,
+        "response_schema_valid": 1
+      }
+    },
+    {
+      "name": "metric parser ORACLE-003",
+      "result": "PASS",
+      "actual": {
+        "parsed_intent": null,
+        "exact_intent_match": 0,
+        "response_schema_valid": 0
+      },
+      "expected": {
+        "parsed_intent": null,
+        "exact_intent_match": 0,
+        "response_schema_valid": 0
+      }
+    },
+    {
+      "name": "metric parser ORACLE-004",
+      "result": "PASS",
+      "actual": {
+        "parsed_intent": "order_status",
+        "exact_intent_match": 1,
+        "response_schema_valid": 1
+      },
+      "expected": {
+        "parsed_intent": "order_status",
+        "exact_intent_match": 1,
+        "response_schema_valid": 1
+      }
+    },
+    {
+      "name": "metric parser ORACLE-005",
+      "result": "PASS",
+      "actual": {
+        "parsed_intent": "password_reset",
+        "exact_intent_match": 1,
+        "response_schema_valid": 1
+      },
+      "expected": {
+        "parsed_intent": "password_reset",
+        "exact_intent_match": 1,
+        "response_schema_valid": 1
+      }
+    },
+    {
+      "name": "metric parser ORACLE-006",
+      "result": "PASS",
+      "actual": {
+        "parsed_intent": "account_access",
+        "exact_intent_match": 1,
+        "response_schema_valid": 1
+      },
+      "expected": {
+        "parsed_intent": "account_access",
+        "exact_intent_match": 1,
+        "response_schema_valid": 1
+      }
+    },
+    {
+      "name": "metric parser ORACLE-007",
+      "result": "PASS",
+      "actual": {
+        "parsed_intent": "account_access",
+        "exact_intent_match": 1,
+        "response_schema_valid": 0
+      },
+      "expected": {
+        "parsed_intent": "account_access",
+        "exact_intent_match": 1,
+        "response_schema_valid": 0
+      }
+    },
+    {
+      "name": "metric parser ORACLE-008",
+      "result": "PASS",
+      "actual": {
+        "parsed_intent": null,
+        "exact_intent_match": 0,
+        "response_schema_valid": 0
+      },
+      "expected": {
+        "parsed_intent": null,
+        "exact_intent_match": 0,
+        "response_schema_valid": 0
+      }
+    },
+    {
+      "name": "metric aggregate exact_intent_match",
+      "result": "PASS",
+      "actual": {
+        "numerator": 5,
+        "denominator": 8,
+        "ratio": 0.625
+      },
+      "expected": {
+        "numerator": 5,
+        "denominator": 8,
+        "ratio": 0.625
+      }
+    },
+    {
+      "name": "metric aggregate response_schema_valid",
+      "result": "PASS",
+      "actual": {
+        "numerator": 5,
+        "denominator": 8,
+        "ratio": 0.625
+      },
+      "expected": {
+        "numerator": 5,
+        "denominator": 8,
+        "ratio": 0.625
+      }
+    },
+    {
+      "name": "metric per-slice account_access exact_intent_match",
+      "result": "PASS",
+      "actual": {
+        "numerator": 2,
+        "denominator": 2,
+        "ratio": 1.0
+      },
+      "expected": {
+        "numerator": 2,
+        "denominator": 2,
+        "ratio": 1.0
+      }
+    },
+    {
+      "name": "metric per-slice account_access response_schema_valid",
+      "result": "PASS",
+      "actual": {
+        "numerator": 1,
+        "denominator": 2,
+        "ratio": 0.5
+      },
+      "expected": {
+        "numerator": 1,
+        "denominator": 2,
+        "ratio": 0.5
+      }
+    },
+    {
+      "name": "metric per-slice billing_refund exact_intent_match",
+      "result": "PASS",
+      "actual": {
+        "numerator": 1,
+        "denominator": 2,
+        "ratio": 0.5
+      },
+      "expected": {
+        "numerator": 1,
+        "denominator": 2,
+        "ratio": 0.5
+      }
+    },
+    {
+      "name": "metric per-slice billing_refund response_schema_valid",
+      "result": "PASS",
+      "actual": {
+        "numerator": 1,
+        "denominator": 2,
+        "ratio": 0.5
+      },
+      "expected": {
+        "numerator": 1,
+        "denominator": 2,
+        "ratio": 0.5
+      }
+    },
+    {
+      "name": "metric per-slice order_status exact_intent_match",
+      "result": "PASS",
+      "actual": {
+        "numerator": 1,
+        "denominator": 2,
+        "ratio": 0.5
+      },
+      "expected": {
+        "numerator": 1,
+        "denominator": 2,
+        "ratio": 0.5
+      }
+    },
+    {
+      "name": "metric per-slice order_status response_schema_valid",
+      "result": "PASS",
+      "actual": {
+        "numerator": 2,
+        "denominator": 2,
+        "ratio": 1.0
+      },
+      "expected": {
+        "numerator": 2,
+        "denominator": 2,
+        "ratio": 1.0
+      }
+    },
+    {
+      "name": "metric per-slice password_reset exact_intent_match",
+      "result": "PASS",
+      "actual": {
+        "numerator": 1,
+        "denominator": 1,
+        "ratio": 1.0
+      },
+      "expected": {
+        "numerator": 1,
+        "denominator": 1,
+        "ratio": 1.0
+      }
+    },
+    {
+      "name": "metric per-slice password_reset response_schema_valid",
+      "result": "PASS",
+      "actual": {
+        "numerator": 1,
+        "denominator": 1,
+        "ratio": 1.0
+      },
+      "expected": {
+        "numerator": 1,
+        "denominator": 1,
+        "ratio": 1.0
+      }
+    },
+    {
+      "name": "metric per-slice technical_issue exact_intent_match",
+      "result": "PASS",
+      "actual": {
+        "numerator": 0,
+        "denominator": 1,
+        "ratio": 0.0
+      },
+      "expected": {
+        "numerator": 0,
+        "denominator": 1,
+        "ratio": 0.0
+      }
+    },
+    {
+      "name": "metric per-slice technical_issue response_schema_valid",
+      "result": "PASS",
+      "actual": {
+        "numerator": 0,
+        "denominator": 1,
+        "ratio": 0.0
+      },
+      "expected": {
+        "numerator": 0,
+        "denominator": 1,
+        "ratio": 0.0
+      }
+    },
+    {
+      "name": "retrieval RQ01",
+      "result": "PASS",
+      "actual": [
+        "RM01",
+        "RM03",
+        "RM07"
+      ],
+      "expected": [
+        "RM01",
+        "RM03",
+        "RM07"
+      ]
+    },
+    {
+      "name": "retrieval score RQ01 RM01",
+      "result": "PASS",
+      "actual": 0.6077701710022565,
+      "expected": 0.6077701710022565,
+      "absolute_tolerance": 1e-15
+    },
+    {
+      "name": "retrieval score RQ01 RM03",
+      "result": "PASS",
+      "actual": 0.11322256149317855,
+      "expected": 0.11322256149317855,
+      "absolute_tolerance": 1e-15
+    },
+    {
+      "name": "retrieval score RQ01 RM07",
+      "result": "PASS",
+      "actual": 0.07464611311482403,
+      "expected": 0.07464611311482403,
+      "absolute_tolerance": 1e-15
+    },
+    {
+      "name": "retrieval RQ02",
+      "result": "PASS",
+      "actual": [
+        "RM07",
+        "RM02",
+        "RM04"
+      ],
+      "expected": [
+        "RM07",
+        "RM02",
+        "RM04"
+      ]
+    },
+    {
+      "name": "retrieval score RQ02 RM07",
+      "result": "PASS",
+      "actual": 0.5736714229451256,
+      "expected": 0.5736714229451256,
+      "absolute_tolerance": 1e-15
+    },
+    {
+      "name": "retrieval score RQ02 RM02",
+      "result": "PASS",
+      "actual": 0.466017916040117,
+      "expected": 0.466017916040117,
+      "absolute_tolerance": 1e-15
+    },
+    {
+      "name": "retrieval score RQ02 RM04",
+      "result": "PASS",
+      "actual": 0.21096546838979968,
+      "expected": 0.21096546838979968,
+      "absolute_tolerance": 1e-15
+    },
+    {
+      "name": "retrieval RQ03",
+      "result": "PASS",
+      "actual": [
+        "RM03",
+        "RM01",
+        "RM08"
+      ],
+      "expected": [
+        "RM03",
+        "RM01",
+        "RM08"
+      ]
+    },
+    {
+      "name": "retrieval score RQ03 RM03",
+      "result": "PASS",
+      "actual": 0.47576413102571347,
+      "expected": 0.47576413102571347,
+      "absolute_tolerance": 1e-15
+    },
+    {
+      "name": "retrieval score RQ03 RM01",
+      "result": "PASS",
+      "actual": 0.23372447921501033,
+      "expected": 0.23372447921501033,
+      "absolute_tolerance": 1e-15
+    },
+    {
+      "name": "retrieval score RQ03 RM08",
+      "result": "PASS",
+      "actual": 0.20396143817217255,
+      "expected": 0.20396143817217255,
+      "absolute_tolerance": 1e-15
+    },
+    {
+      "name": "retrieval RQ04",
+      "result": "PASS",
+      "actual": [
+        "RM04",
+        "RM07",
+        "RM08"
+      ],
+      "expected": [
+        "RM04",
+        "RM07",
+        "RM08"
+      ]
+    },
+    {
+      "name": "retrieval score RQ04 RM04",
+      "result": "PASS",
+      "actual": 0.5620320281934423,
+      "expected": 0.5620320281934423,
+      "absolute_tolerance": 1e-15
+    },
+    {
+      "name": "retrieval score RQ04 RM07",
+      "result": "PASS",
+      "actual": 0.31557877343033824,
+      "expected": 0.31557877343033824,
+      "absolute_tolerance": 1e-15
+    },
+    {
+      "name": "retrieval score RQ04 RM08",
+      "result": "PASS",
+      "actual": 0.10647393745169478,
+      "expected": 0.10647393745169478,
+      "absolute_tolerance": 1e-15
+    },
+    {
+      "name": "retrieval RQ05",
+      "result": "PASS",
+      "actual": [
+        "RM08",
+        "RM05",
+        "RM07"
+      ],
+      "expected": [
+        "RM08",
+        "RM05",
+        "RM07"
+      ]
+    },
+    {
+      "name": "retrieval score RQ05 RM08",
+      "result": "PASS",
+      "actual": 0.4463603366443825,
+      "expected": 0.4463603366443825,
+      "absolute_tolerance": 1e-15
+    },
+    {
+      "name": "retrieval score RQ05 RM05",
+      "result": "PASS",
+      "actual": 0.33245051465361997,
+      "expected": 0.33245051465361997,
+      "absolute_tolerance": 1e-15
+    },
+    {
+      "name": "retrieval score RQ05 RM07",
+      "result": "PASS",
+      "actual": 0.21951202803631792,
+      "expected": 0.21951202803631792,
+      "absolute_tolerance": 1e-15
+    },
+    {
+      "name": "retrieval RQ06",
+      "result": "PASS",
+      "actual": [
+        "RM06",
+        "RM07",
+        "RM02"
+      ],
+      "expected": [
+        "RM06",
+        "RM07",
+        "RM02"
+      ]
+    },
+    {
+      "name": "retrieval score RQ06 RM06",
+      "result": "PASS",
+      "actual": 0.4506062866553393,
+      "expected": 0.4506062866553393,
+      "absolute_tolerance": 1e-15
+    },
+    {
+      "name": "retrieval score RQ06 RM07",
+      "result": "PASS",
+      "actual": 0.18154719662871918,
+      "expected": 0.18154719662871918,
+      "absolute_tolerance": 1e-15
+    },
+    {
+      "name": "retrieval score RQ06 RM02",
+      "result": "PASS",
+      "actual": 0.14318107278640257,
+      "expected": 0.14318107278640257,
+      "absolute_tolerance": 1e-15
+    },
+    {
+      "name": "retrieval top-3 scores all above zero",
+      "result": "PASS",
+      "actual": true,
+      "expected": true
+    },
+    {
+      "name": "retrieval queries whose supporting document is not ranked first",
+      "result": "PASS",
+      "actual": true,
+      "expected": true
+    },
+    {
+      "name": "LoRA unique trainable scalar count",
+      "result": "PASS",
+      "actual": 460800,
+      "expected": 460800
+    },
+    {
+      "name": "Tiny standard parameter count",
+      "result": "PASS",
+      "actual": 137088,
+      "expected": 137088
+    },
+    {
+      "name": "Tiny tied delta",
+      "result": "PASS",
+      "actual": 16448,
+      "expected": 16448
+    },
+    {
+      "name": "mean of three illustrative results",
+      "result": "PASS",
+      "actual": 1.3,
+      "expected": 1.3,
+      "absolute_tolerance": 1e-12
+    },
+    {
+      "name": "sample standard deviation",
+      "result": "PASS",
+      "actual": 0.09999999999999998,
+      "expected": 0.1,
+      "absolute_tolerance": 1e-12
+    },
+    {
+      "name": "byte aggregate is weighted",
+      "result": "PASS",
+      "actual": 0.9090909090909091,
+      "expected": 0.9090909090909091,
+      "absolute_tolerance": 1e-12
+    },
+    {
+      "name": "materialized digest applied-intents-v1/test.jsonl",
+      "result": "PASS",
+      "actual": "cf9e5c26eed70bdcce11dfa416b8dd57479b7d0a0dec3dd580573035f5a88c47",
+      "expected": "cf9e5c26eed70bdcce11dfa416b8dd57479b7d0a0dec3dd580573035f5a88c47"
+    },
+    {
+      "name": "all SFT target formats applied-intents-v1/test.jsonl",
+      "result": "PASS",
+      "actual": true,
+      "expected": true
+    },
+    {
+      "name": "materialized digest applied-intents-v1/train.jsonl",
+      "result": "PASS",
+      "actual": "35444adfd92af623a172ad1f1c9f8234ea715fe9491cd75132baccf4c1517578",
+      "expected": "35444adfd92af623a172ad1f1c9f8234ea715fe9491cd75132baccf4c1517578"
+    },
+    {
+      "name": "all SFT target formats applied-intents-v1/train.jsonl",
+      "result": "PASS",
+      "actual": true,
+      "expected": true
+    },
+    {
+      "name": "materialized digest applied-intents-v1/validation.jsonl",
+      "result": "PASS",
+      "actual": "0f277bff692766150a3c209749d04edc442eccf46afa45bcab3a147dbe246701",
+      "expected": "0f277bff692766150a3c209749d04edc442eccf46afa45bcab3a147dbe246701"
+    },
+    {
+      "name": "all SFT target formats applied-intents-v1/validation.jsonl",
+      "result": "PASS",
+      "actual": true,
+      "expected": true
+    },
+    {
+      "name": "materialized digest capstone-support-v1/sealed_test.jsonl",
+      "result": "PASS",
+      "actual": "912c322aa0e866c5a068eb7a99b8fde7dce70703ba50b6294a231f74bb18d468",
+      "expected": "912c322aa0e866c5a068eb7a99b8fde7dce70703ba50b6294a231f74bb18d468"
+    },
+    {
+      "name": "all SFT target formats capstone-support-v1/sealed_test.jsonl",
+      "result": "PASS",
+      "actual": true,
+      "expected": true
+    },
+    {
+      "name": "materialized digest capstone-support-v1/train.jsonl",
+      "result": "PASS",
+      "actual": "f9df332048393acc0e18837cb4cc92435eea94aab03870a8cbaefcffd306a1c9",
+      "expected": "f9df332048393acc0e18837cb4cc92435eea94aab03870a8cbaefcffd306a1c9"
+    },
+    {
+      "name": "all SFT target formats capstone-support-v1/train.jsonl",
+      "result": "PASS",
+      "actual": true,
+      "expected": true
+    },
+    {
+      "name": "materialized digest capstone-support-v1/validation.jsonl",
+      "result": "PASS",
+      "actual": "7ad81ba5adf400a252ead08440467bb125845fac1cc762ac92a2e0eddcd035b7",
+      "expected": "7ad81ba5adf400a252ead08440467bb125845fac1cc762ac92a2e0eddcd035b7"
+    },
+    {
+      "name": "all SFT target formats capstone-support-v1/validation.jsonl",
+      "result": "PASS",
+      "actual": true,
+      "expected": true
+    },
+    {
+      "name": "materialized digest data-clinic-leaky-v1/test.jsonl",
+      "result": "PASS",
+      "actual": "32f306992f93b72a079f56bff51d4927176b213d6debd3b4edb2416bb564102a",
+      "expected": "32f306992f93b72a079f56bff51d4927176b213d6debd3b4edb2416bb564102a"
+    },
+    {
+      "name": "materialized digest data-clinic-leaky-v1/train.jsonl",
+      "result": "PASS",
+      "actual": "529b7c37eeaba1f169ff434911dbcaa89a270d7fc6750aff9bac637671a7c281",
+      "expected": "529b7c37eeaba1f169ff434911dbcaa89a270d7fc6750aff9bac637671a7c281"
+    },
+    {
+      "name": "materialized digest data-clinic-leaky-v1/validation.jsonl",
+      "result": "PASS",
+      "actual": "154dd58065afe86284620deb850a698b0dac2b4dede9fd040fb50b5cb47d1131",
+      "expected": "154dd58065afe86284620deb850a698b0dac2b4dede9fd040fb50b5cb47d1131"
+    },
+    {
+      "name": "materialized digest data-clinic-v1/test.jsonl",
+      "result": "PASS",
+      "actual": "43450deb84262afa013bbcb754913a17d982fd90901df4df05b8d2b9ea2b463c",
+      "expected": "43450deb84262afa013bbcb754913a17d982fd90901df4df05b8d2b9ea2b463c"
+    },
+    {
+      "name": "materialized digest data-clinic-v1/train.jsonl",
+      "result": "PASS",
+      "actual": "529b7c37eeaba1f169ff434911dbcaa89a270d7fc6750aff9bac637671a7c281",
+      "expected": "529b7c37eeaba1f169ff434911dbcaa89a270d7fc6750aff9bac637671a7c281"
+    },
+    {
+      "name": "materialized digest data-clinic-v1/validation.jsonl",
+      "result": "PASS",
+      "actual": "fefc7e5a5098a298c29319623979d715ef5534374292c1b5c930100e12c34ce9",
+      "expected": "fefc7e5a5098a298c29319623979d715ef5534374292c1b5c930100e12c34ce9"
+    },
+    {
+      "name": "materialized digest retrieval-manual-v1/documents.jsonl",
+      "result": "PASS",
+      "actual": "8f49152f9023dd55608539b83bfe2e1388063dc90eefa34affd9fe6b95092734",
+      "expected": "8f49152f9023dd55608539b83bfe2e1388063dc90eefa34affd9fe6b95092734"
+    },
+    {
+      "name": "materialized digest retrieval-manual-v1/queries.jsonl",
+      "result": "PASS",
+      "actual": "3f027760fe289a86d648996656ca635eb42d07afb39b8e9a3bc91ecce6f853e1",
+      "expected": "3f027760fe289a86d648996656ca635eb42d07afb39b8e9a3bc91ecce6f853e1"
+    },
+    {
+      "name": "distinct user messages applied-intents-v1",
+      "result": "PASS",
+      "actual": 84,
+      "expected": 84
+    },
+    {
+      "name": "cross-split Jaccard at most 0.5 applied-intents-v1",
+      "result": "PASS",
+      "actual": true,
+      "expected": true
+    },
+    {
+      "name": "scenario groups applied-intents-v1",
+      "result": "PASS",
+      "actual": [
+        42,
+        42
+      ],
+      "expected": [
+        42,
+        42
+      ]
+    },
+    {
+      "name": "paraphrases in a group differ in at least 3 words applied-intents-v1",
+      "result": "PASS",
+      "actual": true,
+      "expected": true
+    },
+    {
+      "name": "distinct user messages capstone-support-v1",
+      "result": "PASS",
+      "actual": 48,
+      "expected": 48
+    },
+    {
+      "name": "cross-split Jaccard at most 0.5 capstone-support-v1",
+      "result": "PASS",
+      "actual": true,
+      "expected": true
+    },
+    {
+      "name": "scenario groups capstone-support-v1",
+      "result": "PASS",
+      "actual": [
+        24,
+        18
+      ],
+      "expected": [
+        24,
+        18
+      ]
+    },
+    {
+      "name": "paraphrases in a group differ in at least 3 words capstone-support-v1",
+      "result": "PASS",
+      "actual": true,
+      "expected": true
+    },
+    {
+      "name": "pinned template digest",
+      "result": "PASS",
+      "actual": "872be49dbb638044ad01b60388f48d469ff2980e5f0dccdc22ec907db54d0788",
+      "expected": "872be49dbb638044ad01b60388f48d469ff2980e5f0dccdc22ec907db54d0788"
+    },
+    {
+      "name": "model architecture class",
+      "result": "PASS",
+      "actual": "LlamaForCausalLM",
+      "expected": "LlamaForCausalLM"
+    },
+    {
+      "name": "architecture hidden_size",
+      "result": "PASS",
+      "actual": 576,
+      "expected": 576
+    },
+    {
+      "name": "architecture num_hidden_layers",
+      "result": "PASS",
+      "actual": 30,
+      "expected": 30
+    },
+    {
+      "name": "architecture num_attention_heads",
+      "result": "PASS",
+      "actual": 9,
+      "expected": 9
+    },
+    {
+      "name": "architecture num_key_value_heads",
+      "result": "PASS",
+      "actual": 3,
+      "expected": 3
+    },
+    {
+      "name": "architecture max_position_embeddings",
+      "result": "PASS",
+      "actual": 8192,
+      "expected": 8192
+    },
+    {
+      "name": "architecture vocab_size",
+      "result": "PASS",
+      "actual": 49152,
+      "expected": 49152
+    },
+    {
+      "name": "architecture intermediate_size",
+      "result": "PASS",
+      "actual": 1536,
+      "expected": 1536
+    },
+    {
+      "name": "architecture rope_theta",
+      "result": "PASS",
+      "actual": 100000,
+      "expected": 100000
+    },
+    {
+      "name": "architecture tie_word_embeddings",
+      "result": "PASS",
+      "actual": true,
+      "expected": true
+    },
+    {
+      "name": "download total",
+      "result": "PASS",
+      "actual": 272437573,
+      "expected": 272437573
+    },
+    {
+      "name": "metadata size config.json",
+      "result": "PASS",
+      "actual": 861,
+      "expected": 861
+    },
+    {
+      "name": "metadata digest config.json",
+      "result": "PASS",
+      "actual": "8eb740e8bbe4cff95ea7b4588d17a2432deb16e8075bc5828ff7ba9be94d982a",
+      "expected": "8eb740e8bbe4cff95ea7b4588d17a2432deb16e8075bc5828ff7ba9be94d982a"
+    },
+    {
+      "name": "metadata size tokenizer_config.json",
+      "result": "PASS",
+      "actual": 3764,
+      "expected": 3764
+    },
+    {
+      "name": "metadata digest tokenizer_config.json",
+      "result": "PASS",
+      "actual": "4ec77d44f62efeb38d7e044a1db318f6a939438425312dfa333b8382dbad98df",
+      "expected": "4ec77d44f62efeb38d7e044a1db318f6a939438425312dfa333b8382dbad98df"
+    },
+    {
+      "name": "light token list parsed from UX-009",
+      "result": "PASS",
+      "actual": [
+        "action",
+        "background",
+        "border",
+        "error",
+        "focus",
+        "muted",
+        "navigation",
+        "recorded",
+        "simulation",
+        "surface",
+        "text"
+      ],
+      "expected": [
+        "action",
+        "background",
+        "border",
+        "error",
+        "focus",
+        "muted",
+        "navigation",
+        "recorded",
+        "simulation",
+        "surface",
+        "text"
+      ]
+    },
+    {
+      "name": "light text on background contrast threshold",
+      "result": "PASS",
+      "actual": true,
+      "expected": true
+    },
+    {
+      "name": "light text on surface contrast threshold",
+      "result": "PASS",
+      "actual": true,
+      "expected": true
+    },
+    {
+      "name": "light text on navigation contrast threshold",
+      "result": "PASS",
+      "actual": true,
+      "expected": true
+    },
+    {
+      "name": "light muted on background contrast threshold",
+      "result": "PASS",
+      "actual": true,
+      "expected": true
+    },
+    {
+      "name": "light muted on surface contrast threshold",
+      "result": "PASS",
+      "actual": true,
+      "expected": true
+    },
+    {
+      "name": "light muted on navigation contrast threshold",
+      "result": "PASS",
+      "actual": true,
+      "expected": true
+    },
+    {
+      "name": "light action on background contrast threshold",
+      "result": "PASS",
+      "actual": true,
+      "expected": true
+    },
+    {
+      "name": "light action on surface contrast threshold",
+      "result": "PASS",
+      "actual": true,
+      "expected": true
+    },
+    {
+      "name": "light action on navigation contrast threshold",
+      "result": "PASS",
+      "actual": true,
+      "expected": true
+    },
+    {
+      "name": "light focus on background contrast threshold",
+      "result": "PASS",
+      "actual": true,
+      "expected": true
+    },
+    {
+      "name": "light focus on surface contrast threshold",
+      "result": "PASS",
+      "actual": true,
+      "expected": true
+    },
+    {
+      "name": "light focus on navigation contrast threshold",
+      "result": "PASS",
+      "actual": true,
+      "expected": true
+    },
+    {
+      "name": "light recorded on background contrast threshold",
+      "result": "PASS",
+      "actual": true,
+      "expected": true
+    },
+    {
+      "name": "light recorded on surface contrast threshold",
+      "result": "PASS",
+      "actual": true,
+      "expected": true
+    },
+    {
+      "name": "light recorded on navigation contrast threshold",
+      "result": "PASS",
+      "actual": true,
+      "expected": true
+    },
+    {
+      "name": "light simulation on background contrast threshold",
+      "result": "PASS",
+      "actual": true,
+      "expected": true
+    },
+    {
+      "name": "light simulation on surface contrast threshold",
+      "result": "PASS",
+      "actual": true,
+      "expected": true
+    },
+    {
+      "name": "light simulation on navigation contrast threshold",
+      "result": "PASS",
+      "actual": true,
+      "expected": true
+    },
+    {
+      "name": "light error on background contrast threshold",
+      "result": "PASS",
+      "actual": true,
+      "expected": true
+    },
+    {
+      "name": "light error on surface contrast threshold",
+      "result": "PASS",
+      "actual": true,
+      "expected": true
+    },
+    {
+      "name": "light error on navigation contrast threshold",
+      "result": "PASS",
+      "actual": true,
+      "expected": true
+    },
+    {
+      "name": "light primary action label contrast threshold",
+      "result": "PASS",
+      "actual": true,
+      "expected": true
+    },
+    {
+      "name": "dark token list parsed from UX-009",
+      "result": "PASS",
+      "actual": [
+        "action",
+        "background",
+        "border",
+        "error",
+        "focus",
+        "muted",
+        "navigation",
+        "recorded",
+        "simulation",
+        "surface",
+        "text"
+      ],
+      "expected": [
+        "action",
+        "background",
+        "border",
+        "error",
+        "focus",
+        "muted",
+        "navigation",
+        "recorded",
+        "simulation",
+        "surface",
+        "text"
+      ]
+    },
+    {
+      "name": "dark text on background contrast threshold",
+      "result": "PASS",
+      "actual": true,
+      "expected": true
+    },
+    {
+      "name": "dark text on surface contrast threshold",
+      "result": "PASS",
+      "actual": true,
+      "expected": true
+    },
+    {
+      "name": "dark text on navigation contrast threshold",
+      "result": "PASS",
+      "actual": true,
+      "expected": true
+    },
+    {
+      "name": "dark muted on background contrast threshold",
+      "result": "PASS",
+      "actual": true,
+      "expected": true
+    },
+    {
+      "name": "dark muted on surface contrast threshold",
+      "result": "PASS",
+      "actual": true,
+      "expected": true
+    },
+    {
+      "name": "dark muted on navigation contrast threshold",
+      "result": "PASS",
+      "actual": true,
+      "expected": true
+    },
+    {
+      "name": "dark action on background contrast threshold",
+      "result": "PASS",
+      "actual": true,
+      "expected": true
+    },
+    {
+      "name": "dark action on surface contrast threshold",
+      "result": "PASS",
+      "actual": true,
+      "expected": true
+    },
+    {
+      "name": "dark action on navigation contrast threshold",
+      "result": "PASS",
+      "actual": true,
+      "expected": true
+    },
+    {
+      "name": "dark focus on background contrast threshold",
+      "result": "PASS",
+      "actual": true,
+      "expected": true
+    },
+    {
+      "name": "dark focus on surface contrast threshold",
+      "result": "PASS",
+      "actual": true,
+      "expected": true
+    },
+    {
+      "name": "dark focus on navigation contrast threshold",
+      "result": "PASS",
+      "actual": true,
+      "expected": true
+    },
+    {
+      "name": "dark recorded on background contrast threshold",
+      "result": "PASS",
+      "actual": true,
+      "expected": true
+    },
+    {
+      "name": "dark recorded on surface contrast threshold",
+      "result": "PASS",
+      "actual": true,
+      "expected": true
+    },
+    {
+      "name": "dark recorded on navigation contrast threshold",
+      "result": "PASS",
+      "actual": true,
+      "expected": true
+    },
+    {
+      "name": "dark simulation on background contrast threshold",
+      "result": "PASS",
+      "actual": true,
+      "expected": true
+    },
+    {
+      "name": "dark simulation on surface contrast threshold",
+      "result": "PASS",
+      "actual": true,
+      "expected": true
+    },
+    {
+      "name": "dark simulation on navigation contrast threshold",
+      "result": "PASS",
+      "actual": true,
+      "expected": true
+    },
+    {
+      "name": "dark error on background contrast threshold",
+      "result": "PASS",
+      "actual": true,
+      "expected": true
+    },
+    {
+      "name": "dark error on surface contrast threshold",
+      "result": "PASS",
+      "actual": true,
+      "expected": true
+    },
+    {
+      "name": "dark error on navigation contrast threshold",
+      "result": "PASS",
+      "actual": true,
+      "expected": true
+    },
+    {
+      "name": "dark primary action label contrast threshold",
+      "result": "PASS",
+      "actual": true,
+      "expected": true
+    },
+    {
+      "name": "decode D01-greedy-tie",
+      "result": "PASS",
+      "actual": 0,
+      "expected": 0
+    },
+    {
+      "name": "decode D02-topp-005",
+      "result": "PASS",
+      "actual": {
+        "sorted": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "retained": [
+          0
+        ]
+      },
+      "expected": {
+        "sorted": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "retained": [
+          0
+        ]
+      }
+    },
+    {
+      "name": "decode D03-topp-050",
+      "result": "PASS",
+      "actual": {
+        "sorted": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "retained": [
+          0
+        ]
+      },
+      "expected": {
+        "sorted": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "retained": [
+          0
+        ]
+      }
+    },
+    {
+      "name": "decode D04-topp-095",
+      "result": "PASS",
+      "actual": {
+        "sorted": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "retained": [
+          0,
+          1,
+          2,
+          3
+        ]
+      },
+      "expected": {
+        "sorted": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "retained": [
+          0,
+          1,
+          2,
+          3
+        ]
+      }
+    },
+    {
+      "name": "decode D05-topp-100",
+      "result": "PASS",
+      "actual": {
+        "sorted": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "retained": [
+          0,
+          1,
+          2,
+          3
+        ]
+      },
+      "expected": {
+        "sorted": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "retained": [
+          0,
+          1,
+          2,
+          3
+        ]
+      }
+    },
+    {
+      "name": "decode D06-tie-at-threshold",
+      "result": "PASS",
+      "actual": {
+        "sorted": [
+          0,
+          1,
+          2
+        ],
+        "retained": [
+          0,
+          1
+        ]
+      },
+      "expected": {
+        "sorted": [
+          0,
+          1,
+          2
+        ],
+        "retained": [
+          0,
+          1
+        ]
+      }
+    },
+    {
+      "name": "decode D07-low-temperature",
+      "result": "PASS",
+      "actual": {
+        "sorted": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "retained": [
+          0
+        ]
+      },
+      "expected": {
+        "sorted": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "retained": [
+          0
+        ]
+      }
+    },
+    {
+      "name": "decode stop S01-eos-last-position-tiny",
+      "result": "PASS",
+      "actual": {
+        "stop_reason": "eos",
+        "generated_token_count": 3,
+        "visible_token_ids": [
+          104,
+          105
+        ]
+      },
+      "expected": {
+        "stop_reason": "eos",
+        "generated_token_count": 3,
+        "visible_token_ids": [
+          104,
+          105
+        ]
+      }
+    },
+    {
+      "name": "decode stop S02-length",
+      "result": "PASS",
+      "actual": {
+        "stop_reason": "length",
+        "generated_token_count": 2,
+        "visible_token_ids": [
+          104,
+          105
+        ]
+      },
+      "expected": {
+        "stop_reason": "length",
+        "generated_token_count": 2,
+        "visible_token_ids": [
+          104,
+          105
+        ]
+      }
+    },
+    {
+      "name": "decode stop S03-eos-last-position-chat",
+      "result": "PASS",
+      "actual": {
+        "stop_reason": "eos",
+        "generated_token_count": 2,
+        "visible_token_ids": [
+          45
+        ]
+      },
+      "expected": {
+        "stop_reason": "eos",
+        "generated_token_count": 2,
+        "visible_token_ids": [
+          45
+        ]
+      }
+    },
+    {
+      "name": "chat fixture shape chat-no-truncation-v1",
+      "result": "PASS",
+      "actual": true,
+      "expected": true
+    },
+    {
+      "name": "chat fixture shape chat-drop-oldest-v1",
+      "result": "PASS",
+      "actual": true,
+      "expected": true
+    },
+    {
+      "name": "chat fixture shape chat-drop-oldest-two-pairs-v1",
+      "result": "PASS",
+      "actual": true,
+      "expected": true
+    }
+  ],
+  "retrieval_rankings": [
+    {
+      "query_id": "RQ01",
+      "ranked": [
+        {
+          "record_id": "RM01",
+          "score": 0.6077701710022565
+        },
+        {
+          "record_id": "RM03",
+          "score": 0.11322256149317855
+        },
+        {
+          "record_id": "RM07",
+          "score": 0.07464611311482403
+        }
+      ]
+    },
+    {
+      "query_id": "RQ02",
+      "ranked": [
+        {
+          "record_id": "RM07",
+          "score": 0.5736714229451256
+        },
+        {
+          "record_id": "RM02",
+          "score": 0.466017916040117
+        },
+        {
+          "record_id": "RM04",
+          "score": 0.21096546838979968
+        }
+      ]
+    },
+    {
+      "query_id": "RQ03",
+      "ranked": [
+        {
+          "record_id": "RM03",
+          "score": 0.47576413102571347
+        },
+        {
+          "record_id": "RM01",
+          "score": 0.23372447921501033
+        },
+        {
+          "record_id": "RM08",
+          "score": 0.20396143817217255
+        }
+      ]
+    },
+    {
+      "query_id": "RQ04",
+      "ranked": [
+        {
+          "record_id": "RM04",
+          "score": 0.5620320281934423
+        },
+        {
+          "record_id": "RM07",
+          "score": 0.31557877343033824
+        },
+        {
+          "record_id": "RM08",
+          "score": 0.10647393745169478
+        }
+      ]
+    },
+    {
+      "query_id": "RQ05",
+      "ranked": [
+        {
+          "record_id": "RM08",
+          "score": 0.4463603366443825
+        },
+        {
+          "record_id": "RM05",
+          "score": 0.33245051465361997
+        },
+        {
+          "record_id": "RM07",
+          "score": 0.21951202803631792
+        }
+      ]
+    },
+    {
+      "query_id": "RQ06",
+      "ranked": [
+        {
+          "record_id": "RM06",
+          "score": 0.4506062866553393
+        },
+        {
+          "record_id": "RM07",
+          "score": 0.18154719662871918
+        },
+        {
+          "record_id": "RM02",
+          "score": 0.14318107278640257
+        }
+      ]
+    }
+  ],
+  "palette_calculations": [
+    {
+      "theme": "light",
+      "foreground": "text",
+      "color": "#24334a",
+      "background": "background",
+      "background_color": "#f6f8fb",
+      "ratio": 11.981433995529393,
+      "threshold": 4.5
+    },
+    {
+      "theme": "light",
+      "foreground": "text",
+      "color": "#24334a",
+      "background": "surface",
+      "background_color": "#ffffff",
+      "ratio": 12.74715327427825,
+      "threshold": 4.5
+    },
+    {
+      "theme": "light",
+      "foreground": "text",
+      "color": "#24334a",
+      "background": "navigation",
+      "background_color": "#edf1f6",
+      "ratio": 11.2380044111537,
+      "threshold": 4.5
+    },
+    {
+      "theme": "light",
+      "foreground": "muted",
+      "color": "#59687b",
+      "background": "background",
+      "background_color": "#f6f8fb",
+      "ratio": 5.347881154825414,
+      "threshold": 4.5
+    },
+    {
+      "theme": "light",
+      "foreground": "muted",
+      "color": "#59687b",
+      "background": "surface",
+      "background_color": "#ffffff",
+      "ratio": 5.689657915623451,
+      "threshold": 4.5
+    },
+    {
+      "theme": "light",
+      "foreground": "muted",
+      "color": "#59687b",
+      "background": "navigation",
+      "background_color": "#edf1f6",
+      "ratio": 5.0160533397486935,
+      "threshold": 4.5
+    },
+    {
+      "theme": "light",
+      "foreground": "action",
+      "color": "#315bae",
+      "background": "background",
+      "background_color": "#f6f8fb",
+      "ratio": 6.095476977006179,
+      "threshold": 4.5
+    },
+    {
+      "theme": "light",
+      "foreground": "action",
+      "color": "#315bae",
+      "background": "surface",
+      "background_color": "#ffffff",
+      "ratio": 6.485031702776482,
+      "threshold": 4.5
+    },
+    {
+      "theme": "light",
+      "foreground": "action",
+      "color": "#315bae",
+      "background": "navigation",
+      "background_color": "#edf1f6",
+      "ratio": 5.717261988943968,
+      "threshold": 4.5
+    },
+    {
+      "theme": "light",
+      "foreground": "focus",
+      "color": "#986400",
+      "background": "background",
+      "background_color": "#f6f8fb",
+      "ratio": 4.747180785523838,
+      "threshold": 3
+    },
+    {
+      "theme": "light",
+      "foreground": "focus",
+      "color": "#986400",
+      "background": "surface",
+      "background_color": "#ffffff",
+      "ratio": 5.050567496040966,
+      "threshold": 3
+    },
+    {
+      "theme": "light",
+      "foreground": "focus",
+      "color": "#986400",
+      "background": "navigation",
+      "background_color": "#edf1f6",
+      "ratio": 4.452625506109445,
+      "threshold": 3
+    },
+    {
+      "theme": "light",
+      "foreground": "recorded",
+      "color": "#14675e",
+      "background": "background",
+      "background_color": "#f6f8fb",
+      "ratio": 6.303272290790123,
+      "threshold": 4.5
+    },
+    {
+      "theme": "light",
+      "foreground": "recorded",
+      "color": "#14675e",
+      "background": "surface",
+      "background_color": "#ffffff",
+      "ratio": 6.706106969348832,
+      "threshold": 4.5
+    },
+    {
+      "theme": "light",
+      "foreground": "recorded",
+      "color": "#14675e",
+      "background": "navigation",
+      "background_color": "#edf1f6",
+      "ratio": 5.91216392253492,
+      "threshold": 4.5
+    },
+    {
+      "theme": "light",
+      "foreground": "simulation",
+      "color": "#805218",
+      "background": "background",
+      "background_color": "#f6f8fb",
+      "ratio": 6.290272420918018,
+      "threshold": 4.5
+    },
+    {
+      "theme": "light",
+      "foreground": "simulation",
+      "color": "#805218",
+      "background": "surface",
+      "background_color": "#ffffff",
+      "ratio": 6.692276293165395,
+      "threshold": 4.5
+    },
+    {
+      "theme": "light",
+      "foreground": "simulation",
+      "color": "#805218",
+      "background": "navigation",
+      "background_color": "#edf1f6",
+      "ratio": 5.8999706746297305,
+      "threshold": 4.5
+    },
+    {
+      "theme": "light",
+      "foreground": "error",
+      "color": "#8a3b12",
+      "background": "background",
+      "background_color": "#f6f8fb",
+      "ratio": 7.27024487673212,
+      "threshold": 4.5
+    },
+    {
+      "theme": "light",
+      "foreground": "error",
+      "color": "#8a3b12",
+      "background": "surface",
+      "background_color": "#ffffff",
+      "ratio": 7.73487762982462,
+      "threshold": 4.5
+    },
+    {
+      "theme": "light",
+      "foreground": "error",
+      "color": "#8a3b12",
+      "background": "navigation",
+      "background_color": "#edf1f6",
+      "ratio": 6.819137344108295,
+      "threshold": 4.5
+    },
+    {
+      "theme": "light",
+      "foreground": "primary_action_label",
+      "color": "#ffffff",
+      "background": "action",
+      "background_color": "#315bae",
+      "ratio": 6.485031702776482,
+      "threshold": 4.5
+    },
+    {
+      "theme": "dark",
+      "foreground": "text",
+      "color": "#e5ecf6",
+      "background": "background",
+      "background_color": "#131d2b",
+      "ratio": 14.261711653910675,
+      "threshold": 4.5
+    },
+    {
+      "theme": "dark",
+      "foreground": "text",
+      "color": "#e5ecf6",
+      "background": "surface",
+      "background_color": "#1b283b",
+      "ratio": 12.496209240561607,
+      "threshold": 4.5
+    },
+    {
+      "theme": "dark",
+      "foreground": "text",
+      "color": "#e5ecf6",
+      "background": "navigation",
+      "background_color": "#172234",
+      "ratio": 13.43181775110131,
+      "threshold": 4.5
+    },
+    {
+      "theme": "dark",
+      "foreground": "muted",
+      "color": "#afbdd0",
+      "background": "background",
+      "background_color": "#131d2b",
+      "ratio": 8.893220615154698,
+      "threshold": 4.5
+    },
+    {
+      "theme": "dark",
+      "foreground": "muted",
+      "color": "#afbdd0",
+      "background": "surface",
+      "background_color": "#1b283b",
+      "ratio": 7.792300694775018,
+      "threshold": 4.5
+    },
+    {
+      "theme": "dark",
+      "foreground": "muted",
+      "color": "#afbdd0",
+      "background": "navigation",
+      "background_color": "#172234",
+      "ratio": 8.37572105101005,
+      "threshold": 4.5
+    },
+    {
+      "theme": "dark",
+      "foreground": "action",
+      "color": "#a7c5ff",
+      "background": "background",
+      "background_color": "#131d2b",
+      "ratio": 9.74999113180913,
+      "threshold": 4.5
+    },
+    {
+      "theme": "dark",
+      "foreground": "action",
+      "color": "#a7c5ff",
+      "background": "surface",
+      "background_color": "#1b283b",
+      "ratio": 8.543008878131262,
+      "threshold": 4.5
+    },
+    {
+      "theme": "dark",
+      "foreground": "action",
+      "color": "#a7c5ff",
+      "background": "navigation",
+      "background_color": "#172234",
+      "ratio": 9.18263579683326,
+      "threshold": 4.5
+    },
+    {
+      "theme": "dark",
+      "foreground": "focus",
+      "color": "#edc366",
+      "background": "background",
+      "background_color": "#131d2b",
+      "ratio": 10.174123090531648,
+      "threshold": 3
+    },
+    {
+      "theme": "dark",
+      "foreground": "focus",
+      "color": "#edc366",
+      "background": "surface",
+      "background_color": "#1b283b",
+      "ratio": 8.914636199621283,
+      "threshold": 3
+    },
+    {
+      "theme": "dark",
+      "foreground": "focus",
+      "color": "#edc366",
+      "background": "navigation",
+      "background_color": "#172234",
+      "ratio": 9.582087371105999,
+      "threshold": 3
+    },
+    {
+      "theme": "dark",
+      "foreground": "recorded",
+      "color": "#95dec7",
+      "background": "background",
+      "background_color": "#131d2b",
+      "ratio": 10.943163533170079,
+      "threshold": 4.5
+    },
+    {
+      "theme": "dark",
+      "foreground": "recorded",
+      "color": "#95dec7",
+      "background": "surface",
+      "background_color": "#1b283b",
+      "ratio": 9.588474692424407,
+      "threshold": 4.5
+    },
+    {
+      "theme": "dark",
+      "foreground": "recorded",
+      "color": "#95dec7",
+      "background": "navigation",
+      "background_color": "#172234",
+      "ratio": 10.306377086072521,
+      "threshold": 4.5
+    },
+    {
+      "theme": "dark",
+      "foreground": "simulation",
+      "color": "#f0cc8b",
+      "background": "background",
+      "background_color": "#131d2b",
+      "ratio": 11.075511011304673,
+      "threshold": 4.5
+    },
+    {
+      "theme": "dark",
+      "foreground": "simulation",
+      "color": "#f0cc8b",
+      "background": "surface",
+      "background_color": "#1b283b",
+      "ratio": 9.704438457459375,
+      "threshold": 4.5
+    },
+    {
+      "theme": "dark",
+      "foreground": "simulation",
+      "color": "#f0cc8b",
+      "background": "navigation",
+      "background_color": "#172234",
+      "ratio": 10.431023218967395,
+      "threshold": 4.5
+    },
+    {
+      "theme": "dark",
+      "foreground": "error",
+      "color": "#ffc49b",
+      "background": "background",
+      "background_color": "#131d2b",
+      "ratio": 10.999817569156486,
+      "threshold": 4.5
+    },
+    {
+      "theme": "dark",
+      "foreground": "error",
+      "color": "#ffc49b",
+      "background": "surface",
+      "background_color": "#1b283b",
+      "ratio": 9.638115346028165,
+      "threshold": 4.5
+    },
+    {
+      "theme": "dark",
+      "foreground": "error",
+      "color": "#ffc49b",
+      "background": "navigation",
+      "background_color": "#172234",
+      "ratio": 10.359734404233212,
+      "threshold": 4.5
+    },
+    {
+      "theme": "dark",
+      "foreground": "primary_action_label",
+      "color": "#131d2b",
+      "background": "action",
+      "background_color": "#a7c5ff",
+      "ratio": 9.74999113180913,
+      "threshold": 4.5
+    }
+  ],
+  "limitations": [
+    "No browser rendering or accessibility behavior tested.",
+    "No tokenizer/model/dependency runtime installed or executed.",
+    "These are independent calculations over authored specification fixtures, not product tests."
+  ]
+}

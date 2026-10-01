@@ -37,7 +37,7 @@
       "preset_id": "smollm2-intents-lora-v1", "r": 8, "lora_alpha": 16, "lora_dropout": 0,
       "bias": "none", "task_type": "CAUSAL_LM", "target_modules": ["q_proj", "v_proj"],
       "trainable_parameters": 460800, "batch_size": 1, "gradient_accumulation": 4,
-      "learning_rate": 0.0002, "weight_decay": 0.01, "adam_beta1": 0.9, "adam_beta2": 0.999,
+      "learning_rate": 0.001, "weight_decay": 0.01, "adam_beta1": 0.9, "adam_beta2": 0.999,
       "adam_epsilon": 1e-8, "max_gradient_norm": 1, "validation_every_updates": 10,
       "checkpoint_every_updates": 10, "maximum_lineage_updates": 120
     }},
@@ -45,7 +45,7 @@
       "preset_id": "smollm2-capstone-lora-v1", "dataset_fixture_id": "capstone-support-v1",
       "r": 8, "lora_alpha": 16, "lora_dropout": 0, "bias": "none", "task_type": "CAUSAL_LM",
       "target_modules": ["q_proj", "v_proj"], "trainable_parameters": 460800, "batch_size": 1,
-      "gradient_accumulation": 3, "learning_rate": 0.0002, "weight_decay": 0.01,
+      "gradient_accumulation": 3, "learning_rate": 0.001, "weight_decay": 0.01,
       "adam_beta1": 0.9, "adam_beta2": 0.999, "adam_epsilon": 1e-8, "max_gradient_norm": 1,
       "seed": 29, "required_updates": 20, "validation_every_updates": 5,
       "checkpoint_every_updates": 5, "maximum_lineage_updates": 20

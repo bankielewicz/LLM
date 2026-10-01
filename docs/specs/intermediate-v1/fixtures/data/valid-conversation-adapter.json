@@ -9,5 +9,6 @@
   "turns": [],
   "created_at": "2026-09-28T12:00:00.000Z",
   "updated_at": "2026-09-28T12:00:00.000Z",
-  "origin": "locally_created"
+  "origin": "locally_created",
+  "system_prompt": null
 }

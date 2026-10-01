@@ -8,7 +8,7 @@
   "config": {
     "batch_size": 1,
     "gradient_accumulation": 3,
-    "learning_rate": 0.0002,
+    "learning_rate": 0.001,
     "weight_decay": 0.01,
     "max_gradient_norm": 1,
     "context": 512,

@@ -1,0 +1,48 @@
+{
+  "format": "llm-foundations-generation-v1",
+  "job_id": "13131313-1313-4313-8313-131313131313",
+  "run_id": "12121212-1212-4212-8212-121212121212",
+  "backend": "tiny",
+  "subject": {
+    "checkpoint_id": "10101010-1010-4010-8010-101010101010"
+  },
+  "subject_identity_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "preview_artifact_id": "88888888-8888-4888-8888-888888888888",
+  "context_preview_digest": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+  "input": {
+    "prompt": "The next token is"
+  },
+  "serialized_input": "The next token is",
+  "input_token_ids": [
+    84,
+    104,
+    101
+  ],
+  "input_token_count": 3,
+  "original_input_token_count": 3,
+  "dropped_message_indices": [],
+  "cropped_input_tokens": 0,
+  "effective_context_budget": 64,
+  "decoding": {
+    "max_new_tokens": 3,
+    "temperature": 0,
+    "top_p": 1,
+    "seed": 17
+  },
+  "output_token_ids": [
+    32,
+    97,
+    256
+  ],
+  "generated_token_count": 3,
+  "text": " a",
+  "stop_reason": "eos",
+  "utf8_replacement_occurred": false,
+  "conversation": {
+    "conversation_id": "13131313-1313-4313-8313-131313131313",
+    "expected_conversation_revision": 1
+  },
+  "retrieval": null,
+  "started_at": "2026-09-28T12:00:00.000Z",
+  "ended_at": "2026-09-28T12:00:01.000Z"
+}

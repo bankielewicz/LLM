@@ -11,7 +11,8 @@
     "turns",
     "created_at",
     "updated_at",
-    "origin"
+    "origin",
+    "system_prompt"
   ],
   "properties": {
     "conversation_id": {
@@ -44,6 +45,18 @@
     },
     "origin": {
       "$ref": "common.schema.json#/$defs/origin"
+    },
+    "system_prompt": {
+      "oneOf": [
+        {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 8192
+        },
+        {
+          "type": "null"
+        }
+      ]
     }
   },
   "$defs": {

@@ -38,12 +38,18 @@
       "split": "train",
       "artifact_id": "15151515-1515-4515-8515-151515151515",
       "sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+    },
+    {
+      "dataset_id": "14141414-1414-4414-8414-141414141414",
+      "split": "validation",
+      "artifact_id": "16161616-1616-4616-8616-161616161616",
+      "sha256": "9999999999999999999999999999999999999999999999999999999999999999"
     }
   ],
   "training_identity": {
     "batch_size": 1,
     "gradient_accumulation": 4,
-    "learning_rate": 0.0002,
+    "learning_rate": 0.001,
     "weight_decay": 0.01,
     "max_gradient_norm": 1,
     "context": 512,

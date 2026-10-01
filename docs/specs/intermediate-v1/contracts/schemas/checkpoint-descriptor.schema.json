@@ -35,7 +35,8 @@
       "$ref": "common.schema.json#/$defs/id"
     },
     "sha256": {
-      "$ref": "common.schema.json#/$defs/sha256"
+      "$ref": "common.schema.json#/$defs/sha256",
+      "description": "SHA-256 of the checkpoint's exact manifest.json bytes (checkpoint-manifest.schema.json); subject identities bind this value."
     },
     "format": {
       "enum": [
@@ -113,6 +114,7 @@
     "runtime_profile": {
       "enum": [
         "win-cpu",
+        "win-cuda",
         "wsl-cpu",
         "wsl-cuda"
       ]
@@ -381,7 +383,10 @@
       "if": {
         "properties": {
           "runtime_profile": {
-            "const": "wsl-cuda"
+            "enum": [
+              "win-cuda",
+              "wsl-cuda"
+            ]
           }
         }
       },
@@ -398,6 +403,76 @@
             "const": "cpu"
           }
         }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "backend": {
+            "enum": [
+              "tiny_v2",
+              "transformers_peft"
+            ]
+          }
+        },
+        "required": [
+          "backend"
+        ]
+      },
+      "then": {
+        "properties": {
+          "dataset_bindings": {
+            "minItems": 2,
+            "maxItems": 2,
+            "items": {
+              "properties": {
+                "split": {
+                  "enum": [
+                    "train",
+                    "validation"
+                  ]
+                }
+              }
+            },
+            "allOf": [
+              {
+                "contains": {
+                  "properties": {
+                    "split": {
+                      "const": "train"
+                    }
+                  }
+                }
+              },
+              {
+                "contains": {
+                  "properties": {
+                    "split": {
+                      "const": "validation"
+                    }
+                  }
+                }
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "origin": {
+            "const": "imported"
+          }
+        },
+        "required": [
+          "origin"
+        ]
+      },
+      "then": {
+        "required": [
+          "source_identity"
+        ]
       }
     }
   ],
@@ -516,7 +591,15 @@
           }
         },
         "base_model_id": {
-          "$ref": "common.schema.json#/$defs/id"
+          "oneOf": [
+            {
+              "$ref": "common.schema.json#/$defs/id"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Null only for an imported thin-bundle adapter whose base is not prepared; binding is by model_manifest_sha256 at use time."
         }
       }
     },
@@ -615,7 +698,7 @@
           "maximum": 64
         },
         "learning_rate": {
-          "const": 0.0002
+          "const": 0.001
         },
         "weight_decay": {
           "const": 0.01
@@ -661,5 +744,8 @@
         }
       }
     }
-  }
+  },
+  "x-semantic-rules": [
+    "TINY_SAVE_CADENCE"
+  ]
 }

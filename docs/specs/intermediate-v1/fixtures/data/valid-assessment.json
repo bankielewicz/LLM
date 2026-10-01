@@ -64,5 +64,6 @@
   "origin": "locally_created",
   "created_at": "2026-09-28T12:00:00.000Z",
   "total_score": 100,
-  "objective_gates_verified": true
+  "objective_gates_verified": true,
+  "evidence_revision": 1
 }

@@ -53,6 +53,7 @@
       "profiles": [
         "static",
         "win-cpu",
+        "win-cuda",
         "wsl-cpu",
         "wsl-cuda"
       ],
@@ -77,6 +78,7 @@
       "method": "manual",
       "profiles": [
         "win-cpu",
+        "win-cuda",
         "wsl-cpu",
         "wsl-cuda"
       ],
@@ -102,6 +104,7 @@
       "profiles": [
         "static",
         "win-cpu",
+        "win-cuda",
         "wsl-cpu",
         "wsl-cuda"
       ],
@@ -129,6 +132,7 @@
       "profiles": [
         "static",
         "win-cpu",
+        "win-cuda",
         "wsl-cpu",
         "wsl-cuda"
       ],
@@ -154,6 +158,7 @@
       "profiles": [
         "static",
         "win-cpu",
+        "win-cuda",
         "wsl-cpu",
         "wsl-cuda"
       ],
@@ -199,6 +204,7 @@
       "method": "manual",
       "profiles": [
         "win-cpu",
+        "win-cuda",
         "wsl-cpu",
         "wsl-cuda"
       ],
@@ -210,7 +216,7 @@
         "Compare registry/job counts and protected hashes before and after rejected attempts; verify child process ownership."
       ],
       "expected": [
-        "No unauthorized job/state mutation or unrelated process termination; committed artifacts remain valid and recovery status is honest."
+        "No unauthorized job/state mutation or unrelated process termination; committed artifacts keep their recorded digests; every job that did not complete is failed or interrupted with its terminal_reason, and storage_writable false puts the service in read-only recovery with mutations returning STORAGE_UNAVAILABLE."
       ],
       "status": "NOT_RUN"
     },
@@ -224,6 +230,7 @@
       "profiles": [
         "static",
         "win-cpu",
+        "win-cuda",
         "wsl-cpu",
         "wsl-cuda"
       ],
@@ -249,6 +256,7 @@
       "profiles": [
         "static",
         "win-cpu",
+        "win-cuda",
         "wsl-cpu",
         "wsl-cuda"
       ],
@@ -274,6 +282,7 @@
       "profiles": [
         "static",
         "win-cpu",
+        "win-cuda",
         "wsl-cpu",
         "wsl-cuda"
       ],
@@ -298,6 +307,7 @@
       "method": "browser",
       "profiles": [
         "win-cpu",
+        "win-cuda",
         "wsl-cpu",
         "wsl-cuda"
       ],
@@ -322,6 +332,7 @@
       "method": "browser",
       "profiles": [
         "win-cpu",
+        "win-cuda",
         "wsl-cpu",
         "wsl-cuda"
       ],
@@ -333,7 +344,7 @@
         "Retain action/observation trace and artifact/checkpoint/job identities."
       ],
       "expected": [
-        "Cancellation/restart retain honest state and checkpoint identity; resume creates one child and no duplicate job."
+        "The cancelled job is interrupted with terminal_reason user_cancelled and keeps its checkpoint_id; after service restart a job that was nonterminal is interrupted with reason service_restarted; resume creates exactly one child run and no duplicate job."
       ],
       "status": "NOT_RUN"
     },
@@ -346,6 +357,7 @@
       "method": "browser",
       "profiles": [
         "win-cpu",
+        "win-cuda",
         "wsl-cpu",
         "wsl-cuda"
       ],
@@ -357,7 +369,7 @@
         "Retain action/observation trace and artifact/checkpoint/job identities."
       ],
       "expected": [
-        "Pinned baseline/adapters use consistent protocol, base tensors unchanged, adapter tensors updated, output identity visible."
+        "The baseline and adapter evaluations name the same evaluation_profile_id and dataset digest in one paired artifact; base-file SHA-256 digests are equal before and after training; adapter tensors differ from their initial values; each output shows its model_id and, for the adapter, adapter_checkpoint_id."
       ],
       "status": "NOT_RUN"
     },
@@ -370,6 +382,7 @@
       "method": "browser",
       "profiles": [
         "win-cpu",
+        "win-cuda",
         "wsl-cpu",
         "wsl-cuda"
       ],
@@ -394,6 +407,7 @@
       "method": "browser",
       "profiles": [
         "win-cpu",
+        "win-cuda",
         "wsl-cpu",
         "wsl-cuda"
       ],
@@ -405,7 +419,7 @@
         "Retain action/observation trace and artifact/checkpoint/job identities."
       ],
       "expected": [
-        "Every bad input is rejected; prior valid records and notes remain, failures are actionable and surviving state can export."
+        "Every bad input in the J6 chain is rejected with its contract code; prior valid records and notes remain byte-identical; each rejection message names the rejected field or artifact ID and a corrective action (06-APPLIED-MODELS.md error rule); and an export of the surviving state validates."
       ],
       "status": "NOT_RUN"
     },
@@ -418,6 +432,7 @@
       "method": "browser",
       "profiles": [
         "win-cpu",
+        "win-cuda",
         "wsl-cpu",
         "wsl-cuda"
       ],
@@ -429,7 +444,35 @@
         "Retain action/observation trace and artifact/checkpoint/job identities."
       ],
       "expected": [
-        "J2/J4 principal actions and output are usable in both browsers with every listed accessibility condition."
+        "Every DEL-008 matrix condition passes for the J2 principal actions and the J4 input/output reading in Edge and in Firefox (keyboard-only, NVDA, 360px, 200% text, 400% zoom, reduced motion, forced colors, chart tables)."
+      ],
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "AC-DEL-017",
+      "requirements": [
+        "DEL-002"
+      ],
+      "name": "Required-preset fit calibration on reference machines",
+      "method": "manual",
+      "profiles": [
+        "win-cpu",
+        "win-cuda",
+        "wsl-cpu",
+        "wsl-cuda"
+      ],
+      "preconditions": [
+        "The profile's lockfile is installed on a reference machine (x86_64, at least 16 GiB RAM, at least four logical cores); the pinned model is prepared; the storage root is clean."
+      ],
+      "steps": [
+        "Freeze subchecks AC-DEL-017.<profile>.<operation>.<preset-or-configuration> from every required role in contracts/evidence-verification.md for FOUNDATION-12, CUR-005 to CUR-012, CUR-014 and CUR-015.",
+        "Run each pair once with exactly the prescribed settings; record wall time from starting to terminal, peak worker resident memory, peak reserved CUDA memory on win-cuda and wsl-cuda, terminal state and committed artifact digests.",
+        "With the shortened-clock deadline test mechanism, stop the 40-update smollm2-intents-lora-v1 adapter_train at a durable checkpoint before update 40, resume it to update 40, run the 20-update resume, and verify module 17."
+      ],
+      "expected": [
+        "Every pair completes within 30 minutes with peak resident memory at most 12 GiB; model_prepare registers within 5 minutes of its last byte.",
+        "Any pair outside either bound blocks qualification, and the failed record is retained; no prescribed step count, seed, dataset or cadence differs from the specification.",
+        "The resumed chain satisfies check intermediate-adapter-comparison-v1.006, and the timeout screen offers the same-settings retry without changing the update count.", "On win-cuda and wsl-cuda every pair also keeps peak reserved CUDA memory at most 1,536 MiB."
       ],
       "status": "NOT_RUN"
     }

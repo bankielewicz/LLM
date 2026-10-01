@@ -6,7 +6,7 @@ from jsonschema import Draft202012Validator, FormatChecker
 from referencing import Registry, Resource
 
 ROOT = Path(__file__).resolve().parents[1]
-PROFILES = {'static', 'win-cpu', 'wsl-cpu', 'wsl-cuda'}
+PROFILES = {'static', 'win-cpu', 'win-cuda', 'wsl-cpu', 'wsl-cuda'}
 REPORT = {'kind':'specification_document_check','product_tests_executed':False,
           'created_utc':datetime.datetime.now(datetime.timezone.utc).isoformat(),
           'checks':[], 'errors':[]}
@@ -35,21 +35,25 @@ def walk(value):
 
 ap=argparse.ArgumentParser()
 ap.add_argument('--report',required=True,help='Fresh report path relative to specification root')
-ap.add_argument('--write-index',action='store_true')
+mode=ap.add_mutually_exclusive_group()
+mode.add_argument('--write-index',action='store_true',help='Authoring only: rewrite requirements.json and acceptance-cases.json; requires --revision')
+mode.add_argument('--check-index',action='store_true',help='Compare requirements.json and acceptance-cases.json with the generated index without writing')
+ap.add_argument('--revision',help='Specification revision written by --write-index, for example 1.1')
 args=ap.parse_args()
+if args.write_index and not args.revision: raise SystemExit('--write-index requires --revision')
 report_path=(ROOT/args.report).resolve()
 if not report_path.is_relative_to(ROOT.resolve()) or report_path.exists():
     raise SystemExit('Report must be a fresh path within this package.')
 documents={}
 for path in ROOT.rglob('*.json'):
-    if 'reviews' in path.relative_to(ROOT).parts: continue
+    if path.relative_to(ROOT).parts[0]=='reviews': continue
     try: documents[path.resolve()]=load(path)
     except Exception as e: fail(f'JSON {path.relative_to(ROOT)}: {e}')
 check('json_parse',f'{len(documents)} JSON documents parsed; failures listed separately')
 
 requirements={}
 for path in sorted(ROOT.rglob('*.md')):
-    if 'reviews' in path.relative_to(ROOT).parts: continue
+    if path.relative_to(ROOT).parts[0]=='reviews': continue
     text=path.read_text(encoding='utf-8-sig')
     for ident,title in re.findall(r'^## ([A-Z]+-\d{3}) — (.+)$',text,re.M):
         if ident in requirements: fail(f'Duplicate requirement heading {ident}')
@@ -169,6 +173,33 @@ if profile_path.resolve() in documents and profile_schema.resolve() in documents
         fixture_count+=1
     except Exception as e: fail('Pinned profile instance validation: '+str(e)[:250])
 check('schema_fixtures',f'{fixture_count} positive/negative schema fixture cases evaluated')
+REPORT.setdefault('not_document_checkable',[])
+semantic_count=0
+materialized=ROOT/'fixtures/data/materialized'
+try:
+    sem_cases=documents[case_path.resolve()].get('semantic_cases',[])
+    fixture_manifest=documents[(materialized/'materialized-manifest.json').resolve()]
+    manifest_digest=digest(materialized/'materialized-manifest.json')
+    def jsonl_count(rel): return sum(1 for line in (materialized/rel).read_text(encoding='utf-8').splitlines() if line.strip())
+    for item in sem_cases:
+        oracle=item['oracle']; semantic_count+=1
+        if item['id']=='DATA-SEM-001':
+            audit=fixture_manifest['audits']['data-clinic-leaky-v1']
+            leaks=audit['exact_duplicate_pairs']+audit['normalized_near_duplicate_pairs']+audit['group_overlap_count']
+            if audit!={k:v for k,v in oracle.items() if k!='eligibility'} or (oracle['eligibility']=='audit_only')!=(leaks>0):
+                fail(f'{item["id"]}: leaky audit {audit} does not match oracle {oracle}')
+        elif item['id']=='DATA-SEM-002':
+            counts={s:jsonl_count(f'capstone-support-v1/{s}.jsonl') for s in ('train','validation','sealed_test')}
+            if counts!={s:oracle[s] for s in ('train','validation','sealed_test')}: fail(f'{item["id"]}: capstone split counts {counts}')
+            REPORT['not_document_checkable'].append(item['id']+'.one_paired_evaluation: product rule, NOT_RUN')
+        elif item['id']=='DATA-SEM-003':
+            if (manifest_digest!=oracle['manifest_sha256'] or len(fixture_manifest['files'])!=oracle['files']
+                    or fixture_manifest['audits'].get('data-clinic-v1')!=oracle['clean_audit']
+                    or fixture_manifest['audits'].get('data-clinic-leaky-v1')!=oracle['leaky_audit']):
+                fail(f'{item["id"]}: materialized manifest identity/audits differ from oracle')
+        else: fail(f'Unknown semantic fixture case {item["id"]}')
+except Exception as e: fail(f'Semantic fixture cases: {str(e)[:250]}')
+check('semantic_fixture_cases',f'{semantic_count} semantic/source fixture cases evaluated; product-only clauses listed as not_document_checkable')
 
 openapi=documents.get((ROOT/'contracts/openapi.json').resolve())
 if not openapi: fail('Missing OpenAPI document')
@@ -187,6 +218,33 @@ else:
             declared={p.get('name') for p in params if p.get('in')=='path' and p.get('required') is True}
             if not pathparams<=declared:fail(f'Undeclared path parameter {route} {method}')
     check('openapi_structure',f'{len(openapi.get("paths",{}))} paths and {op_count} operations structurally checked; not full OpenAPI runtime validation')
+vocab=documents.get((ROOT/'contracts/error-vocabulary.json').resolve())
+if not vocab: fail('Missing contracts/error-vocabulary.json')
+elif openapi:
+    comps=openapi['components']['schemas']; rows=vocab['codes']
+    kinds={k:{r['code'] for r in rows if k in r['kinds']} for k in ('top_level','reason','job','terminal')}
+    enums={'top_level':set(comps['Error']['properties']['error']['properties']['code']['enum']),
+           'reason':set(comps.get('ReasonCode',{}).get('enum',[])),'job':set(comps.get('JobErrorCode',{}).get('enum',[])),
+           'terminal':set(comps.get('TerminalReason',{}).get('enum',[]))}
+    for k in kinds:
+        if kinds[k]!=enums[k]: fail(f'OpenAPI {k} enum differs from error-vocabulary.json: {sorted(kinds[k]^enums[k])[:10]}')
+    for r in rows:
+        if 'reason' in r['kinds'] and (r.get('top_level_code') not in kinds['top_level'] or not r.get('http_status')):
+            fail(f'Reason code {r["code"]} lacks a top-level code or HTTP status')
+    known={r['code'] for r in rows}|set(vocab.get('ignored_tokens',{}))
+    known|={r['id'] for r in documents.get((ROOT/'contracts/semantic-rules.json').resolve(),{}).get('rules',[])}
+    token_re=re.compile(r'(?<![A-Za-z0-9_\-/.])([A-Z][A-Z0-9]*(?:_[A-Z0-9]+)+)(?![A-Za-z0-9_])')
+    unknown={}
+    for path in sorted(list(ROOT.glob('0*.md'))+list((ROOT/'contracts').glob('*.md'))):
+        for n,line in enumerate(path.read_text(encoding='utf-8').splitlines(),1):
+            for tok in token_re.findall(line):
+                if tok not in known: unknown.setdefault(tok,f'{path.name}:{n}')
+    for case in cases:
+        for text in case.get('steps',[])+case.get('expected',[])+case.get('preconditions',[]):
+            for tok in token_re.findall(text):
+                if tok not in known: unknown.setdefault(tok,case['id'])
+    for tok,where in sorted(unknown.items()): fail(f'Uppercase code {tok} at {where} is not in error-vocabulary.json, semantic-rules.json or ignored_tokens')
+    check('error_vocabulary',f'{len(rows)} vocabulary codes equal the OpenAPI enums; prose and case census clean')
 
 baseline=documents.get((ROOT/'evidence/source-baseline.json').resolve())
 if baseline:
@@ -197,10 +255,41 @@ if baseline:
     check('baseline_preservation',f'{len(baseline["files_sha256"])} pre-existing tracked files checked byte-for-byte')
 else:fail('Missing baseline inventory')
 
+recorded=documents.get((ROOT/'requirements.json').resolve(),{})
+revision=args.revision if args.write_index else recorded.get('spec_revision')
+if not re.fullmatch(r'\d+\.\d+',str(revision)): fail(f'Invalid or missing specification revision {revision!r}')
+index={'requirements.json':{'spec_revision':revision,'requirements':list(requirements.values())},
+       'acceptance-cases.json':{'spec_revision':revision,'product_status':'NOT_RUN','cases':cases,'execution_units':units}}
+if args.check_index:
+    for name,value in index.items():
+        if (ROOT/name).read_bytes()!=(json.dumps(value,indent=2,ensure_ascii=False)+'\n').encode():
+            fail(f'{name} differs from the index generated from trace/*.json and prose headings')
+    check('index_consistency','requirements.json and acceptance-cases.json equal the generated index byte-for-byte')
 if args.write_index and not REPORT['errors']:
-    for name,value in [('requirements.json',{'spec_revision':'1.0','requirements':list(requirements.values())}),
-                       ('acceptance-cases.json',{'spec_revision':'1.0','product_status':'NOT_RUN','cases':cases,'execution_units':units})]:
+    for name,value in index.items():
         (ROOT/name).write_bytes((json.dumps(value,indent=2,ensure_ascii=False)+'\n').encode())
+rules_doc=documents.get((ROOT/'contracts/semantic-rules.json').resolve(),{})
+rule_ids=[r.get('id') for r in rules_doc.get('rules',[])]
+if len(rule_ids)!=len(set(rule_ids)): fail('Duplicate semantic rule IDs')
+for r in rules_doc.get('rules',[]):
+    if not r.get('applies_to') or not (r.get('predicate') or r.get('decision')) or not (r.get('rejection') or r.get('invariant')): fail(f'Semantic rule {r.get("id")} lacks applies_to, predicate/decision or rejection/invariant')
+    rej=r.get('rejection') or {}
+    if rej.get('reason_code') and vocab and rej['reason_code'] not in {v['code'] for v in vocab['codes']}: fail(f'Semantic rule {r["id"]} reason {rej["reason_code"]} not in error vocabulary')
+annotated=set()
+for path,data in documents.items():
+    for node in walk(data):
+        for rid in node.get('x-semantic-rules',[]) if isinstance(node.get('x-semantic-rules',[]),list) else []:
+            annotated.add(rid)
+            if rid not in rule_ids: fail(f'x-semantic-rules references unknown rule {rid} in {path.name}')
+check('semantic_rules',f'{len(rule_ids)} semantic rules well-formed; {len(annotated)} referenced by schema annotations')
+roles=documents.get((ROOT/'contracts/evidence-roles.json').resolve())
+if not roles: fail('Missing contracts/evidence-roles.json')
+elif openapi:
+    enum_profiles=set(openapi['components']['schemas']['EvidenceVerifyRequest']['properties']['verification_profile_id']['enum'])
+    if set(roles['profiles'])!=enum_profiles: fail(f'evidence-roles.json profiles differ from EvidenceVerifyRequest enum: {sorted(set(roles["profiles"])^enum_profiles)}')
+    ids=[c['id'] for p in roles['profiles'].values() for c in p['check_ids']]
+    if len(ids)!=len(set(ids)): fail('Duplicate evidence check IDs')
+    check('evidence_roles',f'{len(roles["profiles"])} profiles and {len(ids)} frozen check IDs')
 REPORT['result']='FAIL' if REPORT['errors'] else 'PASS'
 REPORT['requirement_count']=len(requirements)
 REPORT['case_count']=len(cases)

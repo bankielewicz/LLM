@@ -1,0 +1,549 @@
+{
+  "format": "llm-foundations-evidence-roles-v1",
+  "description": "Frozen check IDs and the closed anchor rule for evidence submission. Check IDs are assigned once here and are never re-derived from prose order; a clause change in evidence-verification.md requires an explicit edit here under a new revision.",
+  "submission_rule": "Clients submit exactly one anchor artifact per required role (anchor per role kind below) in artifact_ids, at most 32; a submitted ID that is not the anchor of any role is unconsumed and returns 400 VALIDATION_FAILED reason SEMANTIC_INVALID.",
+  "anchor_rules": [
+    {
+      "role_kind": "job group (request/run/metrics/result, request/job-event/checkpoint, attempt/token/request, validation/import result)",
+      "anchor": "the job's immutable request artifact (Job.request.artifact_id); the verifier reaches the run, metrics, result, events, checkpoint and attempt through registry relations"
+    },
+    {
+      "role_kind": "checkpoint or selected checkpoint",
+      "anchor": "the checkpoint's manifest artifact (CheckpointDescriptor.artifact_id)"
+    },
+    {
+      "role_kind": "metrics, evaluation records, paired evaluation, generation, bundle, preflight/diagnostic/E01/reuse receipt",
+      "anchor": "that artifact itself"
+    },
+    {
+      "role_kind": "dataset manifest/audit",
+      "anchor": "the dataset's audit artifact (DatasetManifest.audit_artifact_id)"
+    },
+    {
+      "role_kind": "prepared base model",
+      "anchor": "the model_prepare job's request artifact"
+    },
+    {
+      "role_kind": "note snapshot",
+      "anchor": "note_refs {note_id, revision}, never artifact_ids"
+    }
+  ],
+  "profiles": {
+    "prerequisite-p00-v1": {
+      "section": "P00 — `prerequisite-p00-v1`",
+      "check_ids": [
+        {
+          "id": "prerequisite-p00-v1.001",
+          "clause": "`python_version` matches `3.12.<patch>`"
+        },
+        {
+          "id": "prerequisite-p00-v1.002",
+          "clause": "profile is `win-cpu`, `win-cuda`, `wsl-cpu`, or `wsl-cuda`, and `cuda` is null exactly when the profile is a CPU profile"
+        },
+        {
+          "id": "prerequisite-p00-v1.003",
+          "clause": "`storage_writable` and `status` are true/pass"
+        },
+        {
+          "id": "prerequisite-p00-v1.004",
+          "clause": "the six tests occur once each as `P00-RUN-001-PYTHON`, `P00-RUN-002-PROFILE`, `P00-RUN-003-STORAGE-WRITE`, `P00-RUN-004-STORAGE-READ-DIGEST`, `P00-RUN-005-STORAGE-DELETE`, and `P00-RUN-006-BACKEND-CAPABILITIES`, all pass"
+        },
+        {
+          "id": "prerequisite-p00-v1.005",
+          "clause": "the canonical receipt digest recomputes"
+        },
+        {
+          "id": "prerequisite-p00-v1.006",
+          "clause": "and no interpreter path or probe filename is present. The verifier does not regrade P00-SHIFT, P00-JSONL, or P00-MEAN as execution evidence. Passing is optional prerequisite evidence and MUST NOT increment required-module completion"
+        }
+      ]
+    },
+    "foundation-capstone-v1": {
+      "section": "Foundation lesson 12 — `foundation-capstone-v1`",
+      "check_ids": [
+        {
+          "id": "foundation-capstone-v1.001",
+          "clause": "dataset split IDs/hashes/counts close"
+        },
+        {
+          "id": "foundation-capstone-v1.002",
+          "clause": "the verifier itself calls the registered tokenizer's pure encode/decode implementation and obtains exact round trips for a space-bearing string, newline, tab, accented text, and emoji"
+        },
+        {
+          "id": "foundation-capstone-v1.003",
+          "clause": "tokenizer identity and vocabulary size are recorded"
+        },
+        {
+          "id": "foundation-capstone-v1.004",
+          "clause": "the fresh run starts from initialized tiny-v2 weights and binds that tokenizer/data"
+        },
+        {
+          "id": "foundation-capstone-v1.005",
+          "clause": "initial/final metrics, seed, parameter count, elapsed time, checkpoint, and terminal status exist"
+        },
+        {
+          "id": "foundation-capstone-v1.006",
+          "clause": "later evaluation and all three generations load the saved checkpoint/tokenizer"
+        },
+        {
+          "id": "foundation-capstone-v1.007",
+          "clause": "resume has a new run identity, retains the parent checkpoint, and ends at parent step plus additional steps"
+        },
+        {
+          "id": "foundation-capstone-v1.008",
+          "clause": "original artifacts still resolve"
+        },
+        {
+          "id": "foundation-capstone-v1.009",
+          "clause": "the controlled pair differs in exactly one learning-rate field and otherwise shares data, tokenizer, architecture, seed, schedule, and evaluation protocol. No loss threshold applies. The preserved lesson/lab bytes remain unchanged, and their external files are never imported or relabelled as companion execution. The data permission judgment, leakage-limit explanation, comparison interpretation, complete-path explanation, and bounded final claim remain assessor reviewed"
+        }
+      ]
+    },
+    "intermediate-data-clinic-v1": {
+      "section": "Module 13 — `intermediate-data-clinic-v1`",
+      "check_ids": [
+        {
+          "id": "intermediate-data-clinic-v1.001",
+          "clause": "clean split counts are train 24, validation 12, test 12"
+        },
+        {
+          "id": "intermediate-data-clinic-v1.002",
+          "clause": "clean exact-duplicate, normalized-near-duplicate, and group-overlap counts are 0/0/0"
+        },
+        {
+          "id": "intermediate-data-clinic-v1.003",
+          "clause": "leaky counts are 1/2/1"
+        },
+        {
+          "id": "intermediate-data-clinic-v1.004",
+          "clause": "clean `eligibility` is exactly `eligible` with empty `rejections`"
+        },
+        {
+          "id": "intermediate-data-clinic-v1.005",
+          "clause": "leaky `eligibility` is exactly `audit_only`"
+        },
+        {
+          "id": "intermediate-data-clinic-v1.006",
+          "clause": "both `algorithm_version` values are `data-audit-v2`"
+        },
+        {
+          "id": "intermediate-data-clinic-v1.007",
+          "clause": "the clean manifest split artifacts match `audit_artifact_id`, hashes, counts, bytes, and total 48 records"
+        },
+        {
+          "id": "intermediate-data-clinic-v1.008",
+          "clause": "DC01–DC06/DC07–DC09/DC10–DC12 are group-disjoint across train/validation/test"
+        },
+        {
+          "id": "intermediate-data-clinic-v1.009",
+          "clause": "no accepted compute job in the registry binds the leaky dataset"
+        },
+        {
+          "id": "intermediate-data-clinic-v1.010",
+          "clause": "and `provenance_note` is present. The verifier does not judge the note's source, permitted-use, removal, or limitation assertions"
+        }
+      ]
+    },
+    "intermediate-training-diagnosis-v1": {
+      "section": "Module 14 — `intermediate-training-diagnosis-v1`",
+      "check_ids": [
+        {
+          "id": "intermediate-training-diagnosis-v1.001",
+          "clause": "the diagnostic receipt request has `kind:\"tiny_head_validation\"` and contains the complete prescribed `TinyTrainRequest` with `width=63`, `heads=4`, and all other module-14 fixed settings"
+        },
+        {
+          "id": "intermediate-training-diagnosis-v1.002",
+          "clause": "the receipt records `CFG_HEAD_DIVISIBILITY` and confirms that it created only the diagnostic artifact and no job, training, data, model, or checkpoint mutation. The clean run binds `data-clinic-v1`, byte tokenizer, context/width 64, heads 4, layers 2, batch 8, learning rate 0.0003, seed 17, steps 50, and eval every 25 and completes at 50"
+        },
+        {
+          "id": "intermediate-training-diagnosis-v1.003",
+          "clause": "the held request differs only by the paired fixed fields `exercise_profile_id:\"tiny-v2-diagnosis-v1\"` and `curriculum_hold_after_step:25`"
+        },
+        {
+          "id": "intermediate-training-diagnosis-v1.004",
+          "clause": "its event stream reaches `cancellable_hold`"
+        },
+        {
+          "id": "intermediate-training-diagnosis-v1.005",
+          "clause": "cancellation terminates `interrupted` at checkpoint step 25"
+        },
+        {
+          "id": "intermediate-training-diagnosis-v1.006",
+          "clause": "the resume names that checkpoint, requests 25 additional updates, creates a new run identity, preserves inherited settings/optimizer/RNG lineage, and completes at step 50. A timed-out teaching hold, when submitted, must be `interrupted/exercise_timeout` at 25. No loss value is a gate. Learner cause diagnoses and next actions remain assessed prose"
+        }
+      ]
+    },
+    "intermediate-evaluation-report-v1": {
+      "section": "Module 15 — `intermediate-evaluation-report-v1`",
+      "check_ids": [
+        {
+          "id": "intermediate-evaluation-report-v1.001",
+          "clause": "every non-seed setting is byte-identical and equals the CUR-007 preset"
+        },
+        {
+          "id": "intermediate-evaluation-report-v1.002",
+          "clause": "each run has 100 updates and evaluation every 25"
+        },
+        {
+          "id": "intermediate-evaluation-report-v1.003",
+          "clause": "within each seed the evaluated checkpoint equals that run's `best_checkpoint_id` (lowest validation NLL with earliest-step tie break)"
+        },
+        {
+          "id": "intermediate-evaluation-report-v1.004",
+          "clause": "selection time precedes every test request"
+        },
+        {
+          "id": "intermediate-evaluation-report-v1.005",
+          "clause": "each selected checkpoint is evaluated exactly once over the complete `data-clinic-v1` test split with `tiny-nll-per-byte-v1`"
+        },
+        {
+          "id": "intermediate-evaluation-report-v1.006",
+          "clause": "each record block is ordered by `record_id` and contains the exact six metric fields"
+        },
+        {
+          "id": "intermediate-evaluation-report-v1.007",
+          "clause": "aggregate NLL-per-byte equals total negative log likelihood divided by nonzero UTF-8 bytes"
+        },
+        {
+          "id": "intermediate-evaluation-report-v1.008",
+          "clause": "three values, mean, sample standard deviation with denominator two, minimum, maximum, and range recompute within `1e-12`"
+        },
+        {
+          "id": "intermediate-evaluation-report-v1.009",
+          "clause": "and worst three are descending NLL-per-byte then ascending record ID. The verifier computes the worst-record IDs itself. Learner category choices, cited-span interpretation, bounded claim, and non-claim remain assessment inputs"
+        }
+      ]
+    },
+    "intermediate-pretrained-baseline-v1": {
+      "section": "Module 16 — `intermediate-pretrained-baseline-v1`",
+      "check_ids": [
+        {
+          "id": "intermediate-pretrained-baseline-v1.001",
+          "clause": "the model is `HuggingFaceTB/SmolLM2-135M-Instruct` at revision `12fd25f77366fa6b3b4b768ec3050bf629380bac`"
+        },
+        {
+          "id": "intermediate-pretrained-baseline-v1.002",
+          "clause": "the download manifest digest, allowlisted file names/sizes/hashes, model profile, and verification state match the frozen model contract"
+        },
+        {
+          "id": "intermediate-pretrained-baseline-v1.003",
+          "clause": "evaluation binds `applied-intents-v1` test and `applied-intents-greedy-v1`"
+        },
+        {
+          "id": "intermediate-pretrained-baseline-v1.004",
+          "clause": "records are exactly the 12 frozen test IDs in ascending order with no duplicate or omission"
+        },
+        {
+          "id": "intermediate-pretrained-baseline-v1.005",
+          "clause": "decoding is temperature 0, top-p 1, max-new-tokens 64"
+        },
+        {
+          "id": "intermediate-pretrained-baseline-v1.006",
+          "clause": "two-line parsing and exact-intent/schema numerators recompute overall and for six slices"
+        },
+        {
+          "id": "intermediate-pretrained-baseline-v1.007",
+          "clause": "and every prepared base digest is unchanged before and after evaluation. No metric minimum applies. Strength, failure, semantic response quality, and applicability statements remain assessed prose"
+        }
+      ]
+    },
+    "intermediate-adapter-comparison-v1": {
+      "section": "Module 17 — `intermediate-adapter-comparison-v1`",
+      "check_ids": [
+        {
+          "id": "intermediate-adapter-comparison-v1.001",
+          "clause": "base identity/digests equal the verified module-16 evidence"
+        },
+        {
+          "id": "intermediate-adapter-comparison-v1.002",
+          "clause": "dataset is `applied-intents-v1`"
+        },
+        {
+          "id": "intermediate-adapter-comparison-v1.003",
+          "clause": "preset is `smollm2-intents-lora-v1`"
+        },
+        {
+          "id": "intermediate-adapter-comparison-v1.004",
+          "clause": "seed is 17"
+        },
+        {
+          "id": "intermediate-adapter-comparison-v1.005",
+          "clause": "only `q_proj` and `v_proj` LoRA r8/alpha16/dropout0 parameters are trainable and base trainable count is zero"
+        },
+        {
+          "id": "intermediate-adapter-comparison-v1.006",
+          "clause": "the step-40 checkpoint's parent chain contains only adapter_train and adapter_resume runs of preset smollm2-intents-lora-v1 with seed 17 and eval/save every 10, reaches update 40 in one job or in a job interrupted by the compute deadline and resumed to update 40, and ends in a checkpoint at update 40"
+        },
+        {
+          "id": "intermediate-adapter-comparison-v1.007",
+          "clause": "resume names step-40 parent plus optimizer/RNG state and completes update 60 after 20 additional updates"
+        },
+        {
+          "id": "intermediate-adapter-comparison-v1.008",
+          "clause": "batch 1 and accumulation 4 over 60 train records account for four passes"
+        },
+        {
+          "id": "intermediate-adapter-comparison-v1.009",
+          "clause": "selection uses validation exact-intent numerator, schema-valid numerator, lowest finite supervised-response mean NLL, then earliest update"
+        },
+        {
+          "id": "intermediate-adapter-comparison-v1.010",
+          "clause": "paired test subjects are the unchanged base then selected adapter over the identical 12 records and decoding"
+        },
+        {
+          "id": "intermediate-adapter-comparison-v1.011",
+          "clause": "overall/per-slice and paired-record metrics recompute"
+        },
+        {
+          "id": "intermediate-adapter-comparison-v1.012",
+          "clause": "base digests remain unchanged. Improvement is not required. Explanations of changed cases and usefulness remain assessed prose"
+        },
+        {
+          "id": "intermediate-adapter-comparison-v1.013",
+          "clause": "the device comparison is either two completed `adapter_train` runs in this root whose canonical requests equal the independent task's `adapter_train` request except runtime_profile and device, one on a CPU profile and one on a CUDA profile, each reaching update 40 with metrics that recompute the comparison table, or an `M17-DEVICE` exercise record naming `device-comparison-reference-v1` with the SHA-256 its sealing revision records; in both cases an `M17-DEVICE` prediction record exists with `revised_after_job_start` false"
+        }
+      ]
+    },
+    "intermediate-conversation-boundary-v1": {
+      "section": "Module 18 — `intermediate-conversation-boundary-v1`",
+      "check_ids": [
+        {
+          "id": "intermediate-conversation-boundary-v1.001",
+          "clause": "tiny-v2 uses `generate`, never `chat_generate`"
+        },
+        {
+          "id": "intermediate-conversation-boundary-v1.002",
+          "clause": "base/adapter use `chat_generate`"
+        },
+        {
+          "id": "intermediate-conversation-boundary-v1.003",
+          "clause": "the same-request pair has identical input messages/decoding before model serialization"
+        },
+        {
+          "id": "intermediate-conversation-boundary-v1.004",
+          "clause": "`chat-no-truncation-v1` drops no messages"
+        },
+        {
+          "id": "intermediate-conversation-boundary-v1.005",
+          "clause": "`chat-drop-oldest-v1` drops exactly the oldest complete user-assistant pair while preserving system and latest user and reserving 64 new tokens"
+        },
+        {
+          "id": "intermediate-conversation-boundary-v1.006",
+          "clause": "serialized text, pre/post token counts, retained/dropped message IDs, template/model identities, output token IDs/text, stop reason, temperature 0, and top-p 1 exist"
+        },
+        {
+          "id": "intermediate-conversation-boundary-v1.007",
+          "clause": "all model/checkpoint digests are unchanged"
+        },
+        {
+          "id": "intermediate-conversation-boundary-v1.008",
+          "clause": "conversation export is an inert dataset-candidate artifact and no dataset registry entry was created solely by chatting/export. Helpfulness and instruction-following quality remain unverified narrative"
+        }
+      ]
+    },
+    "intermediate-portable-reuse-v1": {
+      "section": "Module 19 — `intermediate-portable-reuse-v1`",
+      "check_ids": [
+        {
+          "id": "intermediate-portable-reuse-v1.001",
+          "clause": "export dependency closure contains the selected complete tiny-v2 or base-plus-adapter experiment"
+        },
+        {
+          "id": "intermediate-portable-reuse-v1.002",
+          "clause": "archive/member sizes, hashes, safe relative paths, lineage, formats, and credential absence validate"
+        },
+        {
+          "id": "intermediate-portable-reuse-v1.003",
+          "clause": "validation performs no registration"
+        },
+        {
+          "id": "intermediate-portable-reuse-v1.004",
+          "clause": "destination root is distinct and empty before import"
+        },
+        {
+          "id": "intermediate-portable-reuse-v1.005",
+          "clause": "imported IDs are new local IDs with immutable source identity and no source absolute paths"
+        },
+        {
+          "id": "intermediate-portable-reuse-v1.006",
+          "clause": "source and destination inference use the same release profile, subject lineage, input, temperature 0, and settings and have identical output token IDs and stop reason"
+        },
+        {
+          "id": "intermediate-portable-reuse-v1.007",
+          "clause": "duplicate policy is `skip`, reports every duplicate source identity, creates no duplicate logical entity/bytes, and closes references"
+        },
+        {
+          "id": "intermediate-portable-reuse-v1.008",
+          "clause": "the tampered archive differs from the source archive by exactly one byte"
+        },
+        {
+          "id": "intermediate-portable-reuse-v1.009",
+          "clause": "its referenced failed `validate_bundle` or `import_bundle` job has immutable request/error/artifact identity"
+        },
+        {
+          "id": "intermediate-portable-reuse-v1.010",
+          "clause": "the diagnostic receipt has `kind:\"failed_bundle_validation\"`, names that job, and confirms destination mutation count zero"
+        },
+        {
+          "id": "intermediate-portable-reuse-v1.011",
+          "clause": "source artifacts remain resolvable and unchanged. Portability-limit prose remains assessed"
+        }
+      ]
+    },
+    "intermediate-capstone-v1": {
+      "section": "Module 20 — `intermediate-capstone-v1`",
+      "check_ids": [
+        {
+          "id": "intermediate-capstone-v1.001",
+          "clause": "every prerequisite evidence is currently `artifact_verified`"
+        },
+        {
+          "id": "intermediate-capstone-v1.002",
+          "clause": "checklist roles 1–10 resolve to immutable identities"
+        },
+        {
+          "id": "intermediate-capstone-v1.003",
+          "clause": "the one note snapshot belongs to module 20, has the exact referenced revision and recomputed canonical SHA-256 over its full `notebook-entry.schema.json` content, and its revision time predates the first candidate compute request"
+        },
+        {
+          "id": "intermediate-capstone-v1.004",
+          "clause": "required plan fields are present, but their truth is not machine judged"
+        },
+        {
+          "id": "intermediate-capstone-v1.005",
+          "clause": "`capstone-support-v1` has 30/6/12 group-disjoint records and passes audit"
+        },
+        {
+          "id": "intermediate-capstone-v1.006",
+          "clause": "the base is frozen before candidate compute"
+        },
+        {
+          "id": "intermediate-capstone-v1.007",
+          "clause": "adapter preset is `smollm2-capstone-lora-v1` with seed 29, batch 1, accumulation 3, 20 updates, eval/save every 5, and exactly 60 presentations/two passes"
+        },
+        {
+          "id": "intermediate-capstone-v1.008",
+          "clause": "selection uses validation exact-intent numerator, schema-valid numerator, lowest finite supervised-response mean NLL, then earliest update"
+        },
+        {
+          "id": "intermediate-capstone-v1.009",
+          "clause": "selection and subject freeze predate token consumption"
+        },
+        {
+          "id": "intermediate-capstone-v1.010",
+          "clause": "one atomic test request orders `[base, adapter]`, binds the frozen digest/profile, consumes the token before load, and covers identical 12 sealed records"
+        },
+        {
+          "id": "intermediate-capstone-v1.011",
+          "clause": "failure/cancellation also consumes the token"
+        },
+        {
+          "id": "intermediate-capstone-v1.012",
+          "clause": "a replacement attempt has new IDs/token and correct exposure ledger, `prior_release_count`, and `reused_test` label"
+        },
+        {
+          "id": "intermediate-capstone-v1.013",
+          "clause": "overall/per-slice metrics and all raw-record results recompute"
+        },
+        {
+          "id": "intermediate-capstone-v1.014",
+          "clause": "worst/failing record IDs follow the metric contract"
+        },
+        {
+          "id": "intermediate-capstone-v1.015",
+          "clause": "bundle, import, tamper, and same-profile reuse rules match module 19. Passing sets the CUR-012 evidence to `artifact_verified`"
+        },
+        {
+          "id": "intermediate-capstone-v1.016",
+          "clause": "the API derives read-only `intermediate_evidence_packet_complete:true` from that status and does not accept the flag from clients. `objective_gates_verified` for assessment is true only from this exact pass. Plan reasoning, operation justification, categories, causal account, limitations, claim boundaries, and next experiment remain rubric assessed. The verifier MUST NOT infer their truth from nonempty text"
+        }
+      ]
+    },
+    "elective-e01-v1": {
+      "section": "E01 — `elective-e01-v1`",
+      "check_ids": [
+        {
+          "id": "elective-e01-v1.001",
+          "clause": "protected source/course bytes match the release"
+        },
+        {
+          "id": "elective-e01-v1.002",
+          "clause": "only bytes between the single edit markers differ"
+        },
+        {
+          "id": "elective-e01-v1.003",
+          "clause": "receipt binds the exact workspace source hash and fixed seed/vocabulary/context/width/heads/layers/causal inputs"
+        },
+        {
+          "id": "elective-e01-v1.004",
+          "clause": "all six check IDs pass"
+        },
+        {
+          "id": "elective-e01-v1.005",
+          "clause": "parameter delta is 16,448"
+        },
+        {
+          "id": "elective-e01-v1.006",
+          "clause": "embedding and output weight share object identity"
+        },
+        {
+          "id": "elective-e01-v1.007",
+          "clause": "shape is finite `[2,16,257]`"
+        },
+        {
+          "id": "elective-e01-v1.008",
+          "clause": "causal prefix, save/load, and incompatible-checkpoint rules pass"
+        },
+        {
+          "id": "elective-e01-v1.009",
+          "clause": "the training request references that receipt ID, uses `tiny-v2-weight-tied-v1` mapped to `tiny-v2-tied-v1`, dataset `data-clinic-v1`, seed 17, 50 updates, eval every 25"
+        },
+        {
+          "id": "elective-e01-v1.010",
+          "clause": "and all comparison identities resolve. No loss/superiority threshold applies. Passing awards only E01 elective evidence"
+        }
+      ]
+    },
+    "elective-e02-v1": {
+      "section": "E02 — `elective-e02-v1`",
+      "check_ids": [
+        {
+          "id": "elective-e02-v1.001",
+          "clause": "source is immutable `retrieval-manual-v1` with RM01–RM08"
+        },
+        {
+          "id": "elective-e02-v1.002",
+          "clause": "index records NFKC, casefold, `[a-z0-9]+`, document term frequency, smoothed IDF, L2 normalization, float64 cosine, and score-descending/record-ID-ascending ordering"
+        },
+        {
+          "id": "elective-e02-v1.003",
+          "clause": "all six queries use the same index and `top_k=3`"
+        },
+        {
+          "id": "elective-e02-v1.004",
+          "clause": "top-three IDs exactly equal E02-RANKING"
+        },
+        {
+          "id": "elective-e02-v1.005",
+          "clause": "each structured citation `record_id` is among that query's returned records and equals required support RM01 through RM06 respectively"
+        },
+        {
+          "id": "elective-e02-v1.006",
+          "clause": "each byte interval resolves to nonempty exact text in that record"
+        },
+        {
+          "id": "elective-e02-v1.007",
+          "clause": "build/query jobs complete"
+        },
+        {
+          "id": "elective-e02-v1.008",
+          "clause": "no model/adapter digest changes"
+        },
+        {
+          "id": "elective-e02-v1.009",
+          "clause": "and a rebuild after source change creates a new index while prior query artifacts retain the prior identity. The verifier proves identity and exact quoted location, not that arbitrary prose is semantically supported. Learner answer fluency, completeness, and interpretation remain unverified narrative. Passing awards only E02 elective evidence"
+        }
+      ]
+    }
+  }
+}

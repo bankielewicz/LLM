@@ -2,19 +2,294 @@
   "format": "llm-foundations-curriculum-overlay-v1",
   "edition_id": "intermediate-v1",
   "foundation_baseline_commit": "3a47ea48da53cb9de3ff4727ca5f0f0b6f2b9bf8",
-  "completion_required": ["13", "14", "15", "16", "17", "18", "19", "20"],
+  "completion_required": [
+    "13",
+    "14",
+    "15",
+    "16",
+    "17",
+    "18",
+    "19",
+    "20"
+  ],
   "modules": [
-    {"id":"P00","title":"Python, JSONL, and experiment refresher","prerequisites":[],"required":false,"elective":false,"sittings":[20,20],"scaffolding":"guided"},
-    {"id":"13","title":"Data clinic","prerequisites":["03"],"recommended":["12"],"required":true,"elective":false,"sittings":[25,25,25],"scaffolding":"guided"},
-    {"id":"14","title":"Training diagnosis","prerequisites":["07","09","13"],"required":true,"elective":false,"sittings":[25,25,25],"scaffolding":"guided"},
-    {"id":"15","title":"Evaluation and uncertainty","prerequisites":["08","10","14"],"required":true,"elective":false,"sittings":[25,25,25],"scaffolding":"partial"},
-    {"id":"16","title":"Pretrained baseline","prerequisites":["11","15"],"required":true,"elective":false,"sittings":[25,25,25],"scaffolding":"partial"},
-    {"id":"17","title":"Adapter fine-tuning","prerequisites":["16"],"required":true,"elective":false,"sittings":[25,25,25,25],"scaffolding":"partial"},
-    {"id":"18","title":"Generation and conversation","prerequisites":["09","16","17"],"required":true,"elective":false,"sittings":[25,25,25],"scaffolding":"sparse"},
-    {"id":"19","title":"Packaging and reuse","prerequisites":["09","18"],"required":true,"elective":false,"sittings":[25,25,25],"scaffolding":"independent"},
-    {"id":"20","title":"Independent applied capstone","prerequisites":["12","13","14","15","16","17","18","19"],"required":true,"elective":false,"sittings":[25,25,25,25],"additional_sittings_max":2,"scaffolding":"independent"},
-    {"id":"E01","title":"Safe model modification: weight tying","prerequisites":["06","09","15"],"required":false,"elective":true,"sittings":[30,30,30],"scaffolding":"sparse"},
-    {"id":"E02","title":"Retrieval with evidence","prerequisites":["11","16","18"],"required":false,"elective":true,"sittings":[25,25,25],"scaffolding":"sparse"}
+    {
+      "id": "P00",
+      "title": "Python, JSONL, and experiment refresher",
+      "outcome": "Refresh the Python, JSONL, UTF-8, shape and mean mechanics the applied modules use, without awarding intermediate evidence.",
+      "sequence": -1,
+      "prerequisites": [],
+      "required": false,
+      "elective": false,
+      "sittings": [
+        20,
+        20
+      ],
+      "scaffolding": "guided",
+      "blocking_prerequisites": [],
+      "advisory_prerequisites": []
+    },
+    {
+      "id": "13",
+      "title": "Data clinic",
+      "outcome": "Produce a dataset audit and a group-disjoint split without training a model.",
+      "sequence": 13,
+      "prerequisites": [
+        "03"
+      ],
+      "recommended": [
+        "12"
+      ],
+      "required": true,
+      "elective": false,
+      "sittings": [
+        25,
+        25,
+        25
+      ],
+      "scaffolding": "guided",
+      "blocking_prerequisites": [],
+      "advisory_prerequisites": [
+        "03"
+      ]
+    },
+    {
+      "id": "14",
+      "title": "Training diagnosis",
+      "outcome": "Distinguish a request rejection, a failed job, an interrupted job, and a completed run, then justify the next bounded action.",
+      "sequence": 14,
+      "prerequisites": [
+        "07",
+        "09",
+        "13"
+      ],
+      "required": true,
+      "elective": false,
+      "sittings": [
+        25,
+        25,
+        25
+      ],
+      "scaffolding": "guided",
+      "blocking_prerequisites": [
+        "13"
+      ],
+      "advisory_prerequisites": [
+        "07",
+        "09"
+      ]
+    },
+    {
+      "id": "15",
+      "title": "Evaluation and uncertainty",
+      "outcome": "Report variation across controlled runs, reserve test evaluation until selection is frozen, and inspect the worst measured records without turning a point estimate into a guarantee.",
+      "sequence": 15,
+      "prerequisites": [
+        "08",
+        "10",
+        "14"
+      ],
+      "required": true,
+      "elective": false,
+      "sittings": [
+        25,
+        25,
+        25
+      ],
+      "scaffolding": "partial",
+      "blocking_prerequisites": [
+        "14"
+      ],
+      "advisory_prerequisites": [
+        "08",
+        "10"
+      ]
+    },
+    {
+      "id": "16",
+      "title": "Pretrained baseline",
+      "outcome": "Prepare the allowlisted pretrained model, evaluate it without weight updates, and retain a baseline that later adapter results can be compared against.",
+      "sequence": 16,
+      "prerequisites": [
+        "11",
+        "15"
+      ],
+      "required": true,
+      "elective": false,
+      "sittings": [
+        25,
+        25,
+        25
+      ],
+      "scaffolding": "partial",
+      "blocking_prerequisites": [
+        "15"
+      ],
+      "advisory_prerequisites": [
+        "11"
+      ]
+    },
+    {
+      "id": "17",
+      "title": "Adapter fine-tuning",
+      "outcome": "Train only the prescribed adapter parameters, resume the adapter, select by validation, and compare it with the unchanged baseline under one test protocol.",
+      "sequence": 17,
+      "prerequisites": [
+        "16"
+      ],
+      "required": true,
+      "elective": false,
+      "sittings": [
+        25,
+        25,
+        25,
+        25
+      ],
+      "scaffolding": "partial",
+      "blocking_prerequisites": [
+        "16"
+      ],
+      "advisory_prerequisites": []
+    },
+    {
+      "id": "18",
+      "title": "Generation and conversation",
+      "outcome": "Run plain continuation and role-formatted chat against explicitly selected model identities; inspect serialization and truncation; and prove that chatting did not update weights.",
+      "sequence": 18,
+      "prerequisites": [
+        "09",
+        "16",
+        "17"
+      ],
+      "required": true,
+      "elective": false,
+      "sittings": [
+        25,
+        25,
+        25
+      ],
+      "scaffolding": "sparse",
+      "blocking_prerequisites": [
+        "16",
+        "17"
+      ],
+      "advisory_prerequisites": [
+        "09"
+      ]
+    },
+    {
+      "id": "19",
+      "title": "Packaging and reuse",
+      "outcome": "Create a portable bundle, validate it without mutation, import it into an empty companion-owned storage root, and reproduce one same-profile inference from the imported identities.",
+      "sequence": 19,
+      "prerequisites": [
+        "09",
+        "18"
+      ],
+      "required": true,
+      "elective": false,
+      "sittings": [
+        25,
+        25,
+        25
+      ],
+      "scaffolding": "independent",
+      "blocking_prerequisites": [
+        "18"
+      ],
+      "advisory_prerequisites": [
+        "09"
+      ]
+    },
+    {
+      "id": "20",
+      "title": "Independent applied capstone",
+      "outcome": "Answer a fixed new task brief by choosing and executing a bounded approach, preserving a frozen baseline, selecting with validation evidence, evaluating the sealed test exactly once, and delivering a reusable evidence bundle.",
+      "sequence": 20,
+      "prerequisites": [
+        "12",
+        "13",
+        "14",
+        "15",
+        "16",
+        "17",
+        "18",
+        "19"
+      ],
+      "required": true,
+      "elective": false,
+      "sittings": [
+        25,
+        25,
+        25,
+        25
+      ],
+      "additional_sittings_max": 2,
+      "scaffolding": "independent",
+      "blocking_prerequisites": [
+        "12",
+        "13",
+        "14",
+        "15",
+        "16",
+        "17",
+        "18",
+        "19"
+      ],
+      "advisory_prerequisites": []
+    },
+    {
+      "id": "E01",
+      "title": "Safe model modification: weight tying",
+      "outcome": "Make one scoped architecture change in a learner-owned tiny-v2 workspace, prove its tensor/checkpoint consequences, and run it without changing the preserved foundation lab.",
+      "sequence": 21,
+      "prerequisites": [
+        "06",
+        "09",
+        "15"
+      ],
+      "required": false,
+      "elective": true,
+      "sittings": [
+        30,
+        30,
+        30
+      ],
+      "scaffolding": "sparse",
+      "blocking_prerequisites": [
+        "15"
+      ],
+      "advisory_prerequisites": [
+        "06",
+        "09"
+      ]
+    },
+    {
+      "id": "E02",
+      "title": "Retrieval with evidence",
+      "outcome": "Build a deterministic lexical index, inspect ranked evidence, and cite the passage that supports a bounded answer.",
+      "sequence": 22,
+      "prerequisites": [
+        "11",
+        "16",
+        "18"
+      ],
+      "required": false,
+      "elective": true,
+      "sittings": [
+        25,
+        25,
+        25
+      ],
+      "scaffolding": "sparse",
+      "blocking_prerequisites": [
+        "16",
+        "18"
+      ],
+      "advisory_prerequisites": [
+        "11"
+      ]
+    }
   ],
   "lesson_sections": [
     "Outcome and boundary",
@@ -26,16 +301,187 @@
     "Stopping point"
   ],
   "cards": [
-    {"card_id":"SC-00-P00","source_lesson_id":"00","anchor_heading":"## Try","anchor_occurrence":1,"order":10,"kind":"prerequisite","destination_module_id":"P00","title":"Refresh Python and experiment basics","summary":"Check JSONL, shapes, arithmetic, and your selected environment.","estimated_minutes":40,"prerequisites":[]},
-    {"card_id":"SC-03-13","source_lesson_id":"03","anchor_heading":"## Check","anchor_occurrence":1,"order":10,"kind":"required","destination_module_id":"13","title":"Audit related data before splitting","summary":"Detect exact, near, and scenario-group leakage in fixed fixtures.","estimated_minutes":75,"prerequisites":["03"]},
-    {"card_id":"SC-07-14","source_lesson_id":"07","anchor_heading":"## Check","anchor_occurrence":1,"order":10,"kind":"required","destination_module_id":"14","title":"Diagnose runs without erasing evidence","summary":"Separate rejected, failed, interrupted, and completed work.","estimated_minutes":75,"prerequisites":["07","09","13"]},
-    {"card_id":"SC-08-15","source_lesson_id":"08","anchor_heading":"## Check","anchor_occurrence":1,"order":10,"kind":"required","destination_module_id":"15","title":"Measure variation and hold test data back","summary":"Compare three seeds and perform record-level error analysis.","estimated_minutes":75,"prerequisites":["08","10","14"]},
-    {"card_id":"SC-11-16","source_lesson_id":"11","anchor_heading":"## Choose the operation","anchor_occurrence":1,"order":10,"kind":"required","destination_module_id":"16","title":"Establish a pretrained baseline","summary":"Prepare the pinned model and measure it without training.","estimated_minutes":75,"prerequisites":["11","15"]},
-    {"card_id":"SC-11-17","source_lesson_id":"11","anchor_heading":"## Choose the operation","anchor_occurrence":1,"order":20,"kind":"required","destination_module_id":"17","title":"Train only an adapter","summary":"Resume LoRA and compare it with the unchanged base.","estimated_minutes":100,"prerequisites":["16"]},
-    {"card_id":"SC-09-18","source_lesson_id":"09","anchor_heading":"## Check","anchor_occurrence":1,"order":10,"kind":"required","destination_module_id":"18","title":"Inspect continuation and chat context","summary":"Compare plain prompts, role serialization, and truncation.","estimated_minutes":75,"prerequisites":["09","16","17"]},
-    {"card_id":"SC-09-19","source_lesson_id":"09","anchor_heading":"## Check","anchor_occurrence":1,"order":20,"kind":"required","destination_module_id":"19","title":"Package and reuse the exact result","summary":"Validate, import, and reproduce inference from clean storage.","estimated_minutes":75,"prerequisites":["09","18"]},
-    {"card_id":"SC-12-20","source_lesson_id":"12","anchor_heading":"## Finish","anchor_occurrence":1,"order":10,"kind":"required","destination_module_id":"20","title":"Complete an independent applied experiment","summary":"Choose a path, seal the test, and deliver linked evidence.","estimated_minutes":100,"prerequisites":["12","13","14","15","16","17","18","19"]},
-    {"card_id":"SC-06-E01","source_lesson_id":"06","anchor_heading":"## Check","anchor_occurrence":1,"order":10,"kind":"elective","destination_module_id":"E01","title":"Safely tie model weights","summary":"Make one architecture change and prove its consequences.","estimated_minutes":90,"prerequisites":["06","09","15"]},
-    {"card_id":"SC-11-E02","source_lesson_id":"11","anchor_heading":"## Work a decision","anchor_occurrence":1,"order":10,"kind":"elective","destination_module_id":"E02","title":"Retrieve and cite current evidence","summary":"Build deterministic TF-IDF retrieval and inspect support.","estimated_minutes":75,"prerequisites":["11","16","18"]}
+    {
+      "card_id": "SC-00-P00",
+      "source_lesson_id": "00",
+      "anchor_heading": "## Try",
+      "anchor_occurrence": 1,
+      "order": 10,
+      "kind": "prerequisite",
+      "destination_module_id": "P00",
+      "title": "Refresh Python and experiment basics",
+      "summary": "Check JSONL, shapes, arithmetic, and your selected environment.",
+      "estimated_minutes": 40,
+      "prerequisites": []
+    },
+    {
+      "card_id": "SC-03-13",
+      "source_lesson_id": "03",
+      "anchor_heading": "## Check",
+      "anchor_occurrence": 1,
+      "order": 10,
+      "kind": "required",
+      "destination_module_id": "13",
+      "title": "Audit related data before splitting",
+      "summary": "Detect exact, near, and scenario-group leakage in fixed fixtures.",
+      "estimated_minutes": 75,
+      "prerequisites": [
+        "03"
+      ]
+    },
+    {
+      "card_id": "SC-07-14",
+      "source_lesson_id": "07",
+      "anchor_heading": "## Check",
+      "anchor_occurrence": 1,
+      "order": 10,
+      "kind": "required",
+      "destination_module_id": "14",
+      "title": "Diagnose runs without erasing evidence",
+      "summary": "Separate rejected, failed, interrupted, and completed work.",
+      "estimated_minutes": 75,
+      "prerequisites": [
+        "07",
+        "09",
+        "13"
+      ]
+    },
+    {
+      "card_id": "SC-08-15",
+      "source_lesson_id": "08",
+      "anchor_heading": "## Check",
+      "anchor_occurrence": 1,
+      "order": 10,
+      "kind": "required",
+      "destination_module_id": "15",
+      "title": "Measure variation and hold test data back",
+      "summary": "Compare three seeds and perform record-level error analysis.",
+      "estimated_minutes": 75,
+      "prerequisites": [
+        "08",
+        "10",
+        "14"
+      ]
+    },
+    {
+      "card_id": "SC-11-16",
+      "source_lesson_id": "11",
+      "anchor_heading": "## Choose the operation",
+      "anchor_occurrence": 1,
+      "order": 10,
+      "kind": "required",
+      "destination_module_id": "16",
+      "title": "Establish a pretrained baseline",
+      "summary": "Prepare the pinned model and measure it without training.",
+      "estimated_minutes": 75,
+      "prerequisites": [
+        "11",
+        "15"
+      ]
+    },
+    {
+      "card_id": "SC-11-17",
+      "source_lesson_id": "11",
+      "anchor_heading": "## Choose the operation",
+      "anchor_occurrence": 1,
+      "order": 20,
+      "kind": "required",
+      "destination_module_id": "17",
+      "title": "Train only an adapter",
+      "summary": "Resume LoRA and compare it with the unchanged base.",
+      "estimated_minutes": 100,
+      "prerequisites": [
+        "16"
+      ]
+    },
+    {
+      "card_id": "SC-09-18",
+      "source_lesson_id": "09",
+      "anchor_heading": "## Check",
+      "anchor_occurrence": 1,
+      "order": 10,
+      "kind": "required",
+      "destination_module_id": "18",
+      "title": "Inspect continuation and chat context",
+      "summary": "Compare plain prompts, role serialization, and truncation.",
+      "estimated_minutes": 75,
+      "prerequisites": [
+        "09",
+        "16",
+        "17"
+      ]
+    },
+    {
+      "card_id": "SC-09-19",
+      "source_lesson_id": "09",
+      "anchor_heading": "## Check",
+      "anchor_occurrence": 1,
+      "order": 20,
+      "kind": "required",
+      "destination_module_id": "19",
+      "title": "Package and reuse the exact result",
+      "summary": "Validate, import, and reproduce inference from clean storage.",
+      "estimated_minutes": 75,
+      "prerequisites": [
+        "09",
+        "18"
+      ]
+    },
+    {
+      "card_id": "SC-12-20",
+      "source_lesson_id": "12",
+      "anchor_heading": "## Finish",
+      "anchor_occurrence": 1,
+      "order": 10,
+      "kind": "required",
+      "destination_module_id": "20",
+      "title": "Complete an independent applied experiment",
+      "summary": "Choose a path, seal the test, and deliver linked evidence.",
+      "estimated_minutes": 100,
+      "prerequisites": [
+        "12",
+        "13",
+        "14",
+        "15",
+        "16",
+        "17",
+        "18",
+        "19"
+      ]
+    },
+    {
+      "card_id": "SC-06-E01",
+      "source_lesson_id": "06",
+      "anchor_heading": "## Check",
+      "anchor_occurrence": 1,
+      "order": 10,
+      "kind": "elective",
+      "destination_module_id": "E01",
+      "title": "Safely tie model weights",
+      "summary": "Make one architecture change and prove its consequences.",
+      "estimated_minutes": 90,
+      "prerequisites": [
+        "06",
+        "09",
+        "15"
+      ]
+    },
+    {
+      "card_id": "SC-11-E02",
+      "source_lesson_id": "11",
+      "anchor_heading": "## Work a decision",
+      "anchor_occurrence": 1,
+      "order": 10,
+      "kind": "elective",
+      "destination_module_id": "E02",
+      "title": "Retrieve and cite current evidence",
+      "summary": "Build deterministic TF-IDF retrieval and inspect support.",
+      "estimated_minutes": 75,
+      "prerequisites": [
+        "11",
+        "16",
+        "18"
+      ]
+    }
   ]
 }

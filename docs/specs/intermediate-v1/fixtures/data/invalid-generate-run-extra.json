@@ -11,7 +11,8 @@
     "temperature": 0,
     "top_p": 1,
     "surprise": true,
-    "context_preview_digest": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+    "context_preview_digest": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+    "checkpoint_id": "10101010-1010-4010-8010-101010101010"
   },
   "seed": 17,
   "dependency_lock_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
