@@ -1,0 +1,334 @@
+{
+  "format": "llm-foundations-semantic-rules-v1",
+  "rules": [
+    {
+      "id": "TINY_EVAL_CADENCE",
+      "applies_to": "TinyTrainRequest",
+      "predicate": "eval_every <= steps",
+      "rejection": {
+        "http_status": 400,
+        "code": "VALIDATION_FAILED",
+        "field_path": "eval_every"
+      }
+    },
+    {
+      "id": "TINY_HEAD_DIVISIBILITY",
+      "applies_to": "TinyTrainRequest",
+      "predicate": "width % heads == 0",
+      "rejection": {
+        "http_status": 400,
+        "code": "VALIDATION_FAILED",
+        "field_path": "heads"
+      }
+    },
+    {
+      "id": "TINY_PARAMETER_CAP",
+      "applies_to": "TinyTrainRequest",
+      "predicate": "unique parameter count from INT-003 <= 10000000",
+      "rejection": {
+        "http_status": 400,
+        "code": "VALIDATION_FAILED",
+        "field_path": "width"
+      }
+    },
+    {
+      "id": "ASSESSMENT_TOTAL",
+      "applies_to": "assessment-record.schema.json",
+      "predicate": "total_score == sum(rubric_rows.score)",
+      "rejection": {
+        "http_status": 400,
+        "code": "VALIDATION_FAILED",
+        "field_path": "total_score"
+      }
+    },
+    {
+      "id": "ASSESSMENT_DERIVATION",
+      "applies_to": "AssessmentRequest and assessment-record.schema.json",
+      "inputs": [
+        "all 10 ordered rubric_rows",
+        "server-derived current objective_gates_verified for linked evidence"
+      ],
+      "decision": {
+        "meets": "objective_gates_verified and total_score >= 80 and no score == 0",
+        "partially_meets": "not meets and total_score >= 50",
+        "does_not_meet": "total_score < 50"
+      },
+      "rejection": {
+        "http_status": 400,
+        "code": "VALIDATION_FAILED",
+        "field_path": "decision"
+      },
+      "invariant": "Server recomputes total and decision; a client mismatch is rejected. Imported records preserve original assertions as claims and do not confer verified gates."
+    },
+    {
+      "id": "DIAGNOSIS_HOLD_SHAPE",
+      "applies_to": "TinyTrainRequest",
+      "predicate": "exercise_profile_id absent, or (steps > 25 and 25 % eval_every == 0 and architecture_profile_id == 'tiny-v2-standard-v1' and e01_verification_id absent)",
+      "rejection": {
+        "http_status": 400,
+        "code": "VALIDATION_FAILED",
+        "reason_code": "DIAGNOSIS_HOLD_INVALID",
+        "field_path": "curriculum_hold_after_step"
+      }
+    },
+    {
+      "id": "JOB_FAILED_REASON",
+      "applies_to": "Job and job-record.schema.json",
+      "predicate": "state != 'failed' or terminal_reason == error.code",
+      "invariant": "Server-produced record invariant; a worker result that would violate it is WORKER_PROTOCOL_ERROR."
+    },
+    {
+      "id": "JOB_STEP_BOUNDS",
+      "applies_to": "Job and job-record.schema.json",
+      "predicate": "step is null or requested_final_step is null or step <= requested_final_step",
+      "invariant": "Server-produced record invariant; out-of-range worker steps are WORKER_PROTOCOL_ERROR."
+    },
+    {
+      "id": "JOB_TIME_ORDER",
+      "applies_to": "Job and job-record.schema.json",
+      "predicate": "created_at <= updated_at and (started_at is null or created_at <= started_at) and (finished_at is null or (started_at is null or started_at <= finished_at))",
+      "invariant": "Server-produced record invariant."
+    },
+    {
+      "id": "TINY_SAVE_CADENCE",
+      "applies_to": "checkpoint-descriptor.schema.json (backend tiny_v2)",
+      "predicate": "training_identity.save_every == training_identity.eval_every",
+      "invariant": "Tiny checkpoints are committed at step 0, every global step divisible by eval_every, the final requested step and the cancellation boundary."
+    },
+    {
+      "id": "CHAT_MESSAGE_BYTES",
+      "applies_to": "ChatGenerateRequest and ContextPreviewRequest (backend chat)",
+      "predicate": "every len(utf8(messages[i].content)) <= 8192",
+      "rejection": {
+        "http_status": 400,
+        "code": "VALIDATION_FAILED",
+        "reason_code": "PAYLOAD_TOO_LARGE",
+        "field_path": "messages/<i>/content"
+      }
+    },
+    {
+      "id": "CHAT_TOTAL_BYTES",
+      "applies_to": "ChatGenerateRequest and ContextPreviewRequest (backend chat)",
+      "predicate": "sum(len(utf8(m.content)) for m in messages) <= 32768",
+      "rejection": {
+        "http_status": 400,
+        "code": "VALIDATION_FAILED",
+        "reason_code": "PAYLOAD_TOO_LARGE",
+        "field_path": "messages"
+      }
+    },
+    {
+      "id": "TINY_PROMPT_BYTES",
+      "applies_to": "GenerateRequest and ContextPreviewRequest (backend tiny)",
+      "predicate": "len(utf8(prompt)) <= 16384",
+      "rejection": {
+        "http_status": 400,
+        "code": "VALIDATION_FAILED",
+        "reason_code": "PAYLOAD_TOO_LARGE",
+        "field_path": "prompt"
+      }
+    },
+    {
+      "id": "RETRIEVAL_QUERY_BYTES",
+      "applies_to": "RetrievalQueryRequest",
+      "predicate": "len(utf8(query)) <= 4096",
+      "rejection": {
+        "http_status": 400,
+        "code": "VALIDATION_FAILED",
+        "reason_code": "PAYLOAD_TOO_LARGE",
+        "field_path": "query"
+      }
+    },
+    {
+      "id": "EXPORT_SELECTION_COUNT",
+      "applies_to": "ExportBundleRequest",
+      "predicate": "1 <= len(run_ids)+len(model_ids)+len(checkpoint_options)+len(evidence_ids)+len(note_ids)+len(conversation_ids) <= 100",
+      "rejection": {
+        "http_status": 400,
+        "code": "VALIDATION_FAILED",
+        "reason_code": "SEMANTIC_INVALID",
+        "field_path": "checkpoint_options"
+      }
+    },
+    {
+      "id": "EXPORT_RESUME_REQUIRES_DATASET",
+      "applies_to": "ExportBundleRequest",
+      "predicate": "not any(c.include_resume_state for c in checkpoint_options) or content_options.include_dataset_bytes",
+      "rejection": {
+        "http_status": 400,
+        "code": "VALIDATION_FAILED",
+        "reason_code": "SEMANTIC_INVALID",
+        "field_path": "content_options/include_dataset_bytes"
+      }
+    },
+    {
+      "id": "EVALUATE_SUBJECT_PROFILE",
+      "applies_to": "EvaluateRequest",
+      "predicate": "(evaluation_profile_id == 'tiny-nll-per-byte-v1' and every subject.kind == 'tiny_checkpoint') or (evaluation_profile_id == 'applied-intents-greedy-v1' and every subject.kind in {'base_model','adapter'}); with release_token, subjects == [base_model, adapter] in that order",
+      "rejection": {
+        "http_status": 400,
+        "code": "VALIDATION_FAILED",
+        "reason_code": "SUBJECT_INCOMPATIBLE",
+        "field_path": "subjects"
+      }
+    },
+    {
+      "id": "ADAPTER_LINEAGE_UPDATES",
+      "applies_to": "AdapterTrainRequest and AdapterResumeRequest",
+      "predicate": "parent lineage completed updates + requested updates <= 120",
+      "rejection": {
+        "http_status": 400,
+        "code": "VALIDATION_FAILED",
+        "reason_code": "ADAPTER_UPDATE_LIMIT",
+        "field_path": "additional_updates"
+      }
+    },
+    {
+      "id": "EVIDENCE_IMPORT_STATE",
+      "applies_to": "evidence-record.schema.json",
+      "predicate": "claim_status != 'imported_claim' or (verification_status == 'unverified' and review_status == 'not_reviewed' and verifier absent and assessment_ids == [])",
+      "invariant": "Import resets verification and review; a stored record violating it is rejected at import with SEMANTIC_INVALID."
+    },
+    {
+      "id": "EVIDENCE_VERIFIED_STATE",
+      "applies_to": "evidence-record.schema.json",
+      "predicate": "verification_status != 'artifact_verified' or (claim_status == 'local_submission' and verifier present and len(verification_checks) >= 1 and every check.result == 'pass')",
+      "invariant": "Only a complete local verification sets artifact_verified."
+    },
+    {
+      "id": "PROGRESS_TIMESTAMPS",
+      "applies_to": "progress-v2.schema.json",
+      "predicate": "for each module and dimension d in {reading, read, practiced, self_checked}: <d>_at present iff <d> is true",
+      "invariant": "A progress document violating it is rejected at import with SEMANTIC_INVALID and never written."
+    },
+    {
+      "id": "BUNDLE_UNIQUE_PATHS",
+      "applies_to": "bundle-manifest.schema.json",
+      "predicate": "entry paths are unique after Unicode NFC and case folding, and each (object_type, original_object_id, safe-name) appears once",
+      "rejection": {
+        "http_status": 400,
+        "code": "VALIDATION_FAILED",
+        "reason_code": "ARCHIVE_UNSAFE",
+        "field_path": "entries"
+      }
+    },
+    {
+      "id": "BUNDLE_RESUME_COMPLETE",
+      "applies_to": "bundle-manifest.schema.json",
+      "predicate": "every checkpoint_exports item with portability resume has checkpoint_manifest and checkpoint_file entries for every file checkpoint-manifest.schema.json requires for resume portability",
+      "rejection": {
+        "http_status": 400,
+        "code": "VALIDATION_FAILED",
+        "reason_code": "SEMANTIC_INVALID",
+        "field_path": "checkpoint_exports"
+      }
+    },
+    {
+      "id": "BUNDLE_BASE_IDENTITY",
+      "applies_to": "bundle-manifest.schema.json",
+      "predicate": "base_model_file entries (full) equal the eight name/bytes/sha256 rows of fixtures/applied/model-download-manifest.json, and every applied checkpoint's model_manifest_sha256 equals that manifest's digest",
+      "rejection": {
+        "http_status": 400,
+        "code": "VALIDATION_FAILED",
+        "reason_code": "SEMANTIC_INVALID",
+        "field_path": "entries"
+      }
+    },
+    {
+      "id": "BUNDLE_ENTRY_DIGEST",
+      "applies_to": "bundle-manifest.schema.json",
+      "predicate": "each entry's bytes have its size_bytes and sha256",
+      "rejection": {
+        "http_status": 400,
+        "code": "VALIDATION_FAILED",
+        "reason_code": "CHECKSUM_MISMATCH",
+        "field_path": "entries"
+      }
+    },
+    {
+      "id": "BUNDLE_NO_ABSOLUTE_PATHS",
+      "applies_to": "bundle-manifest.schema.json and every JSON member",
+      "predicate": "no JSON string value in any member matches ^([A-Za-z]:[\\\\/]|\\\\\\\\|/)",
+      "rejection": {
+        "http_status": 400,
+        "code": "VALIDATION_FAILED",
+        "reason_code": "SEMANTIC_INVALID",
+        "field_path": "entries"
+      }
+    },
+    {
+      "id": "EVALUATE_TINY_TEXT_BYTES",
+      "applies_to": "EvaluateRequest (tiny-nll-per-byte-v1)",
+      "predicate": "sum of strict UTF-8 text bytes of the selected split <= 200000",
+      "rejection": {
+        "http_status": 400,
+        "code": "VALIDATION_FAILED",
+        "reason_code": "PAYLOAD_TOO_LARGE",
+        "field_path": "split"
+      }
+    },
+    {
+      "id": "CAPSTONE_REASON_CHAIN",
+      "applies_to": "CapstoneAttemptCreateRequest and capstone-attempt.schema.json",
+      "predicate": "prior_attempt_id != attempt_id and shares manifest_sha256; prior_failed requires prior outcome failed; prior_cancelled requires prior outcome interrupted; prior_abandoned requires prior token_state abandoned; new_experiment requires prior outcome completed and a different candidate checkpoint; first_attempt requires no consumed attempt for the manifest_sha256",
+      "rejection": {
+        "http_status": 400,
+        "code": "VALIDATION_FAILED",
+        "reason_code": "CAPSTONE_REASON_INVALID",
+        "field_path": "reason"
+      }
+    },
+    {
+      "id": "PROGRESS_DIRECT_FLAGS",
+      "applies_to": "ProgressUpdateRequest",
+      "predicate": "not (dimension in {'practiced','self_checked'} and value == true); value == false requires confirm_reset == true",
+      "rejection": {
+        "http_status": 400,
+        "code": "VALIDATION_FAILED",
+        "reason_code": "PROGRESS_DERIVED_FLAG",
+        "field_path": "dimension"
+      }
+    },
+    {
+      "id": "EXERCISE_DERIVED_PROGRESS",
+      "applies_to": "exercise-record.schema.json",
+      "predicate": "an accepted independent_submission sets practiced=true for its module; an accepted check followed by a feedback_opened record for the same exercise sets self_checked=true",
+      "invariant": "Only the server derives practiced and self_checked, in the same transaction as the triggering record."
+    },
+    {
+      "id": "PROGRESS_IMPORT_RESOLUTIONS",
+      "applies_to": "ProgressImportApplyRequest",
+      "predicate": "the set of resolutions[].handle equals exactly the set of preview conflicts[].handle whose kind is divergent, with no repeats",
+      "invariant": "identical duplicates are always skipped; a divergent item is imported as a copy only when its resolution is copy; progress flags merge by OR",
+      "rejection": {
+        "http_status": 400,
+        "code": "VALIDATION_FAILED",
+        "reason_code": "SEMANTIC_INVALID",
+        "field_path": "/resolutions"
+      }
+    },
+    {
+      "id": "BACKUP_EXPORT_SELECTION",
+      "applies_to": "BackupExportRequest",
+      "predicate": "for X in (notes, evidence, conversations): (include_X or X_ids absent) and (X_ids absent or len(X_ids) > 0); and confirm_sensitive_text or not (include_notes or include_conversations)",
+      "invariant": "include_X true with X_ids absent selects every live X at export time; a nonempty X_ids selects exactly those items.",
+      "rejection": {
+        "http_status": 400,
+        "code": "VALIDATION_FAILED",
+        "reason_code": "SEMANTIC_INVALID",
+        "field_path": "/X_ids or /confirm_sensitive_text"
+      }
+    },
+    {
+      "id": "BACKUP_EXPORT_REFERENCES",
+      "applies_to": "BackupExportRequest",
+      "predicate": "every item of note_ids, evidence_ids and conversation_ids names a live note, evidence record or conversation",
+      "rejection": {
+        "http_status": 400,
+        "code": "VALIDATION_FAILED",
+        "reason_code": "REFERENCE_MISSING",
+        "field_path": "/X_ids/<index>"
+      }
+    }
+  ]
+}

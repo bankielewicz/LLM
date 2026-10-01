@@ -1,0 +1,87 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "diagnostic-receipt.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "format",
+    "kind",
+    "request_sha256",
+    "job_id",
+    "input_artifact_sha256",
+    "error_code",
+    "reason_code",
+    "field_path",
+    "protected_registry_revision_before",
+    "protected_registry_revision_after",
+    "job_count_delta",
+    "diagnostic_write_count",
+    "created_at"
+  ],
+  "properties": {
+    "format": {
+      "const": "llm-foundations-diagnostic-receipt-v1"
+    },
+    "kind": {
+      "enum": [
+        "tiny_head_validation",
+        "failed_bundle_validation"
+      ]
+    },
+    "request_sha256": {
+      "$ref": "common.schema.json#/$defs/sha256"
+    },
+    "job_id": {
+      "oneOf": [
+        {
+          "$ref": "common.schema.json#/$defs/id"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "input_artifact_sha256": {
+      "oneOf": [
+        {
+          "$ref": "common.schema.json#/$defs/sha256"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "error_code": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 100
+    },
+    "reason_code": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 100
+    },
+    "field_path": {
+      "type": "string",
+      "minLength": 0,
+      "maxLength": 500
+    },
+    "protected_registry_revision_before": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "protected_registry_revision_after": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "job_count_delta": {
+      "const": 0
+    },
+    "diagnostic_write_count": {
+      "const": 1
+    },
+    "created_at": {
+      "$ref": "common.schema.json#/$defs/time"
+    }
+  }
+}

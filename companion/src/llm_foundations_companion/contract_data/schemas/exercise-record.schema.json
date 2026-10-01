@@ -1,0 +1,163 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "exercise-record.schema.json",
+  "title": "Append-only exercise interaction record (prediction, practice, independent submission, check, feedback opening)",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "record_id",
+    "module_id",
+    "exercise_id",
+    "kind",
+    "response",
+    "linked_job_id",
+    "supersedes_record_id",
+    "feedback_opened_early",
+    "revised_after_job_start",
+    "hints_used",
+    "created_at",
+    "origin"
+  ],
+  "properties": {
+    "record_id": {
+      "$ref": "common.schema.json#/$defs/id"
+    },
+    "module_id": {
+      "type": "string",
+      "pattern": "^(P00|0[0-9]|1[0-9]|20|E0[12])$"
+    },
+    "exercise_id": {
+      "type": "string",
+      "pattern": "^[A-Z0-9][A-Z0-9-]{1,79}$"
+    },
+    "kind": {
+      "enum": [
+        "prediction",
+        "partial_practice",
+        "independent_submission",
+        "check",
+        "feedback_opened"
+      ]
+    },
+    "response": {
+      "oneOf": [
+        {
+          "type": "string",
+          "maxLength": 20000
+        },
+        {
+          "type": "object",
+          "maxProperties": 64
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "linked_job_id": {
+      "oneOf": [
+        {
+          "$ref": "common.schema.json#/$defs/id"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "supersedes_record_id": {
+      "oneOf": [
+        {
+          "$ref": "common.schema.json#/$defs/id"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "feedback_opened_early": {
+      "type": "boolean",
+      "description": "Server-derived: true when a feedback_opened record for the same exercise_id precedes this independent_submission."
+    },
+    "revised_after_job_start": {
+      "type": "boolean",
+      "description": "Server-derived: true when this prediction supersedes one whose linked job had left queued before this record."
+    },
+    "hints_used": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 20
+    },
+    "created_at": {
+      "$ref": "common.schema.json#/$defs/time"
+    },
+    "origin": {
+      "$ref": "common.schema.json#/$defs/origin"
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "kind": {
+            "const": "feedback_opened"
+          }
+        },
+        "required": [
+          "kind"
+        ]
+      },
+      "then": {
+        "properties": {
+          "response": {
+            "type": "null"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "kind": {
+            "not": {
+              "const": "independent_submission"
+            }
+          }
+        },
+        "required": [
+          "kind"
+        ]
+      },
+      "then": {
+        "properties": {
+          "feedback_opened_early": {
+            "const": false
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "kind": {
+            "not": {
+              "const": "prediction"
+            }
+          }
+        },
+        "required": [
+          "kind"
+        ]
+      },
+      "then": {
+        "properties": {
+          "revised_after_job_start": {
+            "const": false
+          },
+          "supersedes_record_id": {
+            "type": "null"
+          }
+        }
+      }
+    }
+  ]
+}

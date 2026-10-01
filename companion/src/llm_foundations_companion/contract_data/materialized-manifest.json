@@ -1,0 +1,115 @@
+{
+  "audits": {
+    "applied-intents-v1": {
+      "exact_duplicate_pairs": 0,
+      "group_overlap_count": 0,
+      "normalized_near_duplicate_pairs": 0,
+      "records": 84
+    },
+    "capstone-support-v1": {
+      "exact_duplicate_pairs": 0,
+      "group_overlap_count": 0,
+      "normalized_near_duplicate_pairs": 0,
+      "records": 48
+    },
+    "data-clinic-leaky-v1": {
+      "exact_duplicate_pairs": 1,
+      "group_overlap_count": 1,
+      "normalized_near_duplicate_pairs": 2,
+      "records": 48
+    },
+    "data-clinic-v1": {
+      "exact_duplicate_pairs": 0,
+      "group_overlap_count": 0,
+      "normalized_near_duplicate_pairs": 0,
+      "records": 48
+    }
+  },
+  "files": [
+    {
+      "path": "applied-intents-v1/test.jsonl",
+      "records": 12,
+      "sha256": "cf9e5c26eed70bdcce11dfa416b8dd57479b7d0a0dec3dd580573035f5a88c47",
+      "utf8_bytes": 4699
+    },
+    {
+      "path": "applied-intents-v1/train.jsonl",
+      "records": 60,
+      "sha256": "35444adfd92af623a172ad1f1c9f8234ea715fe9491cd75132baccf4c1517578",
+      "utf8_bytes": 23524
+    },
+    {
+      "path": "applied-intents-v1/validation.jsonl",
+      "records": 12,
+      "sha256": "0f277bff692766150a3c209749d04edc442eccf46afa45bcab3a147dbe246701",
+      "utf8_bytes": 4690
+    },
+    {
+      "path": "capstone-support-v1/sealed_test.jsonl",
+      "records": 12,
+      "sha256": "912c322aa0e866c5a068eb7a99b8fde7dce70703ba50b6294a231f74bb18d468",
+      "utf8_bytes": 4643
+    },
+    {
+      "path": "capstone-support-v1/train.jsonl",
+      "records": 30,
+      "sha256": "f9df332048393acc0e18837cb4cc92435eea94aab03870a8cbaefcffd306a1c9",
+      "utf8_bytes": 11641
+    },
+    {
+      "path": "capstone-support-v1/validation.jsonl",
+      "records": 6,
+      "sha256": "7ad81ba5adf400a252ead08440467bb125845fac1cc762ac92a2e0eddcd035b7",
+      "utf8_bytes": 2333
+    },
+    {
+      "path": "data-clinic-leaky-v1/test.jsonl",
+      "records": 12,
+      "sha256": "32f306992f93b72a079f56bff51d4927176b213d6debd3b4edb2416bb564102a",
+      "utf8_bytes": 2366
+    },
+    {
+      "path": "data-clinic-leaky-v1/train.jsonl",
+      "records": 24,
+      "sha256": "529b7c37eeaba1f169ff434911dbcaa89a270d7fc6750aff9bac637671a7c281",
+      "utf8_bytes": 4717
+    },
+    {
+      "path": "data-clinic-leaky-v1/validation.jsonl",
+      "records": 12,
+      "sha256": "154dd58065afe86284620deb850a698b0dac2b4dede9fd040fb50b5cb47d1131",
+      "utf8_bytes": 2407
+    },
+    {
+      "path": "data-clinic-v1/test.jsonl",
+      "records": 12,
+      "sha256": "43450deb84262afa013bbcb754913a17d982fd90901df4df05b8d2b9ea2b463c",
+      "utf8_bytes": 2364
+    },
+    {
+      "path": "data-clinic-v1/train.jsonl",
+      "records": 24,
+      "sha256": "529b7c37eeaba1f169ff434911dbcaa89a270d7fc6750aff9bac637671a7c281",
+      "utf8_bytes": 4717
+    },
+    {
+      "path": "data-clinic-v1/validation.jsonl",
+      "records": 12,
+      "sha256": "fefc7e5a5098a298c29319623979d715ef5534374292c1b5c930100e12c34ce9",
+      "utf8_bytes": 2415
+    },
+    {
+      "path": "retrieval-manual-v1/documents.jsonl",
+      "records": 8,
+      "sha256": "8f49152f9023dd55608539b83bfe2e1388063dc90eefa34affd9fe6b95092734",
+      "utf8_bytes": 1132
+    },
+    {
+      "path": "retrieval-manual-v1/queries.jsonl",
+      "records": 6,
+      "sha256": "3f027760fe289a86d648996656ca635eb42d07afb39b8e9a3bc91ecce6f853e1",
+      "utf8_bytes": 893
+    }
+  ],
+  "format": "llm-foundations-materialized-fixtures-v1"
+}

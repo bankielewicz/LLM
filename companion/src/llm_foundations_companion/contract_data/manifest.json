@@ -1,0 +1,223 @@
+{
+  "files": [
+    {
+      "name": "error-vocabulary.json",
+      "sha256": "8568be233921460fbcb2fd386cb4f8fc174af9cb834d92aa5379585794867dc0",
+      "size_bytes": 37002,
+      "source": "contracts/error-vocabulary.json"
+    },
+    {
+      "name": "evidence-roles.json",
+      "sha256": "8776bbfe893ae172bd495676a182310c8df37e7999d78c5d0d8f320100eb7b0a",
+      "size_bytes": 26377,
+      "source": "contracts/evidence-roles.json"
+    },
+    {
+      "name": "model-profile.json",
+      "sha256": "9cbb21f94816007a72c2fcf9073edbf34a4fcefcc45f52879353cd9faeb0be0a",
+      "size_bytes": 3685,
+      "source": "contracts/model-profile.json"
+    },
+    {
+      "name": "openapi.json",
+      "sha256": "e0602505eb4f9381695950c2ed1610ec74e0a0166014de6006e1dc05e2053585",
+      "size_bytes": 330690,
+      "source": "contracts/openapi.json"
+    },
+    {
+      "name": "semantic-rules.json",
+      "sha256": "4bff6096dded0c9eaee0444fd7d83cbc31f17daca1f06bb50d9fefa10a4addd0",
+      "size_bytes": 13670,
+      "source": "contracts/semantic-rules.json"
+    },
+    {
+      "name": "schemas/artifact-descriptor.schema.json",
+      "sha256": "4a3b60166cb15c47e56bc94d9dfdd1e882bab75f408cfff843c3e8bc88dab2d2",
+      "size_bytes": 1112,
+      "source": "contracts/schemas/artifact-descriptor.schema.json"
+    },
+    {
+      "name": "schemas/assessment-record.schema.json",
+      "sha256": "4a49649e3ef9e04cb3302d9d80d89fc3eda9aba39dac2799c80a3ad2eed2a78b",
+      "size_bytes": 9132,
+      "source": "contracts/schemas/assessment-record.schema.json"
+    },
+    {
+      "name": "schemas/bundle-manifest.schema.json",
+      "sha256": "1aec53b94a87755a9a77777c4ac7ba4b370e2476ed7f2876f3cf95b78efc0a1c",
+      "size_bytes": 8356,
+      "source": "contracts/schemas/bundle-manifest.schema.json"
+    },
+    {
+      "name": "schemas/capstone-attempt-created.schema.json",
+      "sha256": "af860a69b1eca4c82e02f206b6892261d201f1ebb86cd074a5fcf053f24493e0",
+      "size_bytes": 494,
+      "source": "contracts/schemas/capstone-attempt-created.schema.json"
+    },
+    {
+      "name": "schemas/capstone-attempt.schema.json",
+      "sha256": "1d04eaaf1cebc0b0b91efae9423c3531baa3b8bb15816574bbd77744982b1d42",
+      "size_bytes": 3627,
+      "source": "contracts/schemas/capstone-attempt.schema.json"
+    },
+    {
+      "name": "schemas/checkpoint-descriptor.schema.json",
+      "sha256": "2736e2214fde57157856d9ae174df395b410cd6ed0e41e6cad76deeb18a55ca5",
+      "size_bytes": 16100,
+      "source": "contracts/schemas/checkpoint-descriptor.schema.json"
+    },
+    {
+      "name": "schemas/checkpoint-manifest.schema.json",
+      "sha256": "bd5da663d0f7e038bcb2a41b225b35d8c3a6d96609cd35dc20f5a7397b85f6ba",
+      "size_bytes": 10743,
+      "source": "contracts/schemas/checkpoint-manifest.schema.json"
+    },
+    {
+      "name": "schemas/common.schema.json",
+      "sha256": "9cb637f5abe66118840280ed377342cf887b2eabc5af7bda3cf83a07b6819cdf",
+      "size_bytes": 421,
+      "source": "contracts/schemas/common.schema.json"
+    },
+    {
+      "name": "schemas/conversation.schema.json",
+      "sha256": "ea18e9181216b077d947d21f1f8adeda93b1d9cbcab590fa86804835aeb02df0",
+      "size_bytes": 2217,
+      "source": "contracts/schemas/conversation.schema.json"
+    },
+    {
+      "name": "schemas/data-audit.schema.json",
+      "sha256": "26f0efd8130b9bbcda614a6b96480c98e53e9c179ff653548be5289f1ade0d0b",
+      "size_bytes": 1525,
+      "source": "contracts/schemas/data-audit.schema.json"
+    },
+    {
+      "name": "schemas/dataset-manifest.schema.json",
+      "sha256": "cfd481e6a0633cd5defb15bb2c58c822ccf2094e6d2ee93782c30d93fc060423",
+      "size_bytes": 1673,
+      "source": "contracts/schemas/dataset-manifest.schema.json"
+    },
+    {
+      "name": "schemas/diagnostic-receipt.schema.json",
+      "sha256": "6849e5dfb82fed68afa19836dcc2640a3a89703ba0651d166afaa83eae039a63",
+      "size_bytes": 1774,
+      "source": "contracts/schemas/diagnostic-receipt.schema.json"
+    },
+    {
+      "name": "schemas/e01-receipt.schema.json",
+      "sha256": "4db5597ec7f1109c0bf13cc1a7f5f480a64a34ad2538fa07f6504ed03c0d40ab",
+      "size_bytes": 3419,
+      "source": "contracts/schemas/e01-receipt.schema.json"
+    },
+    {
+      "name": "schemas/evaluation-record-row.schema.json",
+      "sha256": "f187666c70b58e371654ac31f40a9a2cb18112ed1bcc0537b1644f6d2e5d3e62",
+      "size_bytes": 3132,
+      "source": "contracts/schemas/evaluation-record-row.schema.json"
+    },
+    {
+      "name": "schemas/evidence-record.schema.json",
+      "sha256": "972306e42f24a014a77a834e045db764d0c5cc63690726f7c56ab4e631c2b154",
+      "size_bytes": 12980,
+      "source": "contracts/schemas/evidence-record.schema.json"
+    },
+    {
+      "name": "schemas/exercise-record.schema.json",
+      "sha256": "3ada334d62a3c76bb49c52535ccefab21f6e0d580a6c651cc0a0fdde97a83d9e",
+      "size_bytes": 3374,
+      "source": "contracts/schemas/exercise-record.schema.json"
+    },
+    {
+      "name": "schemas/generation-artifact.schema.json",
+      "sha256": "a3ac8a39c06facc2ba45b78ddfa76c9d790a8a8cd9c099c44bc3552f3fc6acd3",
+      "size_bytes": 9442,
+      "source": "contracts/schemas/generation-artifact.schema.json"
+    },
+    {
+      "name": "schemas/job-record.schema.json",
+      "sha256": "15be07a79e70e9e2da638be847bed4ff7da4df15849b9be36a72457f4cd23a50",
+      "size_bytes": 2557,
+      "source": "contracts/schemas/job-record.schema.json"
+    },
+    {
+      "name": "schemas/learning-state-backup.schema.json",
+      "sha256": "1cc255f8c4753d9c51eb6817e7f75ec0bece553251700ce86fbadf184cdfe61a",
+      "size_bytes": 1252,
+      "source": "contracts/schemas/learning-state-backup.schema.json"
+    },
+    {
+      "name": "schemas/legacy-progress-v1.schema.json",
+      "sha256": "a41b0faddd1c67679574f4f927899832ba92e1d8e528150ba563f2278a8087ad",
+      "size_bytes": 2357,
+      "source": "contracts/schemas/legacy-progress-v1.schema.json"
+    },
+    {
+      "name": "schemas/legacy-run-v1.schema.json",
+      "sha256": "3a93d0a368d8a0681a566614f5670c6f7075ac25b9cb1f832d67fcc77ff214de",
+      "size_bytes": 1046,
+      "source": "contracts/schemas/legacy-run-v1.schema.json"
+    },
+    {
+      "name": "schemas/metric-record.schema.json",
+      "sha256": "0f399a0c9842a1f8531fe1231749a74323bd6a74bbfecd869259f8eca2c05d8f",
+      "size_bytes": 3389,
+      "source": "contracts/schemas/metric-record.schema.json"
+    },
+    {
+      "name": "schemas/notebook-entry.schema.json",
+      "sha256": "7447629b6a59732330f02c465ab94a1206f5e9f887fa0722f34cbf063395e9f7",
+      "size_bytes": 1414,
+      "source": "contracts/schemas/notebook-entry.schema.json"
+    },
+    {
+      "name": "schemas/paired-evaluation.schema.json",
+      "sha256": "19d147a3ecd03d88a92e44f975b51dbe651ce5d269c00bb1b02aaa342ed06e75",
+      "size_bytes": 3836,
+      "source": "contracts/schemas/paired-evaluation.schema.json"
+    },
+    {
+      "name": "schemas/preflight-child-report.schema.json",
+      "sha256": "a128d287c58cb18ea7dc60dea4d3b66c04138bb1323ae067566f4c8c8a5cfd90",
+      "size_bytes": 5557,
+      "source": "contracts/schemas/preflight-child-report.schema.json"
+    },
+    {
+      "name": "schemas/progress-v2.schema.json",
+      "sha256": "e2042aeb48a2f32fb270ec7f607e05419ddd420255fa89120ee7068f0cb10f0e",
+      "size_bytes": 1197,
+      "source": "contracts/schemas/progress-v2.schema.json"
+    },
+    {
+      "name": "schemas/reuse-receipt.schema.json",
+      "sha256": "b7c185a6c0b9e4162b5878e9af69be9e9873f76d1f1043ba8cbe8cf37ca52525",
+      "size_bytes": 4417,
+      "source": "contracts/schemas/reuse-receipt.schema.json"
+    },
+    {
+      "name": "schemas/run-manifest.schema.json",
+      "sha256": "483cd32bfb525ab18c6738b404ecfbdafb7ea3bc6cd0e304dab3bda1b6e5c0cb",
+      "size_bytes": 16352,
+      "source": "contracts/schemas/run-manifest.schema.json"
+    },
+    {
+      "name": "schemas/run-result.schema.json",
+      "sha256": "1d3cfbda7f32f9f7e79b3d6ad800b79e184642f675808b16eb73c0b8c3918c52",
+      "size_bytes": 1089,
+      "source": "contracts/schemas/run-result.schema.json"
+    },
+    {
+      "name": "schemas/tiny-trainer-state.schema.json",
+      "sha256": "2e05735d82eb87e9ef933a6fdbd51f8a3b9427b24bfd8dd86e946bc0d9f9130a",
+      "size_bytes": 4878,
+      "source": "contracts/schemas/tiny-trainer-state.schema.json"
+    },
+    {
+      "name": "materialized-manifest.json",
+      "sha256": "030ff8f771767f319f1abd6b3702891f243a7ef15070e8fc89dda40590a5e4f0",
+      "size_bytes": 3453,
+      "source": "fixtures/data/materialized/materialized-manifest.json"
+    }
+  ],
+  "format": "llm-foundations-runtime-contracts-v1",
+  "spec_payload_sha256": "974306b73634d9d073fb90de941fe55c8fb83cd073a585613cb6249b06691571",
+  "spec_revision": "1.2"
+}

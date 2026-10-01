@@ -1,0 +1,233 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "tiny-trainer-state.schema.json",
+  "title": "tiny-v2 trainer_state.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "format",
+    "completed_global_step",
+    "requested_final_step",
+    "eval_every",
+    "batch_size",
+    "seed",
+    "learning_rate",
+    "optimizer",
+    "parameter_steps",
+    "incumbent",
+    "dataset_bindings",
+    "tokenizer_sha256",
+    "architecture_profile_id",
+    "runtime_profile",
+    "device",
+    "dependency_lock_sha256"
+  ],
+  "properties": {
+    "format": {
+      "const": "tiny-v2-trainer-state-v1"
+    },
+    "completed_global_step": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 2147483647
+    },
+    "requested_final_step": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 2147483647
+    },
+    "eval_every": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 500
+    },
+    "batch_size": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 64
+    },
+    "seed": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 4294967295
+    },
+    "learning_rate": {
+      "type": "number",
+      "exclusiveMinimum": 0,
+      "maximum": 0.1
+    },
+    "optimizer": {
+      "const": {
+        "name": "AdamW",
+        "betas": [
+          0.9,
+          0.999
+        ],
+        "eps": 1e-08,
+        "weight_decay": 0.01
+      }
+    },
+    "parameter_steps": {
+      "type": "object",
+      "minProperties": 1,
+      "additionalProperties": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 2147483647
+      }
+    },
+    "incumbent": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "checkpoint_id",
+            "validation_nll_token",
+            "step"
+          ],
+          "properties": {
+            "checkpoint_id": {
+              "type": "null"
+            },
+            "validation_nll_token": {
+              "type": "null"
+            },
+            "step": {
+              "type": "null"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "checkpoint_id",
+            "validation_nll_token",
+            "step"
+          ],
+          "properties": {
+            "checkpoint_id": {
+              "$ref": "common.schema.json#/$defs/id"
+            },
+            "validation_nll_token": {
+              "type": "number",
+              "minimum": 0
+            },
+            "step": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 2147483647
+            }
+          }
+        }
+      ]
+    },
+    "dataset_bindings": {
+      "type": "array",
+      "minItems": 2,
+      "maxItems": 2,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "split",
+          "dataset_id",
+          "sha256"
+        ],
+        "properties": {
+          "split": {
+            "enum": [
+              "train",
+              "validation"
+            ]
+          },
+          "dataset_id": {
+            "$ref": "common.schema.json#/$defs/id"
+          },
+          "sha256": {
+            "$ref": "common.schema.json#/$defs/sha256"
+          }
+        }
+      },
+      "allOf": [
+        {
+          "contains": {
+            "properties": {
+              "split": {
+                "const": "train"
+              }
+            }
+          }
+        },
+        {
+          "contains": {
+            "properties": {
+              "split": {
+                "const": "validation"
+              }
+            }
+          }
+        }
+      ]
+    },
+    "tokenizer_sha256": {
+      "$ref": "common.schema.json#/$defs/sha256"
+    },
+    "architecture_profile_id": {
+      "enum": [
+        "tiny-v2-standard-v1",
+        "tiny-v2-weight-tied-v1"
+      ]
+    },
+    "runtime_profile": {
+      "enum": [
+        "win-cpu",
+        "win-cuda",
+        "wsl-cpu",
+        "wsl-cuda"
+      ]
+    },
+    "device": {
+      "enum": [
+        "cpu",
+        "cuda"
+      ]
+    },
+    "dependency_lock_sha256": {
+      "$ref": "common.schema.json#/$defs/sha256"
+    },
+    "python_random_state": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "version",
+        "state",
+        "gauss"
+      ],
+      "properties": {
+        "version": {
+          "type": "integer"
+        },
+        "state": {
+          "type": "array",
+          "maxItems": 625,
+          "items": {
+            "type": "integer",
+            "minimum": 0
+          }
+        },
+        "gauss": {
+          "oneOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,33 @@
+.companion-status {
+  align-items: center;
+  background: var(--panel, Canvas);
+  border-bottom: 1px solid var(--border, ButtonBorder);
+  color: var(--text, CanvasText);
+  display: flex;
+  font: 0.875rem/1.4 system-ui, sans-serif;
+  gap: 1rem;
+  justify-content: space-between;
+  min-height: 2.75rem;
+  padding: 0.5rem 1rem;
+}
+
+.companion-status strong {
+  margin-right: 0.5rem;
+}
+
+.companion-status-actions {
+  display: flex;
+  flex: 0 0 auto;
+  gap: 0.5rem;
+}
+
+.companion-status [hidden] {
+  display: none !important;
+}
+
+@media (max-width: 42rem) {
+  .companion-status {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}
