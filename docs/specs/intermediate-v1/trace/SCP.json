@@ -1,0 +1,378 @@
+{
+  "section": "01-SCOPE.md",
+  "requirements": [
+    {
+      "id": "SCP-001",
+      "title": "Preserve and identify the foundation"
+    },
+    {
+      "id": "SCP-002",
+      "title": "Define the learner and observable outcome"
+    },
+    {
+      "id": "SCP-003",
+      "title": "Ship a finite content expansion"
+    },
+    {
+      "id": "SCP-004",
+      "title": "Support two honest product modes"
+    },
+    {
+      "id": "SCP-005",
+      "title": "Qualify named execution profiles"
+    },
+    {
+      "id": "SCP-006",
+      "title": "Select supported model and operations"
+    },
+    {
+      "id": "SCP-007",
+      "title": "Keep the implementation bounded"
+    },
+    {
+      "id": "SCP-008",
+      "title": "Add explicit implementation paths"
+    },
+    {
+      "id": "SCP-009",
+      "title": "Define data custody and network behavior"
+    },
+    {
+      "id": "SCP-010",
+      "title": "Separate implementation, evidence, and qualification"
+    }
+  ],
+  "cases": [
+    {
+      "id": "AC-SCP-001",
+      "requirements": [
+        "SCP-001"
+      ],
+      "name": "Preserve and identify the foundation",
+      "method": "source",
+      "profiles": [
+        "static",
+        "win-cpu",
+        "win-cuda",
+        "wsl-cpu",
+        "wsl-cuda"
+      ],
+      "preconditions": [
+        "Immutable base commit 3a47ea48da53cb9de3ff4727ca5f0f0b6f2b9bf8 with tree f365fbefcea6dcf65dbb970b9640f5073154cfde.",
+        "Verify qa/source-hashes.json SHA-256 equals 60c3ecb36c24512d6b390b94ae504dffba244f1d41f1ce7367afb6ab00126bd8 before trusting its entries."
+      ],
+      "steps": [
+        "Resolve the immutable base commit/tree and verify the source receipt digest. Fail before further checks on identity mismatch.",
+        "Compare all 43 source receipt entries against course/ and dist/course/.",
+        "Compare dist/content.json and dist/course.zip with the immutable base hashes."
+      ],
+      "expected": [
+        "All 86 source copies and both protected content/archive files match the anchored hashes; changing the receipt cannot establish a new baseline."
+      ],
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "AC-SCP-002",
+      "requirements": [
+        "SCP-002"
+      ],
+      "name": "Define the learner and observable outcome",
+      "method": "browser",
+      "profiles": [
+        "static",
+        "win-cpu",
+        "win-cuda",
+        "wsl-cpu",
+        "wsl-cuda"
+      ],
+      "preconditions": [
+        "Freeze implementation commit and applicable profile receipt."
+      ],
+      "steps": [
+        "Use P00 to inspect prerequisite feedback and read a later lesson without completing prerequisites.",
+        "Attempt to award intermediate status using only progress clicks or a finished job."
+      ],
+      "expected": [
+        "Read-ahead works; missing prerequisites are explicit; navigation/job completion never yields competency or independent-review status."
+      ],
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "AC-SCP-003",
+      "requirements": [
+        "SCP-003"
+      ],
+      "name": "Ship a finite content expansion",
+      "method": "source",
+      "profiles": [
+        "static",
+        "win-cpu",
+        "win-cuda",
+        "wsl-cpu",
+        "wsl-cuda"
+      ],
+      "preconditions": [
+        "Freeze implementation commit and applicable profile receipt."
+      ],
+      "steps": [
+        "Compile content and enumerate P00,00-20,E01,E02 with every required section and exercise.",
+        "Remove one answer or destination module in a test fixture and rerun compilation."
+      ],
+      "expected": [
+        "All 24 listed modules ship (21 numbered + P00 + 2 electives); incomplete content compilation fails and no placeholder satisfies a module."
+      ],
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "AC-SCP-004",
+      "requirements": [
+        "SCP-004"
+      ],
+      "name": "Support two honest product modes",
+      "method": "browser",
+      "profiles": [
+        "static"
+      ],
+      "preconditions": [
+        "Freeze implementation commit and applicable profile receipt."
+      ],
+      "steps": [
+        "Open fresh static mode in each required browser, inspect requests and controls, and navigate all primary routes.",
+        "Attempt to activate the unavailable live execution controls."
+      ],
+      "expected": [
+        "No localhost probe or private-network request occurs; live controls explain local setup and cannot create jobs; reader/calculations/recorded imports still work."
+      ],
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "AC-SCP-005",
+      "requirements": [
+        "SCP-005"
+      ],
+      "name": "Qualify named execution profiles",
+      "method": "integration",
+      "profiles": [
+        "win-cpu",
+        "win-cuda",
+        "wsl-cpu",
+        "wsl-cuda"
+      ],
+      "preconditions": [
+        "Freeze implementation commit and applicable profile receipt."
+      ],
+      "steps": [
+        "Run preflight under each selected runtime profile, recording exact environment/hardware.",
+        "Start a CUDA profile whose preflight fails and verify that startup stops with the reason and the CPU launch command, with no automatic CPU substitution.", "On a win-cuda and a wsl-cuda instance submit tiny_train and adapter_train; on win-cpu and wsl-cpu submit the same; inspect run manifests and checkpoint descriptors."
+      ],
+      "expected": [
+        "Receipt meets named profile conditions; unavailable CUDA gives a documented preflight error and no job/device fallback.","Device is cuda for every operation on win-cuda and wsl-cuda and cpu on the CPU profiles; no request carries a device field; descriptors satisfy the runtime_profile/device rule.","On each CUDA reference machine the receipt's cuda.result is passed and records the GPU query line, compute capability, compiled architecture list, total and free memory and the measured relative difference; on CPU profiles cuda is null."
+      ],
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "AC-SCP-006",
+      "requirements": [
+        "SCP-006"
+      ],
+      "name": "Select supported model and operations",
+      "method": "integration",
+      "profiles": [
+        "win-cpu",
+        "win-cuda",
+        "wsl-cpu",
+        "wsl-cuda"
+      ],
+      "preconditions": [
+        "Freeze implementation commit and applicable profile receipt."
+      ],
+      "steps": [
+        "Prepare the pinned model explicitly and enumerate runtime operations and effects.",
+        "Attempt unknown model ID, mismatched tokenizer and missing checkpoint; inspect whether a fallback is used."
+      ],
+      "expected": [
+        "Only pinned model assets and named operation effects are allowed; unsupported identities fail without substitution or unintended training."
+      ],
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "AC-SCP-007",
+      "requirements": [
+        "SCP-007"
+      ],
+      "name": "Keep the implementation bounded",
+      "method": "integration",
+      "profiles": [
+        "win-cpu",
+        "win-cuda",
+        "wsl-cpu",
+        "wsl-cuda"
+      ],
+      "preconditions": [
+        "Freeze implementation commit and applicable profile receipt."
+      ],
+      "steps": [
+        "Inventory routes/API/package capabilities against the exclusion list.",
+        "Submit a request for arbitrary model URL, shell execution or public bind and inspect rejection."
+      ],
+      "expected": [
+        "Excluded functions are absent; unsupported request shapes do not execute or cause filesystem changes."
+      ],
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "AC-SCP-008",
+      "requirements": [
+        "SCP-008"
+      ],
+      "name": "Add explicit implementation paths",
+      "method": "source",
+      "profiles": [
+        "static",
+        "win-cpu",
+        "win-cuda",
+        "wsl-cpu",
+        "wsl-cuda"
+      ],
+      "preconditions": [
+        "Freeze implementation commit and applicable profile receipt."
+      ],
+      "steps": [
+        "Compare delivered source tree to the target path/responsibility table.",
+        "Compile applied content and compare each lesson source digest with its output; inject duplicate and broken-link fixtures."
+      ],
+      "expected": [
+        "Source changes stay in allowed target areas; protected course files untouched; each malformed compiler fixture fails before output publication."
+      ],
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "AC-SCP-009",
+      "requirements": [
+        "SCP-009"
+      ],
+      "name": "Define data custody and network behavior",
+      "method": "browser",
+      "profiles": [
+        "static",
+        "win-cpu",
+        "win-cuda",
+        "wsl-cpu",
+        "wsl-cuda"
+      ],
+      "preconditions": [
+        "Freeze implementation commit and applicable profile receipt."
+      ],
+      "steps": [
+        "Capture network requests during fresh static/local navigation and later offline lessons.",
+        "Render inert markup in imported notes/results and inspect source labels."
+      ],
+      "expected": [
+        "No unsolicited external request occurs; imported markup remains inert text and imported results retain imported provenance."
+      ],
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "AC-SCP-010",
+      "requirements": [
+        "SCP-010"
+      ],
+      "name": "Separate implementation, evidence, and qualification",
+      "method": "source",
+      "profiles": [
+        "static",
+        "win-cpu",
+        "win-cuda",
+        "wsl-cpu",
+        "wsl-cuda"
+      ],
+      "preconditions": [
+        "Freeze implementation commit and applicable profile receipt."
+      ],
+      "steps": [
+        "Join all requirement/case/profile/browser records for one candidate.",
+        "Change one required case to BLOCKED and inspect the release summary and historical baseline labels."
+      ],
+      "expected": [
+        "All statuses remain stage-specific; one BLOCKED mandatory case prevents completion and previous 36-test evidence is not assigned to new features."
+      ],
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "AC-SCP-011",
+      "requirements": [
+        "SCP-004"
+      ],
+      "name": "Authenticated local mode and connection loss",
+      "method": "browser",
+      "profiles": [
+        "win-cpu",
+        "win-cuda",
+        "wsl-cpu",
+        "wsl-cuda"
+      ],
+      "preconditions": [
+        "Frozen candidate, isolated storage and profile receipt; native browser available when method is browser."
+      ],
+      "steps": [
+        "Pair local mode and complete authenticated preflight.",
+        "Disconnect the service while a job is active, reload the same tab, restart/re-pair and reconcile."
+      ],
+      "expected": [
+        "Live actions require the authenticated compatible service and selected valid inputs; stale display does not infer completion or duplicate job submission."
+      ],
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "AC-SCP-012",
+      "requirements": [
+        "SCP-004",
+        "SCP-009"
+      ],
+      "name": "Real operation and model preparation boundaries",
+      "method": "integration",
+      "profiles": [
+        "win-cpu",
+        "win-cuda",
+        "wsl-cpu",
+        "wsl-cuda"
+      ],
+      "preconditions": [
+        "Frozen candidate, isolated storage and profile receipt; native browser available when method is browser."
+      ],
+      "steps": [
+        "Submit unauthenticated then authenticated preflight/job requests.",
+        "Invoke model_prepare with explicit acceptance; verify allowlisted downloads, identity and offline reuse."
+      ],
+      "expected": [
+        "Unauthorized request creates no job; authenticated operations retain process/job/checkpoint identity; only declared safe model bytes are downloaded; imports never gain local execution attestation."
+      ],
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "AC-SCP-013",
+      "requirements": [
+        "SCP-001"
+      ],
+      "name": "Preserved Python lab regression execution",
+      "method": "integration",
+      "profiles": [
+        "win-cpu",
+        "win-cuda",
+        "wsl-cpu",
+        "wsl-cuda"
+      ],
+      "preconditions": [
+        "Frozen candidate, isolated storage and profile receipt; native browser available when method is browser."
+      ],
+      "steps": [
+        "Run unchanged canonical lab test entrypoints from the protected course on the selected profile.",
+        "Run tiny-v2 parity controls without modifying legacy assertions."
+      ],
+      "expected": [
+        "Legacy and parity outputs are retained separately; all required assertions pass; no changed baseline file or weakened test satisfies the case."
+      ],
+      "status": "NOT_RUN"
+    }
+  ]
+}

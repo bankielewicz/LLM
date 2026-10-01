@@ -1,0 +1,51 @@
+{
+  "checkpoint_id": "10101010-1010-4010-8010-101010101010",
+  "artifact_id": "11111111-1010-4010-8010-101010101010",
+  "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "format": "tiny_v2_portable",
+  "origin": "locally_created",
+  "run_id": "12121212-1212-4212-8212-121212121212",
+  "job_id": "13131313-1313-4313-8313-131313131313",
+  "backend": "tiny_v2",
+  "step": 200,
+  "model_identity": {
+    "kind": "tiny_v2",
+    "architecture_profile_id": "tiny-v2-standard-v1",
+    "config_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+    "tokenizer_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+  },
+  "dataset_bindings": [
+    {
+      "dataset_id": "14141414-1414-4414-8414-141414141414",
+      "split": "train",
+      "artifact_id": "15151515-1515-4515-8515-151515151515",
+      "sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+    },
+    {
+      "dataset_id": "14141414-1414-4414-8414-141414141414",
+      "split": "validation",
+      "artifact_id": "16161616-1616-4616-8616-161616161616",
+      "sha256": "9999999999999999999999999999999999999999999999999999999999999999"
+    }
+  ],
+  "training_identity": {
+    "batch_size": 8,
+    "learning_rate": 0.0003,
+    "context": 64,
+    "width": 64,
+    "heads": 4,
+    "layers": 2,
+    "eval_every": 50,
+    "save_every": 50
+  },
+  "seed": 17,
+  "dependency_lock_sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+  "dtype": "float32",
+  "runtime_profile": "win-cpu",
+  "created_at": "2026-09-28T12:00:00.000Z",
+  "portability": "resume",
+  "contains_resume_state": true,
+  "parent_checkpoint_id": null,
+  "device": "cpu",
+  "companion_source_revision": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+}

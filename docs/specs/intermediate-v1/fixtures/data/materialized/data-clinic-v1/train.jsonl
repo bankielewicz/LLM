@@ -1,0 +1,24 @@
+{"record_id":"dc01-summary","scenario_group_id":"DC01","text":"The password-reset link expired. Observation: the browser displayed link expired. Action: send one fresh reset link."}
+{"record_id":"dc01-timeline","scenario_group_id":"DC01","text":"At 09:01 UTC, the browser displayed link expired. The reported issue was: The password-reset link expired. The recorded action was: send one fresh reset link."}
+{"record_id":"dc01-symptom","scenario_group_id":"DC01","text":"Symptom for DC01: The password-reset link expired. Evidence: the browser displayed link expired."}
+{"record_id":"dc01-resolution","scenario_group_id":"DC01","text":"Resolution for DC01: send one fresh reset link. It responds to this observation: the browser displayed link expired."}
+{"record_id":"dc02-summary","scenario_group_id":"DC02","text":"The invoice total looked unfamiliar. Observation: the invoice listed a duplicate service line. Action: route the invoice for billing review."}
+{"record_id":"dc02-timeline","scenario_group_id":"DC02","text":"At 09:02 UTC, the invoice listed a duplicate service line. The reported issue was: The invoice total looked unfamiliar. The recorded action was: route the invoice for billing review."}
+{"record_id":"dc02-symptom","scenario_group_id":"DC02","text":"Symptom for DC02: The invoice total looked unfamiliar. Evidence: the invoice listed a duplicate service line."}
+{"record_id":"dc02-resolution","scenario_group_id":"DC02","text":"Resolution for DC02: route the invoice for billing review. It responds to this observation: the invoice listed a duplicate service line."}
+{"record_id":"dc03-summary","scenario_group_id":"DC03","text":"The parcel had not arrived. Observation: tracking remained at the regional depot. Action: open a carrier trace."}
+{"record_id":"dc03-timeline","scenario_group_id":"DC03","text":"At 09:03 UTC, tracking remained at the regional depot. The reported issue was: The parcel had not arrived. The recorded action was: open a carrier trace."}
+{"record_id":"dc03-symptom","scenario_group_id":"DC03","text":"Symptom for DC03: The parcel had not arrived. Evidence: tracking remained at the regional depot."}
+{"record_id":"dc03-resolution","scenario_group_id":"DC03","text":"Resolution for DC03: open a carrier trace. It responds to this observation: tracking remained at the regional depot."}
+{"record_id":"dc04-summary","scenario_group_id":"DC04","text":"The desktop app closed at launch. Observation: the log ended after configuration load. Action: collect the version and sanitized log."}
+{"record_id":"dc04-timeline","scenario_group_id":"DC04","text":"At 09:04 UTC, the log ended after configuration load. The reported issue was: The desktop app closed at launch. The recorded action was: collect the version and sanitized log."}
+{"record_id":"dc04-symptom","scenario_group_id":"DC04","text":"Symptom for DC04: The desktop app closed at launch. Evidence: the log ended after configuration load."}
+{"record_id":"dc04-resolution","scenario_group_id":"DC04","text":"Resolution for DC04: collect the version and sanitized log. It responds to this observation: the log ended after configuration load."}
+{"record_id":"dc05-summary","scenario_group_id":"DC05","text":"The account email was outdated. Observation: the profile still showed the former address. Action: verify identity before changing email."}
+{"record_id":"dc05-timeline","scenario_group_id":"DC05","text":"At 09:05 UTC, the profile still showed the former address. The reported issue was: The account email was outdated. The recorded action was: verify identity before changing email."}
+{"record_id":"dc05-symptom","scenario_group_id":"DC05","text":"Symptom for DC05: The account email was outdated. Evidence: the profile still showed the former address."}
+{"record_id":"dc05-resolution","scenario_group_id":"DC05","text":"Resolution for DC05: verify identity before changing email. It responds to this observation: the profile still showed the former address."}
+{"record_id":"dc06-summary","scenario_group_id":"DC06","text":"The refund was not visible. Observation: the bank status remained pending. Action: confirm the settlement reference."}
+{"record_id":"dc06-timeline","scenario_group_id":"DC06","text":"At 09:06 UTC, the bank status remained pending. The reported issue was: The refund was not visible. The recorded action was: confirm the settlement reference."}
+{"record_id":"dc06-symptom","scenario_group_id":"DC06","text":"Symptom for DC06: The refund was not visible. Evidence: the bank status remained pending."}
+{"record_id":"dc06-resolution","scenario_group_id":"DC06","text":"Resolution for DC06: confirm the settlement reference. It responds to this observation: the bank status remained pending."}

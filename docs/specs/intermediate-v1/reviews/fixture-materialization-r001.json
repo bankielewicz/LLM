@@ -1,0 +1,10 @@
+{
+  "kind": "specification_fixture_materialization_check",
+  "created_utc": "2026-09-29T04:07:55.419515+00:00",
+  "product_tests_executed": false,
+  "result": "PASS",
+  "exit_code": 0,
+  "stdout": "checked 14 fixtures; audits/rankings and retained bytes match; manifest_sha256=1c6fc17a7085767114be5ecde5a1a09fa861b15c7d78cc371e5af443bd4cbbd9\n",
+  "stderr": "",
+  "manifest_sha256": "1c6fc17a7085767114be5ecde5a1a09fa861b15c7d78cc371e5af443bd4cbbd9"
+}

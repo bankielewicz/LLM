@@ -1,0 +1,52 @@
+{
+  "kind": "specification_document_check",
+  "product_tests_executed": false,
+  "created_utc": "2026-09-29T03:57:27.270594+00:00",
+  "checks": [
+    {
+      "name": "json_parse",
+      "result": "PASS",
+      "detail": "54 JSON documents parsed; failures listed separately"
+    },
+    {
+      "name": "requirements_and_links",
+      "result": "PASS",
+      "detail": "108 normative headings indexed"
+    },
+    {
+      "name": "traceability",
+      "result": "PASS",
+      "detail": "108 requirements; 112 cases; 423 frozen case/profile/browser execution units"
+    },
+    {
+      "name": "schemas_and_refs",
+      "result": "PASS",
+      "detail": "20 draft-2020-12 schemas checked; all contract refs traversed"
+    },
+    {
+      "name": "schema_fixtures",
+      "result": "PASS",
+      "detail": "5 positive/negative schema fixture cases evaluated"
+    },
+    {
+      "name": "openapi_structure",
+      "result": "PASS",
+      "detail": "41 paths and 51 operations structurally checked; not full OpenAPI runtime validation"
+    },
+    {
+      "name": "baseline_preservation",
+      "result": "PASS",
+      "detail": "107 pre-existing tracked files checked byte-for-byte"
+    }
+  ],
+  "errors": [
+    "JSON contracts\\schemas\\bundle-manifest.schema.json: Expecting ',' delimiter: line 1 column 2748 (char 2747)",
+    "Unresolved placeholder marker in 00-DECISIONS.md"
+  ],
+  "result": "FAIL",
+  "requirement_count": 108,
+  "case_count": 112,
+  "execution_unit_count": 423,
+  "schema_count": 20,
+  "schema_fixture_count": 5
+}

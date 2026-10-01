@@ -1,0 +1,359 @@
+{
+  "section": "07-INTEGRATION-CONTRACT.md",
+  "requirements": [
+    {
+      "id": "INT-001",
+      "title": "Bind each operation to its effects"
+    },
+    {
+      "id": "INT-002",
+      "title": "Join screens, APIs, and durable state"
+    },
+    {
+      "id": "INT-003",
+      "title": "Define the TinyLM v2 mechanics"
+    },
+    {
+      "id": "INT-004",
+      "title": "Serialize TinyLM checkpoints without pickle"
+    },
+    {
+      "id": "INT-005",
+      "title": "Define complete byte-normalized evaluation"
+    },
+    {
+      "id": "INT-006",
+      "title": "Freeze preview and decoding semantics"
+    },
+    {
+      "id": "INT-007",
+      "title": "Enforce numeric limits at their actual boundary"
+    },
+    {
+      "id": "INT-008",
+      "title": "Use one error vocabulary and validation order"
+    },
+    {
+      "id": "INT-009",
+      "title": "Keep progress, assessment, and test exposure independent"
+    },
+    {
+      "id": "INT-010",
+      "title": "Preserve complete import and reuse meaning"
+    },
+    {
+      "id": "INT-011",
+      "title": "Ship concrete teaching inputs and verifier profiles"
+    },
+    {
+      "id": "INT-012",
+      "title": "Resolve amendments before qualification"
+    }
+  ],
+  "cases": [
+    {
+      "id": "AC-INT-001",
+      "requirements": [
+        "INT-001"
+      ],
+      "name": "Bind each operation to its effects",
+      "method": "unit",
+      "profiles": [
+        "static",
+        "win-cpu",
+        "win-cuda",
+        "wsl-cpu",
+        "wsl-cuda"
+      ],
+      "preconditions": [
+        "Frozen implementation candidate and contract/fixture digests; isolated data root; required native profile/browser available."
+      ],
+      "steps": [
+        "Enumerate operation labels and the weights/registry effects matrix.",
+        "Inject a generation result labelled as training and a queued job labelled executed."
+      ],
+      "expected": [
+        "Unknown or misleading effects fail validation/render assertions; operation labels remain distinct."
+      ],
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "AC-INT-002",
+      "requirements": [
+        "INT-002"
+      ],
+      "name": "Join screens, APIs, and durable state",
+      "method": "integration",
+      "profiles": [
+        "win-cpu",
+        "win-cuda",
+        "wsl-cpu",
+        "wsl-cuda"
+      ],
+      "preconditions": [
+        "Frozen implementation candidate and contract/fixture digests; isolated data root; required native profile/browser available."
+      ],
+      "steps": [
+        "Execute each local screen action through the exact documented API using an isolated root.",
+        "Verify every committed object ID resolves and every failed revision check leaves state unchanged."
+      ],
+      "expected": [
+        "No dangling UI action, fabricated success, unknown schema field or missing persisted result."
+      ],
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "AC-INT-003",
+      "requirements": [
+        "INT-003"
+      ],
+      "name": "Define the TinyLM v2 mechanics",
+      "method": "integration",
+      "profiles": [
+        "win-cpu",
+        "win-cuda",
+        "wsl-cpu",
+        "wsl-cuda"
+      ],
+      "preconditions": [
+        "Frozen implementation candidate and contract/fixture digests; isolated data root; required native profile/browser available."
+      ],
+      "steps": [
+        "Run fixed-seed standard tiny-v2 and protected pure-mechanics parity controls.",
+        "Verify P=137088 at V257/C64/W64/L2 and the tied delta 16448; train the 257-byte tokenizer and BPE 320 on the same ordered fixture.","Run legacy TinyLM and tiny-v2 at torch.set_num_threads(1) and set_num_interop_threads(1) with seed 17, V257/C64/W64/H4/L2; compare initial logits/loss; train byte-bpe-v1 with vocab_size 257; submit tiny_train whose train split has 200,001 text bytes and whose validation split has 150,000."
+      ],
+      "expected": [
+        "Architecture and optimizer match the bound source; tokenization is deterministic; the byte run has zero merges; the actual BPE vocab is reported; no implicit weights update occurs.","Initial logits and loss agree within absolute and relative 1e-6; tokenizer IDs, shifted targets, parameter count and greedy IDs are exactly equal; byte-bpe-v1 at 257 yields tokenizer_type byte with zero merges; the 200,001-byte train split returns 400 VALIDATION_FAILED reason PAYLOAD_TOO_LARGE while validation bytes are not counted."
+      ],
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "AC-INT-004",
+      "requirements": [
+        "INT-004"
+      ],
+      "name": "Serialize TinyLM checkpoints without pickle",
+      "method": "integration",
+      "profiles": [
+        "win-cpu",
+        "win-cuda",
+        "wsl-cpu",
+        "wsl-cuda"
+      ],
+      "preconditions": [
+        "Frozen implementation candidate and contract/fixture digests; isolated data root; required native profile/browser available."
+      ],
+      "steps": [
+        "Compare an uninterrupted 50-update run to 25 updates plus resume 25 updates, using the same profile and fixed seed.",
+        "Inject bad tensor name, mismatched lock/dataset, missing optimizer and alias cycle.", "Run 100 updates with eval_every 25; list checkpoints; read manifest.json and recompute each descriptor sha256; export inference-only and compare digests."
+      ],
+      "expected": [
+        "Tensors, RNG, fixed metrics and greedy tokens are equal, with identity/time fields excluded; an invalid checkpoint is rejected before load; an inference-only checkpoint cannot resume.","Checkpoints exist at steps 0, 25, 50, 75, 100 with save_every 25; descriptor sha256 equals SHA-256 of manifest.json bytes; manifests validate against checkpoint-manifest.schema.json and trainer_state.json against tiny-trainer-state.schema.json; the inference-only copy has a different manifest and digest and portability inference_only."
+      ],
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "AC-INT-005",
+      "requirements": [
+        "INT-005"
+      ],
+      "name": "Define complete byte-normalized evaluation",
+      "method": "unit",
+      "profiles": [
+        "win-cpu",
+        "win-cuda",
+        "wsl-cpu",
+        "wsl-cuda"
+      ],
+      "preconditions": [
+        "Frozen implementation candidate and contract/fixture digests; isolated data root; required native profile/browser available."
+      ],
+      "steps": [
+        "Calculate record A (6 nats/3 bytes) and record B (4 nats/8 bytes) aggregate; evaluate the uniform V257 model on the one-byte + EOS fixture.",
+        "Evaluate all records with two tokenizations over identical original bytes and verify no first/last target omitted."
+      ],
+      "expected": [
+        "Aggregate is 10/11 within 1e-12, not 1.25; the uniform NLL is 2 ln 257; token_count includes EOS, and the denominator is only original UTF-8 bytes; no skipped records."
+      ],
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "AC-INT-006",
+      "requirements": [
+        "INT-006"
+      ],
+      "name": "Freeze preview and decoding semantics",
+      "method": "integration",
+      "profiles": [
+        "win-cpu",
+        "win-cuda",
+        "wsl-cpu",
+        "wsl-cuda"
+      ],
+      "preconditions": [
+        "Frozen implementation candidate and contract/fixture digests; isolated data root; required native profile/browser available."
+      ],
+      "steps": [
+        "Create tiny and applied context previews, then generate using exactly matching requests.",
+        "Alter one prompt byte, the seed, the token budget, the subject or the template after the preview; test EOS, ties at top-p, nucleus cropping and cancellation.", "Replay every selection_cases and stop_cases row of fixtures/applied/decode-oracle-v1.json through the tiny and chat decode-step functions with injected logits; preview a tiny prompt whose byte-token window starts inside a multi-byte character; submit the preview's generation with top_p written as 1.0 instead of 1."
+      ],
+      "expected": [
+        "The matching preview is used; a changed request rejects with CONTEXT_PREVIEW_STALE before inference; output IDs, count, stop reason and input cropping agree with the oracle.","Sorted order, retained sets, greedy choices, stop reasons, counts and visible IDs equal the oracle; the cropped window's serialized_text begins with U+FFFD and cropped_input_tokens equals original minus final; numerically equal spellings produce the same canonical digest and the generation is accepted."
+      ],
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "AC-INT-007",
+      "requirements": [
+        "INT-007"
+      ],
+      "name": "Enforce numeric limits at their actual boundary",
+      "method": "integration",
+      "profiles": [
+        "win-cpu",
+        "win-cuda",
+        "wsl-cpu",
+        "wsl-cuda"
+      ],
+      "preconditions": [
+        "Frozen implementation candidate and contract/fixture digests; isolated data root; required native profile/browser available."
+      ],
+      "steps": [
+        "For every INT-007 numeric boundary submit at the limit and at limit + 1; repeat every text limit with 1-, 2-, 3- and 4-byte scalars (U+0041, U+00E9, U+20AC, U+1F600).",
+        "Queue jobs until committed plus reserved bytes are within 1 MiB of 50 GiB, then force ENOSPC after acceptance.","Make free space one byte below the acceptance estimate plus 1 GiB; separately make committed+staging+reserved bytes exceed 50 GiB by one byte."
+      ],
+      "expected": [
+        "Inclusive valid limits are accepted when other requirements are met; over-limit input rejects with the stated code and with zero accepted mutation; reservation prevents quota overcommit; a post-accept ENOSPC ends the job failed with DISK_FULL (or interrupted when SQLite cannot commit) and prior artifact bytes are unchanged.","Free-space shortfall returns 503 DISK_FULL reason INSUFFICIENT_STORAGE retryable true; quota overrun returns 409 REGISTRY_LIMIT reason ROOT_QUOTA_EXCEEDED; neither creates a job, event or reservation."
+      ],
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "AC-INT-008",
+      "requirements": [
+        "INT-008"
+      ],
+      "name": "Use one error vocabulary and validation order",
+      "method": "integration",
+      "profiles": [
+        "win-cpu",
+        "win-cuda",
+        "wsl-cpu",
+        "wsl-cuda"
+      ],
+      "preconditions": [
+        "Frozen implementation candidate and contract/fixture digests; isolated data root; required native profile/browser available."
+      ],
+      "steps": [
+        "Submit inputs that fail two ordered validation stages; repeat an accepted request idempotently, then change its bytes.",
+        "Expire the session during an uncertain job submit, then reconcile before any retry.","For every contracts/error-vocabulary.json row with a synchronous kind, submit its fixture trigger; for every job kind, observe it on a failing job where the case matrix provides a trigger."
+      ],
+      "expected": [
+        "The first stage's code and lexical field-error order are exact; one accepted job; conflicts or lost responses cannot duplicate or invent execution.","Every returned Error.code, reason_code, HTTP status and JobError.code equals its vocabulary row; no code outside the vocabulary is emitted."
+      ],
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "AC-INT-009",
+      "requirements": [
+        "INT-009"
+      ],
+      "name": "Keep progress, assessment, and test exposure independent",
+      "method": "browser",
+      "profiles": [
+        "static",
+        "win-cpu",
+        "win-cuda",
+        "wsl-cpu",
+        "wsl-cuda"
+      ],
+      "preconditions": [
+        "Frozen implementation candidate and contract/fixture digests; isolated data root; required native profile/browser available."
+      ],
+      "steps": [
+        "Toggle each progress dimension separately and export/import state.",
+        "Inspect self/independent/imported labels; in local mode consume a capstone token, then create an allowed replacement."
+      ],
+      "expected": [
+        "No implied progress or verification; static never grants local attestation; a local replacement retains the prior consumption and shows reused test."
+      ],
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "AC-INT-010",
+      "requirements": [
+        "INT-010"
+      ],
+      "name": "Preserve complete import and reuse meaning",
+      "method": "integration",
+      "profiles": [
+        "win-cpu",
+        "win-cuda",
+        "wsl-cpu",
+        "wsl-cuda"
+      ],
+      "preconditions": [
+        "Frozen implementation candidate and contract/fixture digests; isolated data root; required native profile/browser available."
+      ],
+      "steps": [
+        "Export full and thin, inference-only and resume selections; import into a clean root with skip and with copy.",
+        "Test duplicate dependency resolution, a missing base, tampering and an omitted optimizer.", "Submit tiny_resume and adapter_resume naming an inference_only checkpoint.", "Import a thin adapter bundle into a clean root, then prepare the base and chat with it; import the same checkpoint twice, first inference-only then resume, with skip; import a bundle containing a conversation and a tokenizer; validate a bundle whose adapter_config.json contains C:\\\\Users\\\\a\\\\model."
+      ],
+      "expected": [
+        "All IDs map and provenance is retained; full works with the network off; thin without base is base_required; resume only when complete; an invalid import is atomic.","Both return 400 VALIDATION_FAILED with reason_code CHECKPOINT_NOT_RESUMABLE and field_path /checkpoint_id before any job row or event exists.","Thin import succeeds as base_required with base_model_id null and binds after model_prepare by manifest digest; the resume copy is retained as a second checkpoint (different content and portability) and never skipped; identity_map lists the conversation and tokenizer with created dispositions and non-null local IDs; the absolute path fails validate_bundle with job error SEMANTIC_INVALID (BUNDLE_NO_ABSOLUTE_PATHS)."
+      ],
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "AC-INT-011",
+      "requirements": [
+        "INT-011"
+      ],
+      "name": "Ship concrete teaching inputs and verifier profiles",
+      "method": "source",
+      "profiles": [
+        "static",
+        "win-cpu",
+        "win-cuda",
+        "wsl-cpu",
+        "wsl-cuda"
+      ],
+      "preconditions": [
+        "Frozen implementation candidate and contract/fixture digests; isolated data root; required native profile/browser available."
+      ],
+      "steps": [
+        "Regenerate fixtures from authored facts and compare all materialized SHA256s.",
+        "Join verifier profile IDs, curriculum oracles, schema formats and acceptance-case references."
+      ],
+      "expected": [
+        "Every fixture byte and verifier dependency exists and matches; no placeholder, invented label or simulation-as-measurement.", "applied-intents-v1 and capstone-support-v1 contain only distinct user messages, and no cross-split pair exceeds word-set Jaccard 0.5 after code-insensitive normalization (check_fixture_oracles distinctness oracle)."
+      ],
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "AC-INT-012",
+      "requirements": [
+        "INT-012"
+      ],
+      "name": "Resolve amendments before qualification",
+      "method": "source",
+      "profiles": [
+        "static",
+        "win-cpu",
+        "win-cuda",
+        "wsl-cpu",
+        "wsl-cuda"
+      ],
+      "preconditions": [
+        "Frozen implementation candidate and contract/fixture digests; isolated data root; required native profile/browser available."
+      ],
+      "steps": [
+        "Introduce contract drift in an isolated spec fixture and run the builder checks.",
+        "Amend the fixture and registry under a new revision and a new candidate."
+      ],
+      "expected": [
+        "Drift fails; the amendment updates all consumers; prior candidate passes stay historical and new rows are NOT_RUN."
+      ],
+      "status": "NOT_RUN"
+    }
+  ]
+}

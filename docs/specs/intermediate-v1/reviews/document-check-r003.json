@@ -1,0 +1,49 @@
+{
+  "kind": "specification_document_check",
+  "product_tests_executed": false,
+  "created_utc": "2026-09-29T21:10:28.598712+00:00",
+  "checks": [
+    {
+      "name": "json_parse",
+      "result": "PASS",
+      "detail": "75 JSON documents parsed; failures listed separately"
+    },
+    {
+      "name": "requirements_and_links",
+      "result": "PASS",
+      "detail": "108 normative headings indexed"
+    },
+    {
+      "name": "traceability",
+      "result": "PASS",
+      "detail": "108 requirements; 115 cases; 426 frozen case/profile/browser execution units"
+    },
+    {
+      "name": "schemas_and_refs",
+      "result": "PASS",
+      "detail": "22 draft-2020-12 schemas checked; all contract refs traversed"
+    },
+    {
+      "name": "schema_fixtures",
+      "result": "PASS",
+      "detail": "24 positive/negative schema fixture cases evaluated"
+    },
+    {
+      "name": "openapi_structure",
+      "result": "PASS",
+      "detail": "41 paths and 51 operations structurally checked; not full OpenAPI runtime validation"
+    },
+    {
+      "name": "baseline_preservation",
+      "result": "PASS",
+      "detail": "107 pre-existing tracked files checked byte-for-byte"
+    }
+  ],
+  "errors": [],
+  "result": "PASS",
+  "requirement_count": 108,
+  "case_count": 115,
+  "execution_unit_count": 426,
+  "schema_count": 22,
+  "schema_fixture_count": 24
+}

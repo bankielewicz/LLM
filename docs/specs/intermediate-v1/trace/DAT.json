@@ -1,0 +1,495 @@
+{
+  "section": "05-DATA-AND-ARTIFACTS.md",
+  "requirements": [
+    {
+      "id": "DAT-001",
+      "title": "Storage authority and trust classes"
+    },
+    {
+      "id": "DAT-002",
+      "title": "Identity and immutable artifacts"
+    },
+    {
+      "id": "DAT-003",
+      "title": "Dataset registration, audit and fixtures"
+    },
+    {
+      "id": "DAT-004",
+      "title": "Jobs, runs, metrics and results"
+    },
+    {
+      "id": "DAT-005",
+      "title": "Checkpoint identity and lineage"
+    },
+    {
+      "id": "DAT-006",
+      "title": "Progress, notebook, evidence and conversation"
+    },
+    {
+      "id": "DAT-007",
+      "title": "Legacy v1 migration"
+    },
+    {
+      "id": "DAT-008",
+      "title": "Merge, collisions and duplicate imports"
+    },
+    {
+      "id": "DAT-009",
+      "title": "Bundle and path safety"
+    },
+    {
+      "id": "DAT-010",
+      "title": "SQLite and atomic writes"
+    },
+    {
+      "id": "DAT-011",
+      "title": "Disk-full, corruption and recovery"
+    },
+    {
+      "id": "DAT-012",
+      "title": "Export trust, retention and deletion"
+    },
+    {
+      "id": "DAT-013",
+      "title": "Contract validation"
+    }
+  ],
+  "cases": [
+    {
+      "id": "AC-DAT-001",
+      "requirements": [
+        "DAT-001"
+      ],
+      "name": "Origin cannot be upgraded by import or validation",
+      "method": "integration",
+      "profiles": [
+        "win-cpu",
+        "win-cuda",
+        "wsl-cpu",
+        "wsl-cuda"
+      ],
+      "preconditions": [
+        "Empty companion root",
+        "Valid imported run bundle"
+      ],
+      "steps": [
+        "Import bundle",
+        "Validate and re-export imported run",
+        "Run a local evaluation using it"
+      ],
+      "expected": [
+        "Imported input remains imported with source identity",
+        "Only new evaluation job/output is locally_created",
+        "No UI text asserts imported Python ran locally"
+      ],
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "AC-DAT-002",
+      "requirements": [
+        "DAT-002"
+      ],
+      "name": "Artifact immutability and ID boundaries",
+      "method": "unit",
+      "profiles": [
+        "win-cpu",
+        "win-cuda",
+        "wsl-cpu",
+        "wsl-cuda"
+      ],
+      "preconditions": [
+        "Valid artifact fixture"
+      ],
+      "steps": [
+        "Validate descriptor",
+        "Attempt path traversal descriptor",
+        "Change one stored byte"
+      ],
+      "expected": [
+        "Valid descriptor accepted",
+        "Traversal rejected before mutation",
+        "Changed bytes require new digest and artifact ID"
+      ],
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "AC-DAT-003",
+      "requirements": [
+        "DAT-003"
+      ],
+      "name": "Deterministic audit oracles and sealed data",
+      "method": "integration",
+      "profiles": [
+        "win-cpu",
+        "win-cuda",
+        "wsl-cpu",
+        "wsl-cuda"
+      ],
+      "preconditions": [
+        "Canonical fixture registry"
+      ],
+      "steps": [
+        "Generate fixtures twice",
+        "Audit clean and leaky fixtures",
+        "Request training on leaky fixture",
+        "Request sealed test before token use","Upload capstone-support-v1 twice under different names with sealed_test.jsonl as the test part; upload documents.jsonl as a retrieval_v1 train part; upload a document_text_v1 file whose record 17 is whitespace-only; evaluate the sealed test split without a token; create a capstone attempt with a wrong dataset_manifest_sha256."
+      ],
+      "expected": [
+        "Byte-identical generation",
+        "Clean counts 48/0/0/0",
+        "Leaky counts 48/1/2/1 and audit_only",
+        "Training and premature sealed access rejected without mutation","Both uploads have sealed test splits and the same manifest_sha256, so the exposure ledger key is shared; the retrieval corpus registers with eligibility eligible and empty rejections; the whitespace record rejects the whole upload with 400 VALIDATION_FAILED reason SEMANTIC_INVALID and a line-17 field error; the tokenless evaluation returns 409 STATE_CONFLICT reason SEALED_SPLIT_REQUIRES_TOKEN; the wrong digest returns 400 VALIDATION_FAILED reason DATASET_DIGEST_MISMATCH."
+      ],
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "AC-DAT-004",
+      "requirements": [
+        "DAT-004"
+      ],
+      "name": "Run records preserve missing and terminal semantics",
+      "method": "unit",
+      "profiles": [
+        "win-cpu",
+        "win-cuda",
+        "wsl-cpu",
+        "wsl-cuda"
+      ],
+      "preconditions": [
+        "Completed, interrupted, failed and nonfinite fixtures"
+      ],
+      "steps": [
+        "Validate each record",
+        "Recover a simulated running job"
+      ],
+      "expected": [
+        "Completed requires equal requested/final step",
+        "Interrupted retains durable step",
+        "A failed record with no requested_final_step validates, the same record with requested_final_step also validates, and a completed record lacking requested_final_step or final_step is rejected",
+        "Nonfinite metric rejected",
+        "Recovered running job becomes interrupted"
+      ],
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "AC-DAT-005",
+      "requirements": [
+        "DAT-005"
+      ],
+      "name": "Checkpoint formats and acyclic lineage",
+      "method": "integration",
+      "profiles": [
+        "win-cpu",
+        "win-cuda",
+        "wsl-cpu",
+        "wsl-cuda"
+      ],
+      "preconditions": [
+        "Safetensors, pickle and cyclic-lineage bundles"
+      ],
+      "steps": [
+        "Import each",
+        "Inspect identity fields"
+      ],
+      "expected": [
+        "Safetensors identity binds all required digests/settings",
+        "Pickle and cycle rejected before extraction",
+        "Fresh local IDs retain source identity"
+      ],
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "AC-DAT-006",
+      "requirements": [
+        "DAT-006"
+      ],
+      "name": "Progress is separate from evidence and chat data",
+      "method": "integration",
+      "profiles": [
+        "static",
+        "win-cpu",
+        "win-cuda",
+        "wsl-cpu",
+        "wsl-cuda"
+      ],
+      "preconditions": [
+        "Progress, evidence, note and conversation fixtures"
+      ],
+      "steps": [
+        "Advance progress",
+        "Import checked evidence",
+        "Change conversation checkpoint",
+        "Attempt implicit conversation training"
+      ],
+      "expected": [
+        "Progress grants no verification",
+        "Imported check remains imported_claim",
+        "Model change starts a conversation",
+        "Training requires explicit export/import/audit"
+      ],
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "AC-DAT-007",
+      "requirements": [
+        "DAT-007"
+      ],
+      "name": "V1 preview and apply are explicit and bounded",
+      "method": "integration",
+      "profiles": [
+        "static",
+        "win-cpu",
+        "win-cuda",
+        "wsl-cpu",
+        "wsl-cuda"
+      ],
+      "preconditions": [
+        "Valid v1 backup with notes, reviewed evidence and run"
+      ],
+      "steps": [
+        "Preview migration",
+        "Change database revision and try apply",
+        "Preview again and confirm apply"
+      ],
+      "expected": [
+        "Exact source bytes retained",
+        "First apply rejected stale",
+        "Second applies atomically",
+        "Reviewed becomes imported claim and run attestation unverified"
+      ],
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "AC-DAT-008",
+      "requirements": [
+        "DAT-008"
+      ],
+      "name": "Duplicate import skip/copy and rollback",
+      "method": "integration",
+      "profiles": [
+        "win-cpu",
+        "win-cuda",
+        "wsl-cpu",
+        "wsl-cuda"
+      ],
+      "preconditions": [
+        "Previously imported bundle",
+        "Variant with dangling reference"
+      ],
+      "steps": [
+        "Preview and apply skip",
+        "Apply copy",
+        "Import dangling variant"
+      ],
+      "expected": [
+        "Skip creates no duplicate",
+        "Copy creates fresh IDs and lineage",
+        "Invalid variant creates no rows or artifacts"
+      ],
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "AC-DAT-009",
+      "requirements": [
+        "DAT-009"
+      ],
+      "name": "Archive boundary and path attacks are rejected",
+      "method": "integration",
+      "profiles": [
+        "win-cpu",
+        "win-cuda",
+        "wsl-cpu",
+        "wsl-cuda"
+      ],
+      "preconditions": [
+        "Archives at exact limits and variants with traversal, case collision, symlink, excess ratio, digest mismatch"
+      ],
+      "steps": [
+        "Validate and import each"
+      ],
+      "expected": [
+        "Exact-limit archive accepted",
+        "Each malicious variant rejected before extraction/database mutation",
+        "Staging only is removed"
+      ],
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "AC-DAT-010",
+      "requirements": [
+        "DAT-010"
+      ],
+      "name": "Artifact and database commit are atomic",
+      "method": "integration",
+      "profiles": [
+        "win-cpu",
+        "win-cuda",
+        "wsl-cpu",
+        "wsl-cuda"
+      ],
+      "preconditions": [
+        "Fault injection at write, fsync, rename and DB commit"
+      ],
+      "steps": [
+        "Create artifact with each fault",
+        "Restart and scan orphans"
+      ],
+      "expected": [
+        "No registry row references missing/partial bytes",
+        "No job completes early",
+        "Only unreferenced files older than 24 hours are collectible"
+      ],
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "AC-DAT-011",
+      "requirements": [
+        "DAT-011"
+      ],
+      "name": "Disk-full and corruption enter bounded recovery",
+      "method": "integration",
+      "profiles": [
+        "win-cpu",
+        "win-cuda",
+        "wsl-cpu",
+        "wsl-cuda"
+      ],
+      "preconditions": [
+        "ENOSPC injector",
+        "Corrupt DB copy",
+        "Missing artifact copy"
+      ],
+      "steps": [
+        "Trigger each fault",
+        "Restart service",
+        "Select validated backup restore"
+      ],
+      "expected": [
+        "Existing artifacts unchanged",
+        "Corruption enters read-only recovery",
+        "Mutations disabled",
+        "No automatic restore",
+        "Explicit restore preserves corrupt file"
+      ],
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "AC-DAT-012",
+      "requirements": [
+        "DAT-012"
+      ],
+      "name": "Export trust and deletion retention",
+      "method": "manual",
+      "profiles": [
+        "win-cpu",
+        "win-cuda",
+        "wsl-cpu",
+        "wsl-cuda"
+      ],
+      "preconditions": [
+        "Imported run, shared artifact, sensitive note"
+      ],
+      "steps": [
+        "Preview export",
+        "Delete one object",
+        "Run GC before and after grace"
+      ],
+      "expected": [
+        "Preview discloses note inclusion and provenance",
+        "Shared bytes remain",
+        "No deletion before 30 days",
+        "Tombstone and append-only audits remain"
+      ],
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "AC-DAT-013",
+      "requirements": [
+        "DAT-013"
+      ],
+      "name": "All schemas and rejection atomicity",
+      "method": "unit",
+      "profiles": [
+        "static",
+        "win-cpu",
+        "win-cuda",
+        "wsl-cpu",
+        "wsl-cuda"
+      ],
+      "preconditions": [
+        "Draft 2020-12 validator with format assertions",
+        "Valid and invalid fixtures"
+      ],
+      "steps": [
+        "Compile every schema",
+        "Validate fixtures",
+        "Submit invalid object through each import boundary","Preview a 3,000,000-byte legacy v1 backup exported by the preserved app with 20 runs; a 25,000,001-byte legacy file; a legacy backup missing one of the ten note fields; a legacy backup with a reviewed evidence entry whose note is blank."
+      ],
+      "expected": [
+        "All schemas compile",
+        "Valid fixtures pass and invalid fail",
+        "Error envelope identifies fields",
+        "Database revision/counts/tree unchanged","The 3,000,000-byte backup previews; 25,000,001 bytes returns 413 PAYLOAD_TOO_LARGE; the other two return 400 VALIDATION_FAILED/SCHEMA_INVALID exactly where the preserved validateState rejects them; the localStorage key llm-foundations-v1 is never written."
+      ],
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "AC-DAT-014",
+      "name": "Evidence snapshots, citation bounds and completion derivation",
+      "method": "integration",
+      "requirements": [
+        "DAT-006",
+        "DAT-008"
+      ],
+      "profiles": [
+        "win-cpu",
+        "win-cuda",
+        "wsl-cpu",
+        "wsl-cuda"
+      ],
+      "preconditions": [
+        "Registered module evidence artifacts, note revisions and retrieval index/query results."
+      ],
+      "steps": [
+        "Submit each of the 12 exact requirement/profile pairs; reject a cross-pair and retired umbrella profile.",
+        "Submit CUR-012 with one earlier plan note; edit/delete source note and read unchanged evidence snapshot.",
+        "Submit E02 six citations; reject duplicate/out-of-order query IDs, a byte range inside a multibyte scalar, wrong support document and absent structured_response.",
+        "Import a forged complete evidence record and check claim downgrade; verify current local CUR-012 with all prerequisites."
+      ],
+      "expected": [
+        "Only exact pairs dispatch; snapshots bind exact original bytes/revision; no inference about prose truth.",
+        "Invalid E02 spans/pairs grant no verification. Completion derives only from current local verified CUR-012; imported flags grant no credit."
+      ],
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "AC-DAT-015",
+      "name": "Thin/full portability and actual applied identity regression",
+      "method": "integration",
+      "requirements": [
+        "DAT-005",
+        "DAT-009",
+        "DAT-013"
+      ],
+      "profiles": [
+        "win-cpu",
+        "win-cuda",
+        "wsl-cpu",
+        "wsl-cuda"
+      ],
+      "preconditions": [
+        "Actual intents and capstone adapter checkpoints, inference/resume selections and safe bundles."
+      ],
+      "steps": [
+        "Exercise thin/full crossed with resume included/excluded; verify aggregate flag matches any checkpoint resume flag.",
+        "Reject initial capstone steps 19, wrong preset accumulation, missing adapter chat subject, and greedy top_p 0.5.",
+        "Round-trip applied checkpoint null/UUID parent, base ID, device, source revision and init_lora_weights identity."
+      ],
+      "expected": [
+        "Four export choices retain exact intended weights/state; thin base requirement remains explicit.",
+        "Request and stored schemas reject incompatible identities; resumability never inferred from missing state."
+      ],
+      "status": "NOT_RUN"
+    }
+  ]
+}

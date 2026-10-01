@@ -1,0 +1,22 @@
+{
+  "note_id": "33333333-3333-4333-8333-333333333333",
+  "revision": 1,
+  "title": "Capstone plan",
+  "created_at": "2026-09-28T12:00:00.000Z",
+  "updated_at": "2026-09-28T12:00:00.000Z",
+  "module_ids": [
+    "21"
+  ],
+  "links": {
+    "run_ids": [],
+    "checkpoint_ids": [],
+    "dataset_ids": [],
+    "artifact_ids": []
+  },
+  "prediction": "The adapter improves exact intent on validation.",
+  "observation": "",
+  "explanation": "",
+  "limitations": "",
+  "next_experiment": "",
+  "origin": "locally_created"
+}

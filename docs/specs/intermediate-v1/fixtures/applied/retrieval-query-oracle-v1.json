@@ -1,0 +1,13 @@
+{
+  "format": "llm-foundations-retrieval-query-oracle-v1",
+  "fixture_id": "retrieval-manual-v1",
+  "algorithm_id": "tfidf-nfkc-casefold-v1",
+  "queries": [
+    {"query_id":"RQ01","query":"How do I get back into my account and change the account email?","top_k":3,"expected_hits":[{"record_id":"RM01","score":0.6077701710022565},{"record_id":"RM03","score":0.11322256149317855},{"record_id":"RM07","score":0.07464611311482403}],"supported_record_ids":["RM01"]},
+    {"query_id":"RQ02","query":"Where do I see the status of a pending refund for a returned parcel?","top_k":3,"expected_hits":[{"record_id":"RM07","score":0.5736714229451256},{"record_id":"RM02","score":0.466017916040117},{"record_id":"RM04","score":0.21096546838979968}],"supported_record_ids":["RM02"]},
+    {"query_id":"RQ03","query":"What do I do when the password reset link for my account no longer works?","top_k":3,"expected_hits":[{"record_id":"RM03","score":0.47576413102571347},{"record_id":"RM01","score":0.23372447921501033},{"record_id":"RM08","score":0.20396143817217255}],"supported_record_ids":["RM03"]},
+    {"query_id":"RQ04","query":"My parcel has no recent tracking scan from the carrier.","top_k":3,"expected_hits":[{"record_id":"RM04","score":0.5620320281934423},{"record_id":"RM07","score":0.31557877343033824},{"record_id":"RM08","score":0.10647393745169478}],"supported_record_ids":["RM04"]},
+    {"query_id":"RQ05","query":"My sign-in code is rejected at the sign-in page.","top_k":3,"expected_hits":[{"record_id":"RM08","score":0.4463603366443825},{"record_id":"RM05","score":0.33245051465361997},{"record_id":"RM07","score":0.21951202803631792}],"supported_record_ids":["RM05"]},
+    {"query_id":"RQ06","query":"The invoice shows the same service line twice.","top_k":3,"expected_hits":[{"record_id":"RM06","score":0.4506062866553393},{"record_id":"RM07","score":0.18154719662871918},{"record_id":"RM02","score":0.14318107278640257}],"supported_record_ids":["RM06"]}
+  ]
+}

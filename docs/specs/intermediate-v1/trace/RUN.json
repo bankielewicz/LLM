@@ -1,0 +1,759 @@
+{
+  "section": "04-RUNTIME-AND-API.md",
+  "requirements": [
+    {
+      "id": "RUN-001",
+      "title": "Modes, launch and discovery"
+    },
+    {
+      "id": "RUN-002",
+      "title": "Package and process boundary"
+    },
+    {
+      "id": "RUN-003",
+      "title": "Pairing, sessions and browser security"
+    },
+    {
+      "id": "RUN-004",
+      "title": "Storage confinement and atomicity"
+    },
+    {
+      "id": "RUN-005",
+      "title": "Transport limits and errors"
+    },
+    {
+      "id": "RUN-006",
+      "title": "Registry and upload endpoints"
+    },
+    {
+      "id": "RUN-007",
+      "title": "Job creation and idempotency"
+    },
+    {
+      "id": "RUN-008",
+      "title": "Queue and state machine"
+    },
+    {
+      "id": "RUN-009",
+      "title": "Budgets, deterministic cancellation and process ownership"
+    },
+    {
+      "id": "RUN-010",
+      "title": "Crash recovery and reconnect"
+    },
+    {
+      "id": "RUN-011",
+      "title": "Events, replay and fetch-stream SSE"
+    },
+    {
+      "id": "RUN-012",
+      "title": "Concrete operation contracts"
+    },
+    {
+      "id": "RUN-013",
+      "title": "Legacy correspondence and no shell execution"
+    },
+    {
+      "id": "RUN-014",
+      "title": "Artifact access and output safety"
+    },
+    {
+      "id": "RUN-015",
+      "title": "Backend, device and download failure"
+    },
+    {
+      "id": "RUN-016",
+      "title": "Bundle validation and clean-root reuse"
+    },
+    {
+      "id": "RUN-017",
+      "title": "Truthful fault records"
+    },
+    {
+      "id": "RUN-018",
+      "title": "Observability and privacy"
+    },
+    {
+      "id": "RUN-019",
+      "title": "Qualification target"
+    }
+  ],
+  "cases": [
+    {
+      "id": "AC-RUN-001",
+      "requirements": [
+        "RUN-001"
+      ],
+      "name": "Static/local mode detection",
+      "method": "integration",
+      "profiles": [
+        "static",
+        "win-cpu",
+        "win-cuda",
+        "wsl-cpu",
+        "wsl-cuda"
+      ],
+      "preconditions": [
+        "Target implementation built from the pinned specification revision.",
+        "Fixtures and fault controls named by the case are available and hashed."
+      ],
+      "steps": [
+        "Open hosted reader; launch with omitted profile on Windows and WSL, launch each valid explicit profile, reject invalid OS/profile pairs, and query health/runtime with and without credentials."
+      ],
+      "expected": [
+        "Static has disabled live actions and makes no API request; local binds only 127.0.0.1:8765; omission selects the OS profile matching the running environment's Torch build and a mismatching explicit profile fails with BACKEND_VERSION_MISMATCH; a CUDA profile starts only after a passing preflight, win-cuda only on native Windows and wsl-cuda only on WSL; profile is instance-immutable with no fallback; health is minimal; runtime/status/P00 fields match the selected profile."
+      ],
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "AC-RUN-002",
+      "requirements": [
+        "RUN-002"
+      ],
+      "name": "Fixed service-worker boundary",
+      "method": "integration",
+      "profiles": [
+        "win-cpu",
+        "win-cuda",
+        "wsl-cpu",
+        "wsl-cuda"
+      ],
+      "preconditions": [
+        "Target implementation built from the pinned specification revision.",
+        "Fixtures and fault controls named by the case are available and hashed."
+      ],
+      "steps": [
+        "Submit one fixture for every operation while recording service imports, child argv/environment and dispatch.",
+        "Submit command, module, URL and uploaded-code fields."
+      ],
+      "expected": [
+        "Service process imports no ML backend; every job uses fixed isolated worker and allowlisted environment; unknown/code-bearing inputs fail before spawn."
+      ],
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "AC-RUN-003",
+      "requirements": [
+        "RUN-003"
+      ],
+      "name": "Pairing, origin and expiry",
+      "method": "integration",
+      "profiles": [
+        "win-cpu",
+        "win-cuda",
+        "wsl-cpu",
+        "wsl-cuda"
+      ],
+      "preconditions": [
+        "Target implementation built from the pinned specification revision.",
+        "Fixtures and fault controls named by the case are available and hashed."
+      ],
+      "steps": [
+        "Exercise valid, expired and reused 120-second bootstrap; idle and absolute test clocks; hostile Host, Origin, preflight, missing bearer and CSRF; reload same tab.", "Send each boundary-order fixture: wrong Host; OPTIONS with hostile Origin; mutation without Origin; mutation with Origin http://evil.example; GET with Sec-Fetch-Site cross-site; GET without Sec-Fetch-Site; mutation without Authorization; expired session; mutation without X-LLMF-CSRF; wrong Content-Type; oversize body. Each fixture also violates every later check.", "Revoke a session with DELETE /api/v1/sessions/current and reuse its tokens; run connect twice and exchange the first secret; open 33 sessions."
+      ],
+      "expected": [
+        "Only one valid exchange succeeds; hostile requests fail before body parse; credentials persist only sessionStorage; two-hour idle, 12-hour absolute and restart invalidate exactly as specified.", "Statuses in order: 403 ORIGIN_REJECTED/HOST_MISMATCH, 403/PREFLIGHT_REJECTED, 403/ORIGIN_MISSING, 403/ORIGIN_MISMATCH, 403/FETCH_SITE_REJECTED, 403/FETCH_SITE_REJECTED, 401 AUTH_REQUIRED, 401 SESSION_EXPIRED, 403 CSRF_REJECTED, 415 UNSUPPORTED_MEDIA_TYPE, 413 PAYLOAD_TOO_LARGE; the first failing check decides and no body is parsed.", "Revoked tokens return 401 AUTH_REQUIRED; the superseded bootstrap secret returns 401 AUTH_REQUIRED; the 33rd exchange returns 409 REGISTRY_LIMIT reason SESSION_LIMIT."
+      ],
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "AC-RUN-004",
+      "requirements": [
+        "RUN-004"
+      ],
+      "name": "Storage traversal and atomic commit",
+      "method": "integration",
+      "profiles": [
+        "win-cpu",
+        "win-cuda",
+        "wsl-cpu",
+        "wsl-cuda"
+      ],
+      "preconditions": [
+        "Target implementation built from the pinned specification revision.",
+        "Fixtures and fault controls named by the case are available and hashed."
+      ],
+      "steps": [
+        "Use symlink/weak-permission roots; path, link, duplicate, sparse, bomb and traversal archives; inject failure before rename and before metadata commit."
+      ],
+      "expected": [
+        "Unsafe roots/members are rejected; no write escapes root; no metadata points to partial bytes; committed bytes remain immutable and digest-addressed."
+      ],
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "AC-RUN-005",
+      "requirements": [
+        "RUN-005"
+      ],
+      "name": "Every request boundary",
+      "method": "integration",
+      "profiles": [
+        "win-cpu",
+        "win-cuda",
+        "wsl-cpu",
+        "wsl-cuda"
+      ],
+      "preconditions": [
+        "Target implementation built from the pinned specification revision.",
+        "Fixtures and fault controls named by the case are available and hashed."
+      ],
+      "steps": [
+        "For JSON, dataset, bundle, record, UTF-8, prompt and chat limits submit exact-limit and limit-plus-one fixtures plus duplicate-key/nonfinite/trailing JSON."
+      ],
+      "expected": [
+        "Exact limits are accepted when otherwise valid; plus-one and malformed inputs return the frozen code/status and create no job or dataset."
+      ],
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "AC-RUN-006",
+      "requirements": [
+        "RUN-006"
+      ],
+      "name": "Registry pagination and uploads",
+      "method": "integration",
+      "profiles": [
+        "win-cpu",
+        "win-cuda",
+        "wsl-cpu",
+        "wsl-cuda"
+      ],
+      "preconditions": [
+        "Target implementation built from the pinned specification revision.",
+        "Fixtures and fault controls named by the case are available and hashed."
+      ],
+      "steps": [
+        "Import a valid three-part dataset and a bad final part; page tied records with limit 1; reuse cursor with changed filter; stage an inert bundle.",
+        "Create/update/conflict/read progress; create/update/list/delete-preview/delete notes and conversations; append a turn through commit-generation; create/verify/assess evidence; preview/apply v1 and v2 progress; create capstone attempt; export selected backup.",
+        "Read startup preflight; commit a completed conversation generation atomically; reject partial generation; export a conversation dataset candidate; inspect capstone creation response versus later detail.","Fail a tiny_train after two checkpoint commits; list GET /artifacts?job_id and GET /runs?job_state=failed; read log_artifact_ids.stdout content.","Export backups with include_notes true and no note_ids, with note_ids [N1, N2], with include_notes false and note_ids [N1], with note_ids [], with a deleted note ID, and with include_conversations true and confirm_sensitive_text false."
+      ],
+      "expected": [
+        "Dataset commit is all-or-nothing; ordering/cursor has no gaps or duplicates; changed cursor fails; staging asserts transport safety only.",
+        "Every learner action has one callable closed-schema endpoint; revision conflicts do not mutate; delete requires fresh confirmed preview and tombstones content; migration preview is nonmutating and apply is atomic; sealed token and backup exclude credentials.",
+        "Preflight exposes fixed checks without host paths; generation commits user+assistant or neither; exported conversation cannot train before dataset audit; release token appears once and detail retains freeze/exposure without secret.","Both checkpoints, the metrics artifact to the last boundary and both logs are listed with job_id set; the run appears under job_state=failed; logs download as untrusted text.", "The first export holds every live note and the second exactly N1 and N2; the others return 400 VALIDATION_FAILED with SEMANTIC_INVALID at /note_ids, SEMANTIC_INVALID at /note_ids, REFERENCE_MISSING at /note_ids/<index> and SEMANTIC_INVALID at /confirm_sensitive_text, creating no artifact."
+      ],
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "AC-RUN-007",
+      "requirements": [
+        "RUN-007"
+      ],
+      "name": "Idempotent job creation and disk reserve",
+      "method": "integration",
+      "profiles": [
+        "win-cpu",
+        "win-cuda",
+        "wsl-cpu",
+        "wsl-cuda"
+      ],
+      "preconditions": [
+        "Target implementation built from the pinned specification revision.",
+        "Fixtures and fault controls named by the case are available and hashed."
+      ],
+      "steps": [
+        "Submit identical and changed bodies under one key; expire session and replay; mock available bytes at estimate+1GiB and one byte below for each estimate class.",
+        "Replay create, update, apply and delete mutations for learner-state endpoints with identical and changed idempotency bodies; fill each registry to its exact cap.", "Submit with key K in session S1, lose the response, let S1 expire, pair S2 and query GET /jobs?idempotency_key=K and ?request_sha256; replay K with identical bytes in S2; replay K with changed bytes; replay a key whose first attempt returned 400; replay a multipart dataset upload with reordered parts.", "Submit tiny_train with width/heads/layers giving P=9,999,220, steps 2000, eval_every 1 (estimate 257,032,031,712 bytes); then the same with eval_every 100.", "With 4,990 checkpoint rows registered, submit tiny_train steps 50 eval_every 5 (Ck 12); with 4,988 rows submit steps 50 eval_every 10 (Ck 7).", "Submit smollm2-capstone-lora-v1 with 20 updates and inspect the recorded reservation."
+      ],
+      "expected": [
+        "Identical replay returns original; changed conflicts; exact reserve accepts; one-byte-below rejects without row/event.",
+        "All mutation replays are stable; changed body conflicts; next item at quota returns REGISTRY_LIMIT before row/bytes change.","Exactly one job exists and is found by both filters; the identical replay returns the stored response with header Idempotent-Replayed: true; changed bytes return 409 IDEMPOTENCY_CONFLICT; the 4xx first attempt was not stored so the retry is evaluated fresh; reordered multipart parts with identical bytes replay.","The eval_every 1 request returns 400 VALIDATION_FAILED reason ESTIMATE_EXCEEDS_ROOT_QUOTA at eval_every on an empty root; eval_every 100 is accepted when free space allows.","Ck 12 against 10 remaining checkpoint rows returns 409 REGISTRY_LIMIT reason REGISTRY_COUNT_EXCEEDED before any row; Ck 7 is accepted and reserves 7 checkpoint and 57 artifact rows.","The capstone reservation uses Ck = 2 + ceil(20/5) = 6 and the 1 GiB floor."
+      ],
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "AC-RUN-008",
+      "requirements": [
+        "RUN-008"
+      ],
+      "name": "FIFO, ninth queued and transitions",
+      "method": "integration",
+      "profiles": [
+        "win-cpu",
+        "win-cuda",
+        "wsl-cpu",
+        "wsl-cuda"
+      ],
+      "preconditions": [
+        "Target implementation built from the pinned specification revision.",
+        "Fixtures and fault controls named by the case are available and hashed."
+      ],
+      "steps": [
+        "Block worker, enqueue eight jobs, submit ninth; cancel queued; drive completed, failed, interrupted paths; repeat cancel on all terminal states.", "Validate against Job: queued with phase/step; cancelling with error; interrupted with terminal_reason completed; unstarted interrupted with a checkpoint; failed whose terminal_reason differs from error.code; interrupted with error OUT_OF_MEMORY.", "Cancel a job in starting before spawn and after spawn before the running acknowledgment."
+      ],
+      "expected": [
+        "One active/eight queued; ninth 429; FIFO stable; only declared transitions occur; terminal states never change.","Every listed record is rejected by the Job schema or JOB_FAILED_REASON; the service never emits one.","Before spawn: queued-cancel semantics (no worker, no checkpoint, interrupted/user_cancelled). After spawn: worker signalled, interrupted/user_cancelled within the 30-second grace, no checkpoint unless one was committed."
+      ],
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "AC-RUN-009",
+      "requirements": [
+        "RUN-009"
+      ],
+      "name": "Cancellation, deadline and unrelated process",
+      "method": "integration",
+      "profiles": [
+        "win-cpu",
+        "win-cuda",
+        "wsl-cpu",
+        "wsl-cuda"
+      ],
+      "preconditions": [
+        "Target implementation built from the pinned specification revision.",
+        "Fixtures and fault controls named by the case are available and hashed."
+      ],
+      "steps": [
+        "Run signed tiny-v2 diagnosis preset; observe step-25 checkpoint/hold, cancel, and separately let 10-minute clock expire; exercise 60-minute deadline and hard-stop grace; keep unrelated Python sentinel.", "Submit the diagnosis hold with steps 10; with eval_every 10; with the weight-tied profile.", "Request learner cancellation at 59:45 of the compute deadline; separately make ownership unprovable."
+      ],
+      "expected": [
+        "Cancel yields interrupted step 25 checkpoint; hold expiry yields interrupted exercise_timeout and no later update; deadline uses 30-second grace; sentinel remains alive; no unowned PID is signaled.","Each hold variant returns 400 VALIDATION_FAILED reason DIAGNOSIS_HOLD_INVALID at curriculum_hold_after_step with no job row.","The late cancel keeps its full 30-second grace and ends interrupted/user_cancelled; unprovable ownership ends interrupted/worker_ownership_unknown with error WORKER_OWNERSHIP_UNKNOWN, no signal sent, and scheduling paused for the root."
+      ],
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "AC-RUN-010",
+      "requirements": [
+        "RUN-010"
+      ],
+      "name": "Restart recovery and reconnect",
+      "method": "integration",
+      "profiles": [
+        "win-cpu",
+        "win-cuda",
+        "wsl-cpu",
+        "wsl-cuda"
+      ],
+      "preconditions": [
+        "Target implementation built from the pinned specification revision.",
+        "Fixtures and fault controls named by the case are available and hashed."
+      ],
+      "steps": [
+        "Stop service with queued and running jobs, restart same root, pair again and reconcile cached IDs; inject database/digest corruption.", "Stop the service cleanly (serve receives SIGINT/SIGTERM or Windows console close) with one running and two queued jobs; separately kill the service process."
+      ],
+      "expected": [
+        "Queued keeps order; active becomes interrupted service_restarted; sessions invalidate; UI shows unknown until snapshot; corruption is read-only recovery with mutations blocked.","Clean stop: running job interrupted/service_shutdown before exit, queued jobs stay queued in FIFO order. Kill: running job interrupted/service_restarted at the next recovery."
+      ],
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "AC-RUN-011",
+      "requirements": [
+        "RUN-011"
+      ],
+      "name": "Bounded ordered event replay",
+      "method": "integration",
+      "profiles": [
+        "win-cpu",
+        "win-cuda",
+        "wsl-cpu",
+        "wsl-cuda"
+      ],
+      "preconditions": [
+        "Target implementation built from the pinned specification revision.",
+        "Fixtures and fault controls named by the case are available and hashed."
+      ],
+      "steps": [
+        "Produce maximum 2,001 metrics and checkpoints, 32 phases/warnings, 16 progress and terminal; page 500, reconnect SSE with duplicate cursor, then attempt one excess producer event.", "Request events with after_cursor = last_cursor + 1; run a 2,000-update job and count persisted progress events and state_changed events; kill the service between a checkpoint file rename and its row commit, then recover."
+      ],
+      "expected": [
+        "All at-most-4,096 events replay once in cursor order; heartbeat has no cursor; SSE closes at bounds; duplicate ignored; excess causes WORKER_PROTOCOL_ERROR without pruning prior events.","after_cursor beyond the log returns 400 VALIDATION_FAILED reason SEMANTIC_INVALID at after_cursor; at most 16 progress events at k/16 milestones plus terminal, never rewritten; at most five state_changed events on any path; the renamed-but-uncommitted checkpoint is an orphan and the latest durable checkpoint is the last committed row."
+      ],
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "AC-RUN-012",
+      "requirements": [
+        "RUN-012"
+      ],
+      "name": "All operation schemas and semantics",
+      "method": "integration",
+      "profiles": [
+        "win-cpu",
+        "win-cuda",
+        "wsl-cpu",
+        "wsl-cuda"
+      ],
+      "preconditions": [
+        "Target implementation built from the pinned specification revision.",
+        "Fixtures and fault controls named by the case are available and hashed."
+      ],
+      "steps": [
+        "Submit valid/min/max and one invalid field for each of 15 operations including both tokenizer profiles and context_preview; run both applied adapter presets, verify the frozen validation comparator, run paired sealed evaluation twice, and inspect tokenizer/weight/resume/evaluate/generate effects and artifacts.",
+        "Run standard and fixed weight-tied architecture profiles and reject any uploaded or arbitrary architecture code.",
+        "Create preview then send unchanged generation; independently recompute canonical_generation_request_sha256 and context_preview_digest from the exact field objects; alter each bound prompt/message/decoding/identity/device field and retry.", "For every semantic-rules.json rule with a rejection, submit the boundary pair at the limit and one past it (the following pairs are mandatory in addition to the per-rule pairs: one chat message of 2,048 four-byte scalars = 8,192 bytes and one more scalar; 16,384-byte and 16,385-byte tiny prompts; export selections of 0, 1, 100 and 101 IDs; a resume selection without dataset bytes; a tiny-profile evaluation of an adapter)."
+      ],
+      "expected": [
+        "Closed schemas enforce bounds; tokenizer profile/type agree and tokenizer creates no weights; the capstone preset is seed 29 and exactly 20 updates; selection orders exact-intent numerator, schema-valid numerator, finite supervised-response mean NLL, then earliest step; inference/evaluation do not update; resume preserves lineage/optimizer/RNG; paired token is consumed once even on interruption.",
+        "Only internal architecture profile IDs execute; tokenizer/model/resume/generation semantics remain distinct.",
+        "Only unchanged request accepts preview; every altered or corrupt/missing preview is rejected pre-job as CONTEXT_PREVIEW_STALE; preview performs no weight load or inference.", "At-limit requests are accepted; each past-limit request returns 400 VALIDATION_FAILED with the rule's reason_code and field_path and creates no job."
+      ],
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "AC-RUN-013",
+      "requirements": [
+        "RUN-013"
+      ],
+      "name": "CLI/API parity without shell",
+      "method": "source",
+      "profiles": [
+        "win-cpu",
+        "win-cuda",
+        "wsl-cpu",
+        "wsl-cuda"
+      ],
+      "preconditions": [
+        "Target implementation built from the pinned specification revision.",
+        "Fixtures and fault controls named by the case are available and hashed."
+      ],
+      "steps": [
+        "Export request.json, submit through CLI and HTTP, compare canonical records; scan the companion package source and find no `shell=True`, `os.system`, `os.popen`, `eval(` or `exec(` call and no subprocess argument built from learner text; run legacy-equivalence fixture.",
+        "Run E01 harness with a nonexistent absolute output directory for exact edit, protected-byte change and one failing test; retry against an existing output path; inspect receipt/log atomicity, control-channel registration and tied training verification binding."
+      ],
+      "expected": [
+        "CLI and API records match; learner text never becomes argv/shell; pure-mechanics equivalence fields meet absolute and relative tolerance 1e-6 (tokenizer IDs, shifted targets, parameter count and greedy token IDs exactly equal) while artifact formats stay distinct.",
+        "Exact edit atomically creates the output directory with receipt.json and bounded logs plus one hash-bound registered receipt; existing output exits 2 without mutation, protected diff exits 3, and failed test exits 4; tied training requires verification ID and labels the built-in matching backend without claiming learner source trained."
+      ],
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "AC-RUN-014",
+      "requirements": [
+        "RUN-014"
+      ],
+      "name": "Safe artifact serving",
+      "method": "integration",
+      "profiles": [
+        "win-cpu",
+        "win-cuda",
+        "wsl-cpu",
+        "wsl-cuda"
+      ],
+      "preconditions": [
+        "Target implementation built from the pinned specification revision.",
+        "Fixtures and fault controls named by the case are available and hashed."
+      ],
+      "steps": [
+        "Request a 1,024-byte allowlisted UTF-8 text artifact; 262,144-byte and 262,145-byte text artifacts; one HTML, one SVG, one .ipynb and one binary artifact; a Range request; an artifact whose display name is `..\\x<script>.html`; and an artifact whose content is `<script>alert(1)</script>`."
+      ],
+      "expected": [
+        "Only allowlisted text through 262,144 bytes previews; HTML, SVG, notebook, binary and the 262,145-byte text are sent with Content-Disposition attachment and nosniff; Range 416; UI renders text without markup execution."
+      ],
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "AC-RUN-015",
+      "requirements": [
+        "RUN-015"
+      ],
+      "name": "Backend/device/download exactness",
+      "method": "integration",
+      "profiles": [
+        "win-cpu",
+        "win-cuda",
+        "wsl-cpu",
+        "wsl-cuda"
+      ],
+      "preconditions": [
+        "Target implementation built from the pinned specification revision.",
+        "Fixtures and fault controls named by the case are available and hashed."
+      ],
+      "steps": [
+        "Remove/mismatch each backend; request CUDA per profile; replay exact manifest downloads and alter host/path/query/redirect/count/byte/digest; inject timeout, ENOSPC and OOM."
+      ],
+      "expected": [
+        "Preflight reports exact capability/device failure with no fallback; only eight pinned files and redirects pass; any mismatch leaves no model; runtime faults never report success.","A redirect to another path or region under an allowed host succeeds when the bytes verify; each redirect mutation (a host outside the allowed suffixes, a third redirect, userinfo, a fragment, http or a port other than 443) ends model_prepare failed with job.error.code DOWNLOAD_SOURCE_REJECTED, retryable false, no model and no partial file; the error message names the host but not the query."
+      ],
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "AC-RUN-016",
+      "requirements": [
+        "RUN-016"
+      ],
+      "name": "Export, validate and clean-root import",
+      "method": "integration",
+      "profiles": [
+        "win-cpu",
+        "win-cuda",
+        "wsl-cpu",
+        "wsl-cuda"
+      ],
+      "preconditions": [
+        "Target implementation built from the pinned specification revision.",
+        "Fixtures and fault controls named by the case are available and hashed."
+      ],
+      "steps": [
+        "Export root A; stage in empty root B; validate then import under skip and copy; corrupt a member; evaluate/generate returned local model.",
+        "Export thin and full bundles with per-checkpoint resume-state choices and conversation selection."
+      ],
+      "expected": [
+        "Validation is read-only; corrupt import registers nothing; skip/copy identity maps follow data contract; imported provenance remains imported; root B does not read A; reuse works via local IDs.",
+        "Thin is non-loadable and omits weights; full includes inference bytes and only explicitly selected resume state; sensitive conversation inclusion is previewed."
+      ],
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "AC-RUN-017",
+      "requirements": [
+        "RUN-017"
+      ],
+      "name": "Truthful post-accept faults",
+      "method": "integration",
+      "profiles": [
+        "win-cpu",
+        "win-cuda",
+        "wsl-cpu",
+        "wsl-cuda"
+      ],
+      "preconditions": [
+        "Target implementation built from the pinned specification revision.",
+        "Fixtures and fault controls named by the case are available and hashed."
+      ],
+      "steps": [
+        "Inject ENOSPC at artifact and SQLite phases, malformed worker messages, nonfinite metric, bad hash, step mismatch and unexpected exit zero/nonzero."
+      ],
+      "expected": [
+        "Every accepted job ends in exactly one of completed, failed or interrupted, reached only along the 04-RUNTIME-AND-API.md state machine; committed evidence remains; partial output quarantines; no failed/interrupted path is labelled completed."
+      ],
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "AC-RUN-018",
+      "requirements": [
+        "RUN-018"
+      ],
+      "name": "Audit privacy and UI truth",
+      "method": "source",
+      "profiles": [
+        "win-cpu",
+        "win-cuda",
+        "wsl-cpu",
+        "wsl-cuda"
+      ],
+      "preconditions": [
+        "Target implementation built from the pinned specification revision.",
+        "Fixtures and fault controls named by the case are available and hashed."
+      ],
+      "steps": [
+        "Submit prompts/messages/secrets and inspect HTTP headers, audit rows, five rotated logs and diagnostic exports; compare UI labels to event snapshots.",
+        "Preview then delete note/conversation and inspect tombstone audit."
+      ],
+      "expected": [
+        "Logs/audit omit secrets/content/full bodies; request/entity metadata remains; diagnostics are opt-in; running/completed labels require persisted reconciled events.",
+        "Deleted content is absent while ID/time/digest audit remains; no other deletion endpoint exists."
+      ],
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "AC-RUN-019",
+      "requirements": [
+        "RUN-019"
+      ],
+      "name": "Native release qualification evidence",
+      "method": "manual",
+      "profiles": [
+        "static",
+        "win-cpu",
+        "win-cuda",
+        "wsl-cpu",
+        "wsl-cuda"
+      ],
+      "preconditions": [
+        "Target implementation built from the pinned specification revision.",
+        "Fixtures and fault controls named by the case are available and hashed."
+      ],
+      "steps": [
+        "Execute all RUN cases against pinned commit/fixtures on each named profile and static absence case; retain raw evidence and environment identity."
+      ],
+      "expected": [
+        "Each profile has an independent result per applicable case with hashes/versions/timestamps; NOT_RUN remains until execution; no speed, quality or unsupported-platform claim is recorded."
+      ],
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "AC-RUN-020",
+      "name": "Bounded preflight child and diagnostic receipts",
+      "method": "integration",
+      "requirements": [
+        "RUN-001",
+        "RUN-015",
+        "RUN-007"
+      ],
+      "profiles": [
+        "win-cpu",
+        "win-cuda",
+        "wsl-cpu",
+        "wsl-cuda"
+      ],
+      "preconditions": [
+        "Installed candidate with isolated storage and process ownership instrumentation."
+      ],
+      "steps": [
+        "Observe fixed preflight child invocation; induce timeout, excess stdout and wrong dependency version.",
+        "Save prescribed width 63/heads 4 diagnostic and failed tampered-bundle job receipt.",
+        "Try valid/different invalid request, successful job and stale job ID; replay identical idempotency key."
+      ],
+      "expected": [
+        "API process imports no ML libraries and performs only service-owned storage checks; child bounds enforced.",
+        "Only named negative cases create one diagnostic artifact, no extra job or protected registry mutation; invalid receipt inputs rejected.",
+        "Repeated idempotent submission returns same receipt identity."
+      ],
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "AC-RUN-021",
+      "requirements": [
+        "RUN-003",
+        "RUN-013"
+      ],
+      "name": "Owner-only control channel",
+      "method": "integration",
+      "profiles": [
+        "win-cpu",
+        "win-cuda",
+        "wsl-cpu",
+        "wsl-cuda"
+      ],
+      "preconditions": [
+        "Target implementation built from the pinned specification revision.",
+        "A second OS user account exists on the qualification machine."
+      ],
+      "steps": [
+        "Inspect runtime/control.sock (WSL) or the \\\\.\\pipe\\llm-foundations-<instance_id> DACL (Windows).",
+        "Run connect, status, request, cancel, events and verify-e01-workspace as the owner; repeat each from the second OS user and from a browser page.",
+        "Send a control request with a wrong control_secret, a 1 MiB + 1 byte line, two lines, and an unknown operation."
+      ],
+      "expected": [
+        "Socket mode 0600 in a 0700 directory, or a pipe DACL granting only the current user SID plus SYSTEM/Administrators; no TCP listener other than 127.0.0.1:8765 exists.",
+        "Owner operations succeed with one canonical JSON response line; other-user and browser attempts cannot connect.",
+        "Wrong secret, oversize, multi-line and unknown operations return {\"ok\":false,\"error\":{...}} with AUTH_REQUIRED, PAYLOAD_TOO_LARGE, INVALID_REQUEST, INVALID_REQUEST respectively and change no state."
+      ],
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "AC-RUN-022",
+      "requirements": [
+        "RUN-011",
+        "RUN-006",
+        "DEL-007"
+      ],
+      "name": "Malformed event and list cursor matrix",
+      "method": "integration",
+      "profiles": [
+        "win-cpu",
+        "win-cuda",
+        "wsl-cpu",
+        "wsl-cuda"
+      ],
+      "preconditions": [
+        "Target implementation built from the pinned specification revision.",
+        "A paired session and a completed job with exactly 3 events exist; two list pages of jobs exist."
+      ],
+      "steps": [
+        "Freeze subchecks AC-RUN-022.<endpoint>.<value> for endpoints /events and /event-stream and after_cursor values abc, -1, 1.5, 2147483648, empty, 0, 3 (= last_cursor), 4 (= last_cursor + 1) and 2147483647; record registry revision, job, event and idempotency row counts.",
+        "Send each value to both endpoints.",
+        "On GET /jobs, /artifacts and /notes send cursor empty, a cursor issued under a different state filter, a cursor with one byte changed, a 200-character random string and a cursor issued before a service restart with a new instance_id."
+      ],
+      "expected": [
+        "abc, -1, 1.5, 2147483648 and empty after_cursor return 400 VALIDATION_FAILED reason SCHEMA_INVALID with field_path after_cursor on both endpoints, and the stream sends no text/event-stream bytes.",
+        "0 returns cursors 1-3; 3 returns items [] with has_more false and next_after_cursor 3; 4 and 2147483647 return 400 VALIDATION_FAILED reason SEMANTIC_INVALID at after_cursor.",
+        "An empty list cursor returns the first page; every other malformed or foreign list cursor returns 400 VALIDATION_FAILED reason SEMANTIC_INVALID with field_path cursor.",
+        "Registry revision, job, event and idempotency row counts are unchanged after every rejected request."
+      ],
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "AC-RUN-023",
+      "requirements": [
+        "RUN-005",
+        "INT-008",
+        "DEL-007"
+      ],
+      "name": "JSON scalar substitution matrix",
+      "method": "integration",
+      "profiles": [
+        "win-cpu",
+        "win-cuda",
+        "wsl-cpu",
+        "wsl-cuda"
+      ],
+      "preconditions": [
+        "Target implementation built from the pinned specification revision.",
+        "A paired session exists; for each JSON request body in openapi.json (including the dataset metadata part) a valid fixture request exists."
+      ],
+      "steps": [
+        "Enumerate every scalar member reachable in each JSON request-body schema (array items at index 0) and freeze subchecks AC-RUN-023.<component>.<pointer>.<substitution> using exactly these substitutions by member type. string or enum member: number 1, true, [], {}. integer member: \"50\", true, 1.0, 1e0, [], {}. number member: \"1.5\", true, [], {}. boolean member: \"true\", 1, [], {}. Every required non-nullable member additionally: null.",
+        "Record registry revision, job, event and idempotency row counts; send each substituted request with a fresh Idempotency-Key where required."
+      ],
+      "expected": [
+        "Every subcheck returns 400 VALIDATION_FAILED with reason SCHEMA_INVALID, or the x-reason-code of the failing subschema when every failing keyword lies inside one, and a field error whose field_path is the substituted member's JSON Pointer.",
+        "No job, accepted-state event, idempotency row, artifact, note, evidence or registry revision is created or changed by any subcheck."
+      ],
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "AC-RUN-024",
+      "requirements": [
+        "RUN-015",
+        "SCP-005"
+      ],
+      "name": "CUDA preflight decides GPU support by the fixed rule",
+      "method": "unit",
+      "profiles": [
+        "win-cuda",
+        "wsl-cuda"
+      ],
+      "preconditions": [
+        "A test double supplies the launcher's GPU query result and the child's device count, compute capability, compiled architecture list, memory and matrix difference; the table rows need no GPU.",
+        "The passing base row is: query line 'NVIDIA GeForce RTX 5070, 12.0, 616.92, 12227'; one device; capability 12.0; the cu128 Linux list sm_70 to sm_120; total 12,227 MiB; free 11,000 MiB; difference 2e-7."
+      ],
+      "steps": [
+        "Starting from the base row, change one value per row: the GPU query is missing, exits 9, or prints no four-field line; driver 572.60 and 572.61; compute capability 7.0 and 7.5; capability 8.9 against a list containing 8.6 but not 8.9; capability 12.0 against the cu126 list 5.0 to 9.0; total memory 3,583 and 3,584 MiB; free memory 2,047 and 2,048 MiB; relative difference 1.1e-5 and 1e-5.",
+        "Run a row that fails both the driver and the capability rule.",
+        "Launch with an explicit CUDA profile and a failing row."
+      ],
+      "expected": [
+        "The rows give, in order: CUDA_DEVICE_NOT_FOUND three times; CUDA_DRIVER_TOO_OLD then pass; CUDA_CAPABILITY_UNSUPPORTED then pass; pass; CUDA_ARCH_NOT_IN_BUILD; CUDA_MEMORY_INSUFFICIENT then pass; CUDA_MEMORY_INSUFFICIENT then pass; CUDA_NUMERIC_CHECK_FAILED then pass. The base row passes.",
+        "The first failing step in RUN-015 order decides: CUDA_DRIVER_TOO_OLD.",
+        "P00-RUN-002-PROFILE fails with the reason code in its observed text; the receipt's cuda object has result failed and that reason_code; no root lock is published; no job or CPU fallback occurs."
+      ],
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "AC-RUN-025",
+      "requirements": [
+        "RUN-001",
+        "RUN-015",
+        "DEL-002"
+      ],
+      "name": "Startup selects the environment's profile and offers a supported GPU without switching",
+      "method": "integration",
+      "profiles": [
+        "win-cpu",
+        "win-cuda",
+        "wsl-cpu",
+        "wsl-cuda"
+      ],
+      "preconditions": [
+        "An install directory holds envs/<OS CPU profile> and, for the GPU rows, envs/<OS CUDA profile>.",
+        "A GPU query test double returns, in turn: no executable; 'NVIDIA GeForce RTX 5070, 12.0, 616.92, 12227'; driver 572.60; compute capability 6.1; memory 2,048 MiB."
+      ],
+      "steps": [
+        "Run gpu-check from the CPU environment for each query result, with and without the CUDA environment present.",
+        "Start serve without --profile from the CPU environment, then from the CUDA environment; start each environment with the other build's --profile explicitly.",
+        "From the CUDA environment, start serve with a failing CUDA preflight row from AC-RUN-024.",
+        "Read GET /api/v1/runtime from each instance that started, and run one tiny_train job on it."
+      ],
+      "expected": [
+        "gpu-check prints one GpuOffer JSON line with status not_detected, available, unsupported CUDA_DRIVER_TOO_OLD, unsupported CUDA_CAPABILITY_UNSUPPORTED and unsupported CUDA_MEMORY_INSUFFICIENT respectively, then the fixed RUN-001 sentence for that status and environment state, and exits 0 without importing Torch.",
+        "Without --profile the CPU environment starts the OS CPU profile and the CUDA environment starts the OS CUDA profile; an explicit profile that does not match the environment's Torch build fails before the lock with BACKEND_VERSION_MISMATCH.",
+        "The failing CUDA start prints the reason code, its meaning and the CPU launch command, publishes no lock and starts no CPU instance.",
+        "gpu_offer is in_use on the CUDA instance and available on the CPU instance when the query line passes, with cuda_environment_installed and explicit_profile matching the launch; each job's device equals the instance profile's device."
+      ],
+      "status": "NOT_RUN"
+    }
+  ]
+}

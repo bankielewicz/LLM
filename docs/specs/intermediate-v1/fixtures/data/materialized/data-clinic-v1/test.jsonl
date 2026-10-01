@@ -1,0 +1,12 @@
+{"record_id":"dc10-summary","scenario_group_id":"DC10","text":"The plan name was unclear. Observation: the product page used an abbreviated label. Action: show the matching plan glossary entry."}
+{"record_id":"dc10-timeline","scenario_group_id":"DC10","text":"At 09:10 UTC, the product page used an abbreviated label. The reported issue was: The plan name was unclear. The recorded action was: show the matching plan glossary entry."}
+{"record_id":"dc10-symptom","scenario_group_id":"DC10","text":"Symptom for DC10: The plan name was unclear. Evidence: the product page used an abbreviated label."}
+{"record_id":"dc10-resolution","scenario_group_id":"DC10","text":"Resolution for DC10: show the matching plan glossary entry. It responds to this observation: the product page used an abbreviated label."}
+{"record_id":"dc11-summary","scenario_group_id":"DC11","text":"The upload stopped halfway. Observation: the file exceeded the displayed size limit. Action: select a file within the limit."}
+{"record_id":"dc11-timeline","scenario_group_id":"DC11","text":"At 09:11 UTC, the file exceeded the displayed size limit. The reported issue was: The upload stopped halfway. The recorded action was: select a file within the limit."}
+{"record_id":"dc11-symptom","scenario_group_id":"DC11","text":"Symptom for DC11: The upload stopped halfway. Evidence: the file exceeded the displayed size limit."}
+{"record_id":"dc11-resolution","scenario_group_id":"DC11","text":"Resolution for DC11: select a file within the limit. It responds to this observation: the file exceeded the displayed size limit."}
+{"record_id":"dc12-summary","scenario_group_id":"DC12","text":"The notification arrived twice. Observation: two active rules matched the same event. Action: disable one duplicate rule."}
+{"record_id":"dc12-timeline","scenario_group_id":"DC12","text":"At 09:12 UTC, two active rules matched the same event. The reported issue was: The notification arrived twice. The recorded action was: disable one duplicate rule."}
+{"record_id":"dc12-symptom","scenario_group_id":"DC12","text":"Symptom for DC12: The notification arrived twice. Evidence: two active rules matched the same event."}
+{"record_id":"dc12-resolution","scenario_group_id":"DC12","text":"Resolution for DC12: disable one duplicate rule. It responds to this observation: two active rules matched the same event."}

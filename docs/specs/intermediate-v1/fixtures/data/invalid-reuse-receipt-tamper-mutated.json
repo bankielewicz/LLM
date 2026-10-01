@@ -1,0 +1,44 @@
+{
+  "format": "llm-foundations-reuse-receipt-v1",
+  "destination_instance_id": "00000001-2222-4222-8222-000000000001",
+  "destination_root_empty_before_import": true,
+  "runtime_profile": "win-cpu",
+  "bundle_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "validation": {
+    "job_id": "00000002-2222-4222-8222-000000000002",
+    "result_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+    "readiness": "ready"
+  },
+  "import": {
+    "job_id": "00000003-2222-4222-8222-000000000003",
+    "result_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+    "duplicate_policy": "copy",
+    "created_count": 12
+  },
+  "duplicate_skip": {
+    "job_id": "00000004-2222-4222-8222-000000000004",
+    "result_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+    "duplicate_policy": "skip",
+    "skipped_count": 12,
+    "created_count": 0
+  },
+  "tamper": {
+    "job_id": "00000005-2222-4222-8222-000000000005",
+    "archive_sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+    "error_code": "CHECKSUM_MISMATCH",
+    "mutation_count": 1
+  },
+  "inference": {
+    "job_id": "00000006-2222-4222-8222-000000000006",
+    "generation_artifact_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+    "input_sha256": "1111111111111111111111111111111111111111111111111111111111111111",
+    "temperature": 0,
+    "output_token_ids": [
+      32,
+      97,
+      256
+    ],
+    "stop_reason": "eos"
+  },
+  "created_at": "2026-09-28T12:00:00.000Z"
+}

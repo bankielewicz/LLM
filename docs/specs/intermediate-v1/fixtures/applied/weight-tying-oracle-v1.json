@@ -1,0 +1,18 @@
+{
+  "format": "llm-foundations-weight-tying-oracle-v1",
+  "seed": 17,
+  "config": {"vocab_size": 257, "context": 16, "width": 64, "heads": 4, "layers": 2},
+  "architecture_profile_id": "tiny-v2-weight-tied-v1",
+  "untied_variant": "tiny-v2-untied-v1",
+  "tied_variant": "tiny-v2-tied-v1",
+  "expected_unique_parameter_delta": 16448,
+  "forward_input_ids": [[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15],[16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31]],
+  "forward_target_ids": [[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16],[17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32]],
+  "expected_logit_shape": [2,16,257],
+  "expected_loss": "finite_scalar",
+  "causal_input_a": [[4,6,2,9]],
+  "causal_input_b": [[4,6,2,8]],
+  "causal_equal_positions": [0,1,2],
+  "cpu_logit_equality": "exact",
+  "save_load_logit_equality": "exact"
+}

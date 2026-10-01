@@ -1,0 +1,26 @@
+{
+  "format": "llm-foundations-exercise-oracles-v1",
+  "numeric_tolerance_default": 1e-12,
+  "oracles": [
+    {"id":"P00-SHIFT","module_id":"P00","input":[12,9,9,3],"expected":{"inputs":[12,9,9],"targets":[9,9,3]}},
+    {"id":"P00-JSONL","module_id":"P00","expected":{"invalid_physical_line":3,"action":"reject_file"}},
+    {"id":"P00-MEAN","module_id":"P00","values":[1.2,1.4,1.3],"expected":{"mean":1.3}},
+    {"id":"M13-LEAKY","module_id":"13","fixture_id":"data-clinic-leaky-v1","expected":{"exact_duplicate_pairs":1,"normalized_near_duplicate_pairs":2,"group_overlap_count":1,"compute_allowed":false}},
+    {"id":"M13-CLEAN","module_id":"13","fixture_id":"data-clinic-v1","expected":{"split_counts":{"train":24,"validation":12,"test":12},"exact_duplicate_pairs":0,"normalized_near_duplicate_pairs":0,"group_overlap_count":0,"compute_allowed":true}},
+    {"id":"M14-BEST","module_id":"14","validation_by_step":{"50":3.2,"100":2.8,"200":3.1},"expected":{"selected_step":100}},
+    {"id":"M14-CONFIG","module_id":"14","input":{"width":63,"heads":4},"expected":{"job_created":false,"error_code":"CFG_HEAD_DIVISIBILITY"}},
+    {"id":"M14-HOLD","module_id":"14","input":{"exercise_profile_id":"tiny-v2-diagnosis-v1","curriculum_hold_after_step":25},"expected":{"phase":"cancellable_hold","cancel_terminal_state":"interrupted","checkpoint_step":25,"timeout_terminal_state":"interrupted","timeout_code":"exercise_timeout"}},
+    {"id":"M15-SPREAD","module_id":"15","values":[1.2,1.4,1.3],"expected":{"mean":1.3,"sample_standard_deviation":0.1,"minimum":1.2,"maximum":1.4,"range":0.2}},
+    {"id":"M15-SELECTION","module_id":"15","candidates":[{"checkpoint":"A","validation":1.5,"test":1.1},{"checkpoint":"B","validation":1.4,"test":1.6}],"expected":{"selected_checkpoint":"B","selection_field":"validation"}},
+    {"id":"M16-SCORE-A","module_id":"16","raw_output":"INTENT=password_reset\nREPLY=Open Settings, then Security.","expected":{"exact_intent_match":1,"response_schema_valid":1}},
+    {"id":"M16-SCORE-B","module_id":"16","raw_output":"password_reset","expected":{"exact_intent_match":0,"response_schema_valid":0}},
+    {"id":"M17-PROFILE","module_id":"17","input":{"trainable_modules":["q_proj","k_proj","v_proj"]},"expected":{"accepted":false,"reason":"k_proj_not_allowlisted"}},
+    {"id":"M17-RESUME","module_id":"17","input":{"parent_step":40,"additional_updates":20},"expected":{"final_step":60}},
+    {"id":"M18-NO-TRUNCATION","module_id":"18","fixture_id":"chat-no-truncation-v1","expected":{"dropped_message_ids":[]}},
+    {"id":"M18-DROP-OLDEST","module_id":"18","fixture_id":"chat-drop-oldest-v1","expected":{"drop":"oldest_complete_user_assistant_pair","retain":["system","latest_user"],"reserved_new_tokens":64}},
+    {"id":"M19-TAMPER","module_id":"19","input":{"changed_archive_bytes":1},"expected":{"validate":false,"import_mutations":0}},
+    {"id":"M20-CHECKPOINT-TIEBREAK","module_id":"20","input":{"exact_intent_numerators":{"10":4,"15":4},"schema_valid_numerators":{"10":6,"15":6},"finite_mean_nll":{"10":1.2,"15":1.1}},"expected":{"selected_checkpoint_step":15,"selected_rule":"lowest_finite_mean_nll"}},
+    {"id":"E01-DELTA","module_id":"E01","input":{"vocabulary":257,"width":64},"expected":{"parameter_delta":16448}},
+    {"id":"E02-RANKING","module_id":"E02","fixture_id":"retrieval-manual-v1","expected":{"RQ01":{"top3":["RM01","RM03","RM07"],"support":"RM01"},"RQ02":{"top3":["RM07","RM02","RM04"],"support":"RM02"},"RQ03":{"top3":["RM03","RM01","RM08"],"support":"RM03"},"RQ04":{"top3":["RM04","RM07","RM08"],"support":"RM04"},"RQ05":{"top3":["RM08","RM05","RM07"],"support":"RM05"},"RQ06":{"top3":["RM06","RM07","RM02"],"support":"RM06"}}}
+  ]
+}

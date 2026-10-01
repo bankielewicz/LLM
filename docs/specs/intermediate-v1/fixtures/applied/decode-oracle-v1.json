@@ -1,0 +1,198 @@
+{
+  "format": "llm-foundations-decode-oracle-v1",
+  "rules": "Tiny: logits cast to float64, divided by temperature, softmax and cumulative sum in float64. Chat: float32 softmax (APP-009), cumulative sum in float64. Sort by probability descending then token ID ascending; keep the smallest prefix whose cumulative probability is >= top_p; greedy (temperature 0, top_p 1) picks the lowest ID among exact maximum logits. Values below were computed in float64.",
+  "selection_cases": [
+    {
+      "case_id": "D01-greedy-tie",
+      "logits": [
+        2.0,
+        2.0,
+        1.0
+      ],
+      "temperature": 0,
+      "top_p": 1,
+      "greedy_token": 0
+    },
+    {
+      "case_id": "D02-topp-005",
+      "logits": [
+        2.0,
+        1.0,
+        0.5,
+        0.0
+      ],
+      "temperature": 1.0,
+      "top_p": 0.05,
+      "sorted_token_ids": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "retained_token_ids": [
+        0
+      ]
+    },
+    {
+      "case_id": "D03-topp-050",
+      "logits": [
+        2.0,
+        1.0,
+        0.5,
+        0.0
+      ],
+      "temperature": 1.0,
+      "top_p": 0.5,
+      "sorted_token_ids": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "retained_token_ids": [
+        0
+      ]
+    },
+    {
+      "case_id": "D04-topp-095",
+      "logits": [
+        2.0,
+        1.0,
+        0.5,
+        0.0
+      ],
+      "temperature": 1.0,
+      "top_p": 0.95,
+      "sorted_token_ids": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "retained_token_ids": [
+        0,
+        1,
+        2,
+        3
+      ]
+    },
+    {
+      "case_id": "D05-topp-100",
+      "logits": [
+        2.0,
+        1.0,
+        0.5,
+        0.0
+      ],
+      "temperature": 1.0,
+      "top_p": 1.0,
+      "sorted_token_ids": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "retained_token_ids": [
+        0,
+        1,
+        2,
+        3
+      ]
+    },
+    {
+      "case_id": "D06-tie-at-threshold",
+      "logits": [
+        2.0,
+        2.0,
+        1.0
+      ],
+      "temperature": 1.0,
+      "top_p": 0.5,
+      "sorted_token_ids": [
+        0,
+        1,
+        2
+      ],
+      "retained_token_ids": [
+        0,
+        1
+      ]
+    },
+    {
+      "case_id": "D07-low-temperature",
+      "logits": [
+        2.0,
+        1.0,
+        0.5,
+        0.0
+      ],
+      "temperature": 0.01,
+      "top_p": 0.95,
+      "sorted_token_ids": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "retained_token_ids": [
+        0
+      ]
+    }
+  ],
+  "stop_cases": [
+    {
+      "case_id": "S01-eos-last-position-tiny",
+      "backend": "tiny",
+      "eos_id": 256,
+      "max_new_tokens": 3,
+      "generated_token_ids": [
+        104,
+        105,
+        256
+      ],
+      "expected": {
+        "stop_reason": "eos",
+        "generated_token_count": 3,
+        "visible_token_ids": [
+          104,
+          105
+        ]
+      }
+    },
+    {
+      "case_id": "S02-length",
+      "backend": "tiny",
+      "eos_id": 256,
+      "max_new_tokens": 2,
+      "generated_token_ids": [
+        104,
+        105
+      ],
+      "expected": {
+        "stop_reason": "length",
+        "generated_token_count": 2,
+        "visible_token_ids": [
+          104,
+          105
+        ]
+      }
+    },
+    {
+      "case_id": "S03-eos-last-position-chat",
+      "backend": "chat",
+      "eos_id": 2,
+      "max_new_tokens": 2,
+      "generated_token_ids": [
+        45,
+        2
+      ],
+      "expected": {
+        "stop_reason": "eos",
+        "generated_token_count": 2,
+        "visible_token_ids": [
+          45
+        ]
+      }
+    }
+  ]
+}

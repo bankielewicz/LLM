@@ -1,0 +1,692 @@
+{
+  "section": "02-CURRICULUM.md",
+  "requirements": [
+    {
+      "id": "CUR-001",
+      "title": "Preserve the foundation and add a versioned overlay"
+    },
+    {
+      "id": "CUR-002",
+      "title": "Use explicit prerequisites, sessions, and completion states"
+    },
+    {
+      "id": "CUR-003",
+      "title": "Apply a fixed lesson grammar and fade scaffolding"
+    },
+    {
+      "id": "CUR-004",
+      "title": "P00 refreshes prerequisite mechanics without awarding intermediate evidence"
+    },
+    {
+      "id": "CUR-005",
+      "title": "Module 13 performs a leakage-aware data clinic"
+    },
+    {
+      "id": "CUR-006",
+      "title": "Module 14 diagnoses configuration, interruption, and unstable evidence"
+    },
+    {
+      "id": "CUR-007",
+      "title": "Module 15 measures uncertainty and performs error analysis"
+    },
+    {
+      "id": "CUR-008",
+      "title": "Module 16 establishes a frozen pretrained baseline"
+    },
+    {
+      "id": "CUR-009",
+      "title": "Module 17 trains and compares a LoRA adapter"
+    },
+    {
+      "id": "CUR-010",
+      "title": "Module 18 distinguishes continuation from conversation"
+    },
+    {
+      "id": "CUR-011",
+      "title": "Module 19 packages, imports, and reuses an experiment"
+    },
+    {
+      "id": "CUR-012",
+      "title": "Module 20 is an independent applied capstone"
+    },
+    {
+      "id": "CUR-013",
+      "title": "Apply an exact capstone rubric without automated competency claims"
+    },
+    {
+      "id": "CUR-014",
+      "title": "E01 implements and verifies safe weight tying"
+    },
+    {
+      "id": "CUR-015",
+      "title": "E02 builds lexical retrieval with evidence"
+    },
+    {
+      "id": "CUR-016",
+      "title": "Insert exact supplement cards without changing lessons 00–12"
+    },
+    {
+      "id": "CUR-017",
+      "title": "Keep deterministic feedback separate from assessed reasoning"
+    }
+  ],
+  "cases": [
+    {
+      "id": "AC-CUR-001",
+      "requirements": [
+        "CUR-001"
+      ],
+      "name": "Foundation files remain immutable and overlay is independently versioned",
+      "method": "source",
+      "profiles": [
+        "static",
+        "win-cpu",
+        "win-cuda",
+        "wsl-cpu",
+        "wsl-cuda"
+      ],
+      "preconditions": [
+        "Baseline source commit and original content hash manifest are available."
+      ],
+      "steps": [
+        "Hash every foundation lesson 00–12 before and after building the intermediate edition.",
+        "Inspect the edition manifest and routes."
+      ],
+      "expected": [
+        "Every foundation hash is unchanged.",
+        "The overlay identifies intermediate-v1 and contains P00,13–20,E01,E02.",
+        "Static execution sections say Companion required and do not claim Python ran."
+      ],
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "AC-CUR-002",
+      "requirements": [
+        "CUR-002"
+      ],
+      "name": "Prerequisites and five evidence states remain independent",
+      "method": "browser",
+      "profiles": [
+        "win-cpu",
+        "win-cuda",
+        "wsl-cpu",
+        "wsl-cuda"
+      ],
+      "preconditions": [
+        "A new v2 learner profile exists."
+      ],
+      "steps": [
+        "Open and scroll a new lesson without selecting Mark read.",
+        "Select Mark read.",
+        "Submit an independent exercise without opening feedback.",
+        "Open feedback, then attach valid artifacts and a self assessment.", "PATCH progress practiced=true directly; submit an independent_submission; submit a check then a feedback_opened record; PATCH read=false without confirm_reset.", "Verify module 14 evidence while module 13 evidence is unverified; open module 14 practice having read but not practiced lesson 07."
+      ],
+      "expected": [
+        "Opening and scrolling do not change read state.",
+        "Mark read changes only read state.",
+        "Submission changes practiced only.",
+        "Feedback changes self_checked only after a check submission.",
+        "Artifact verification and self review remain separate; self review cannot derive independently_reviewed.","Direct practiced=true returns 400 VALIDATION_FAILED reason PROGRESS_DERIVED_FLAG; the submission sets practiced and the check+feedback sets self_checked in the same transactions; read=false without confirm_reset is rejected.","Verification returns 409 STATE_CONFLICT reason PREREQUISITE_NOT_VERIFIED naming module 13; lesson 07 is shown as an advisory prerequisite and blocks nothing."
+      ],
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "AC-CUR-003",
+      "requirements": [
+        "CUR-003"
+      ],
+      "name": "Every new lesson follows grammar and declared fade band",
+      "method": "source",
+      "profiles": [
+        "static",
+        "win-cpu",
+        "win-cuda",
+        "wsl-cpu",
+        "wsl-cuda"
+      ],
+      "preconditions": [
+        "All new lesson content is built."
+      ],
+      "steps": [
+        "Parse each P00,13–20,E01,E02 lesson heading sequence.",
+        "Compare hint/reveal controls with its scaffolding band.","Open module 16's reference answer (feedback_opened) before submitting its independent task; record a prediction linked to a job, start the job, then append a revised prediction; list GET /exercise-records?module_id=16 as an assessor."
+      ],
+      "expected": [
+        "All seven required sections occur once and in order.",
+        "Hints and early-feedback recording match the module band.",
+        "A saved prediction cannot be edited after the associated operation begins.","The submission is stored with feedback_opened_early true; the original prediction is unchanged and the revision has revised_after_job_start true; the assessor list shows all records in creation order; practice and verification are not blocked."
+      ],
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "AC-CUR-004",
+      "requirements": [
+        "CUR-004"
+      ],
+      "name": "P00 oracles pass without required-credit promotion",
+      "method": "integration",
+      "profiles": [
+        "win-cpu",
+        "win-cuda",
+        "wsl-cpu",
+        "wsl-cuda"
+      ],
+      "preconditions": [
+        "Companion storage is writable."
+      ],
+      "steps": [
+        "Submit the shifted-target, invalid-JSONL, and mean answers.",
+        "Run prerequisite preflight.",
+        "Inspect overall required completion."
+      ],
+      "expected": [
+        "Answers match P00-SHIFT, P00-JSONL, and P00-MEAN.",
+        "prerequisite_check_v1 records environment and storage checks.",
+        "P00 contributes zero required modules."
+      ],
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "AC-CUR-005",
+      "requirements": [
+        "CUR-005"
+      ],
+      "name": "Clean and leaky fixtures produce fixed audit outcomes",
+      "method": "unit",
+      "profiles": [
+        "win-cpu",
+        "win-cuda",
+        "wsl-cpu",
+        "wsl-cuda"
+      ],
+      "preconditions": [
+        "Canonical data fixtures are installed."
+      ],
+      "steps": [
+        "Audit data-clinic-v1.",
+        "Audit data-clinic-leaky-v1.",
+        "Attempt to select leaky fixture for compute."
+      ],
+      "expected": [
+        "Clean counts are 24/12/12 with zero exact, near, or group leakage.",
+        "Leaky counts are exactly 1,2,1.",
+        "Compute selection of the leaky fixture is rejected without a job."
+      ],
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "AC-CUR-006",
+      "requirements": [
+        "CUR-006"
+      ],
+      "name": "Diagnosis exercise produces deterministic safe interruption",
+      "method": "integration",
+      "profiles": [
+        "win-cpu",
+        "win-cuda",
+        "wsl-cpu",
+        "wsl-cuda"
+      ],
+      "preconditions": [
+        "tiny-v2-diagnosis-v1 is installed."
+      ],
+      "steps": [
+        "Submit width 63/heads 4.",
+        "Run clean tiny_train.",
+        "Run diagnostic fields with hold step 25 and cancel at cancellable_hold.",
+        "Resume the step 25 checkpoint.",
+        "Repeat once without cancelling for 10 minutes.","Render diagnosis-traces-v1 D14-01..D14-05 and compare each with the product's real shapes: a 400 envelope for D14-01/02, a failed job whose error.code is NONFINITE_TRAINING_VALUE as produced by AC-APP-019, matching the D14-03 event shape."
+      ],
+      "expected": [
+        "Invalid config creates no job.",
+        "Cancellation returns interrupted with checkpoint step 25.",
+        "Resume starts from step 25 under a new identity.",
+        "Timeout returns interrupted/exercise_timeout and never continues training.","Every trace shape is one the product can emit; oracle labels are unchanged; no trace imports as a recorded run."
+      ],
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "AC-CUR-007",
+      "requirements": [
+        "CUR-007"
+      ],
+      "name": "Three-seed evaluation freezes selection before test",
+      "method": "integration",
+      "profiles": [
+        "win-cpu",
+        "win-cuda",
+        "wsl-cpu",
+        "wsl-cuda"
+      ],
+      "preconditions": [
+        "Module14 is artifact_verified and test split unused."
+      ],
+      "steps": [
+        "Run seeds 17,23,31 for 100 updates under one profile.",
+        "Freeze lowest-validation checkpoint per seed using earliest-step tie break.",
+        "Evaluate test once per checkpoint.",
+        "Recompute aggregate/spread and worst-three records.","For each seed read TinyTrainResult.best_checkpoint_id and evaluate it with subject {kind: tiny_checkpoint, checkpoint_id}; include a run whose best checkpoint is not the final step."
+      ],
+      "expected": [
+        "All non-seed settings and dataset hashes match.",
+        "Selection timestamps precede test jobs.",
+        "NLL-per-byte arithmetic and sample standard deviation match within 1e-12.",
+        "Worst-three ordering uses descending value then record_id.","The evaluated checkpoint equals the run's best_checkpoint_id (lowest validation token NLL, earliest step on ties) even when it is not last_checkpoint_id; subject_identity binds that checkpoint's manifest digest."
+      ],
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "AC-CUR-008",
+      "requirements": [
+        "CUR-008"
+      ],
+      "name": "Pretrained baseline is prepared explicitly and evaluated unchanged",
+      "method": "integration",
+      "profiles": [
+        "win-cpu",
+        "win-cuda",
+        "wsl-cpu",
+        "wsl-cuda"
+      ],
+      "preconditions": [
+        "Network is available and no baseline is prepared."
+      ],
+      "steps": [
+        "Inspect and approve model_prepare.",
+        "Evaluate all 12 applied-intents-v1 test records using applied-intents-greedy-v1.",
+        "Compare file digests before and after."
+      ],
+      "expected": [
+        "Prepared identity is the pinned repository revision.",
+        "Exactly 12 ordered records and all overall/per-slice metrics are retained.",
+        "Base digests are unchanged and no quality threshold is applied."
+      ],
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "AC-CUR-009",
+      "requirements": [
+        "CUR-009"
+      ],
+      "name": "Adapter train/resume and baseline comparison preserve the base",
+      "method": "integration",
+      "profiles": [
+        "win-cpu",
+        "win-cuda",
+        "wsl-cpu",
+        "wsl-cuda"
+      ],
+      "preconditions": [
+        "Module16 base and baseline evidence exist."
+      ],
+      "steps": [
+        "Run adapter_train to step 40.",
+        "Resume for 20 updates.",
+        "Select by validation and evaluate base plus adapter on identical test inputs."
+      ],
+      "expected": [
+        "Only q_proj and v_proj LoRA parameters are trainable.",
+        "Resume ends step 60 with parent lineage and optimizer/RNG state.",
+        "Base digests remain unchanged.",
+        "Paired metrics recompute; improvement is not required."
+      ],
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "AC-CUR-010",
+      "requirements": [
+        "CUR-010"
+      ],
+      "name": "Continuation, chat serialization, and truncation remain distinct",
+      "method": "integration",
+      "profiles": [
+        "win-cpu",
+        "win-cuda",
+        "wsl-cpu",
+        "wsl-cuda"
+      ],
+      "preconditions": [
+        "A tiny checkpoint, prepared base, and adapter exist."
+      ],
+      "steps": [
+        "Call generate on tiny.",
+        "Call chat_generate on base and adapter.",
+        "Run both chat fixtures.",
+        "Compare model digests and dataset registry before/after."
+      ],
+      "expected": [
+        "Tiny uses plain continuation only.",
+        "No-truncation drops nothing.",
+        "Drop-oldest removes exactly the oldest complete user-assistant pair and retains system/latest user.",
+        "Weights are unchanged and chat history is not registered as training data."
+      ],
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "AC-CUR-011",
+      "requirements": [
+        "CUR-011"
+      ],
+      "name": "Bundle validates, imports into clean storage, deduplicates, and reproduces",
+      "method": "integration",
+      "profiles": [
+        "win-cpu",
+        "win-cuda",
+        "wsl-cpu",
+        "wsl-cuda"
+      ],
+      "preconditions": [
+        "A complete experiment and a second empty storage root exist on the same profile."
+      ],
+      "steps": [
+        "Record fixed greedy inference.",
+        "Export and validate bundle.",
+        "Import to empty root and repeat inference.",
+        "Import identical bundle again.",
+        "Change one archive byte and validate/import it.","In root B run export-reuse-receipt after validate, import, duplicate-skip import, tampered validation and reuse inference; in root A run register-reuse-receipt with that file; verify CUR-011 in root A; register a receipt whose bundle_sha256 was not exported by root A."
+      ],
+      "expected": [
+        "Read-only validation performs no registration.",
+        "Imported objects receive local identities and preserve immutable lineage without source absolute paths.",
+        "Second import follows duplicate policy without duplicate bytes.",
+        "Tampered bundle mutates nothing.",
+        "Token IDs and stop reason match same-profile source inference.","The receipt validates against reuse-receipt.schema.json and registers as an immutable reuse_receipt artifact; CUR-011 reaches artifact_verified in root A with output token IDs equal to the source inference; the foreign receipt returns VALIDATION_FAILED reason REUSE_RECEIPT_MISMATCH and registers nothing."
+      ],
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "AC-CUR-012",
+      "requirements": [
+        "CUR-012"
+      ],
+      "name": "Capstone seals candidates and consumes one paired test release per attempt",
+      "method": "integration",
+      "profiles": [
+        "win-cpu",
+        "win-cuda",
+        "wsl-cpu",
+        "wsl-cuda"
+      ],
+      "preconditions": [
+        "Required prior artifacts exist and capstone-support-v1 test is unreleased for attempt 1."
+      ],
+      "steps": [
+        "Save a precompute plan.",
+        "Freeze baseline and selected candidate using validation.",
+        "Confirm atomic paired test evaluation.",
+        "Try to reuse its token.",
+        "Start a new attempt after a simulated failed first paired job.","Create attempt A1, then try to create A2 while A1 is available; abandon A1 and create A2 (prior_abandoned); consume A2 with a queued evaluate and cancel it while queued; create A3 (prior_cancelled) and complete it; create A4 (new_experiment, different candidate) and complete it; replay A3's create request with its Idempotency-Key; download A3's evaluate request artifact.", "Complete the capstone reuse step through the same receipt flow and verify CUR-012 in root A with FOUNDATION-12 and CUR-005..011 verified there.", "Complete a capstone whose candidate fails exactly one record; inspect the worst-three list.", "Let the first capstone attempt's paired evaluation fail after consuming its token (shortened-clock deadline), create a second attempt with reason prior_failed and complete it, then create and complete a third attempt with reason new_experiment."
+      ],
+      "expected": [
+        "Subjects are ordered baseline then candidate and use identical 12 records/settings.",
+        "Token is consumed before loading and cannot be reused.",
+        "Failure remains linked and immutable.",
+        "New attempt has new IDs/token and visible prior_release_count/Previously released label.",
+        "All 10 evidence checklist items retain immutable references.","A2 while A1 open returns 409 ATTEMPT_ALREADY_OPEN; abandoned A1 never consumed and leaves prior_release_count unaffected; A2 is consumed by the queued cancel (outcome interrupted); A3 records prior_release_count 1 and reused_test at consumption; A3 is the CUR-012 evaluation and A4 is labelled exploration (reused_test) that cannot satisfy checklist item 6; the replay returns 409 SECRET_ALREADY_DELIVERED; the request artifact contains token_sha256 and no release_token.","CUR-012 reaches artifact_verified in a single registry; reuse facts are labelled receipt-asserted (learner-carried, digest-bound).", "Worst three are the candidate's records ordered by exact_intent_match, response_schema_valid, record_id; positions two and three are labelled no_failure.", "The second attempt is labelled 'Reused test · counts as the capstone comparison' and satisfies checklist item 6; the third is labelled 'Exploration · reused test · does not count for the capstone'; the rubric's Evaluation discipline row cannot score 10 for the second attempt."
+      ],
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "AC-CUR-013",
+      "requirements": [
+        "CUR-013"
+      ],
+      "name": "Rubric arithmetic and assessor labels do not imply certification",
+      "method": "manual",
+      "profiles": [
+        "win-cpu",
+        "win-cuda",
+        "wsl-cpu",
+        "wsl-cuda"
+      ],
+      "preconditions": [
+        "One artifact-verified capstone packet and rubric submissions exist."
+      ],
+      "steps": [
+        "Apply a self rubric totaling 85 with no zero.",
+        "Apply an independent rubric totaling 75.",
+        "Inspect labels/history.","With CUR-012 packet complete, store a self assessment decision partially_meets, then an independent meets, then a self does_not_meet; read the evidence record after each; post an assessment to CUR-011 evidence."
+      ],
+      "expected": [
+        "Self result renders Self-reviewed and derives review_status self_reviewed only.",
+        "Independent result totaling 75 does not meet the published threshold.",
+        "Both histories remain; no certification/intermediate-user claim appears.","completion_status moves packet_complete_not_meeting, completed_independently_reviewed, packet_complete_not_meeting; review_status stays independently_reviewed once set; latest_decision tracks the latest assessment; each assessment stores evidence_revision; the CUR-011 assessment returns 400 SEMANTIC_INVALID."
+      ],
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "AC-CUR-014",
+      "requirements": [
+        "CUR-014"
+      ],
+      "name": "Weight tying is confined, tested, and checkpoint explicit",
+      "method": "integration",
+      "profiles": [
+        "win-cpu",
+        "win-cuda",
+        "wsl-cpu",
+        "wsl-cuda"
+      ],
+      "preconditions": [
+        "E01 workspace is created from tiny-v2."
+      ],
+      "steps": [
+        "Implement allowed alias.",
+        "Run all six checks.",
+        "Run 50 updates.",
+        "Attempt incompatible untied checkpoint load."
+      ],
+      "expected": [
+        "Foundation files are unchanged.",
+        "Parameter delta is 16448 and weights share object identity.",
+        "Shape, finite loss, causality, and save/load checks pass.",
+        "Incompatible load fails explicitly.",
+        "No loss threshold is used."
+      ],
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "AC-CUR-015",
+      "requirements": [
+        "CUR-015"
+      ],
+      "name": "TF-IDF retrieval and citation support match fixed oracle",
+      "method": "unit",
+      "profiles": [
+        "win-cpu",
+        "win-cuda",
+        "wsl-cpu",
+        "wsl-cuda"
+      ],
+      "preconditions": [
+        "retrieval-manual-v1 is installed."
+      ],
+      "steps": [
+        "Build one index.",
+        "Run RQ01–RQ06 with k3.",
+        "Submit citations.",
+        "Run an out-of-vocabulary query."
+      ],
+      "expected": [
+        "All top-three orders and required supporting citations match E02-RANKING.",
+        "No-vocabulary query fails.",
+        "No model or adapter weight changes.",
+        "Earlier query artifacts retain their original index identity after rebuild."
+      ],
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "AC-CUR-016",
+      "requirements": [
+        "CUR-016"
+      ],
+      "name": "Supplement cards bind exact anchors and routes",
+      "method": "source",
+      "profiles": [
+        "static",
+        "win-cpu",
+        "win-cuda",
+        "wsl-cpu",
+        "wsl-cuda"
+      ],
+      "preconditions": [
+        "Foundation Markdown and overlay fixture exist."
+      ],
+      "steps": [
+        "Resolve every exact heading occurrence and destination.",
+        "Introduce a missing heading in a disposable test copy.",
+        "Inspect card-click progress."
+      ],
+      "expected": [
+        "Eleven cards resolve after the declared sections in order.",
+        "Missing/duplicate anchor fails build without fallback.",
+        "Routes use #/learn/moduleId.",
+        "Click changes no progress state."
+      ],
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "AC-CUR-017",
+      "requirements": [
+        "CUR-017"
+      ],
+      "name": "Objective checks, rubric judgments, and failures remain distinct",
+      "method": "integration",
+      "profiles": [
+        "win-cpu",
+        "win-cuda",
+        "wsl-cpu",
+        "wsl-cuda"
+      ],
+      "preconditions": [
+        "One valid, one invalid, and one infrastructure-failed submission exist."
+      ],
+      "steps": [
+        "Run objective verification.",
+        "Open explanation assessment.",
+        "Regrade after publishing a new oracle version."
+      ],
+      "expected": [
+        "Objective failure names rule/value/artifact.",
+        "Infrastructure-dependent checks are NOT_RUN.",
+        "Machine does not grade prose judgments.",
+        "Old submissions retain old oracle identity and attempt history."
+      ],
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "AC-CUR-018",
+      "requirements": [
+        "CUR-002"
+      ],
+      "name": "Static progress remains local and exposes no companion evidence mutation",
+      "method": "browser",
+      "profiles": [
+        "static"
+      ],
+      "preconditions": [
+        "A new v2 learner profile is open in static mode."
+      ],
+      "steps": [
+        "Open and scroll a lesson.",
+        "Select Mark read, submit its independent exercise, and submit a feedback check.",
+        "Inspect artifact-verification and independent-review controls."
+      ],
+      "expected": [
+        "Opening and scrolling change no state.",
+        "Mark read, practiced, and self_checked change only their independent local dimensions.",
+        "Artifact verification and independent review are unavailable and display Requires the local companion; static mode cannot create artifact_verified or independently_reviewed state."
+      ],
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "AC-CUR-019",
+      "requirements": [
+        "CUR-013",
+        "CUR-017"
+      ],
+      "name": "Static assessment view preserves labels without promoting imported claims",
+      "method": "browser",
+      "profiles": [
+        "static"
+      ],
+      "preconditions": [
+        "Static mode has a read-only imported claim and the capstone rubric fixture available for display."
+      ],
+      "steps": [
+        "Inspect the imported evidence label, rubric labels, and unavailable objective-verification and rubric-mutation actions.", "In static mode attempt to save a scored rubric for any evidence."
+      ],
+      "expected": [
+        "The imported item remains Imported claim · not reviewed.",
+        "Self-reviewed and Independently reviewed appear only as explanatory rubric labels.",
+        "Objective verification and rubric mutation display Requires the local companion; no artifact_verified, self_reviewed, or independently_reviewed status is created.", "No assessment is stored; the learner may save an unscored reflection note; no self_reviewed status is created."
+      ],
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "AC-CUR-020",
+      "name": "Module evidence verifier dispatch and prerequisite closure",
+      "method": "integration",
+      "requirements": [
+        "CUR-002",
+        "CUR-012",
+        "CUR-013",
+        "CUR-015"
+      ],
+      "profiles": [
+        "win-cpu",
+        "win-cuda",
+        "wsl-cpu",
+        "wsl-cuda"
+      ],
+      "preconditions": [
+        "Every mapping role has actual locally produced artifacts; imported foundation records present separately."
+      ],
+      "steps": [
+        "Verify each module using contracts/evidence-verification.md rules.",
+        "Repeat with one missing, ambiguous, extra and checksum-mismatched artifact per profile.",
+        "Try original lab-import claims as foundation gate; then execute required companion foundation operations.",
+        "Assess totals 80/no zero/gates true, 85/one zero, 100/gates false, 50 and 45.", "Send an assessment whose client decision disagrees with the derivation; send one that includes total_score; import a backup whose evidence claims artifact_verified with claim_status imported_claim.", "For module 15 submit the twelve anchors (three tiny_train request artifacts, three checkpoint manifests, three evaluation metrics, three records); resubmit with a run's metrics artifact added as a thirteenth ID; compare stored verification_checks IDs with contracts/evidence-roles.json."
+      ],
+      "expected": [
+        "Roles derive from immutable registry relations, not filenames or narrative claims.",
+        "Imported claims never become local execution proof; missing runtime dependencies stay NOT_RUN.",
+        "Meets only for gates + >=80 + no zero; otherwise partially_meets if >=50 and does_not_meet below 50.", "Decision mismatch returns 400 VALIDATION_FAILED at field decision; client total_score is an unknown property (SCHEMA_INVALID); the imported record is rejected with SEMANTIC_INVALID by EVIDENCE_IMPORT_STATE.", "Twelve anchors verify; the extra non-anchor ID returns 400 SEMANTIC_INVALID naming it as unconsumed; every stored check_id is listed for the profile in evidence-roles.json."
+      ],
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "AC-CUR-021",
+      "requirements": [
+        "CUR-009",
+        "APP-007",
+        "DEL-002"
+      ],
+      "name": "Module 17 device comparison runs one job on CPU and GPU, or reads the supplied snapshot",
+      "method": "integration",
+      "profiles": [
+        "win-cpu",
+        "win-cuda",
+        "wsl-cpu",
+        "wsl-cuda"
+      ],
+      "preconditions": [
+        "Module 16 evidence exists.",
+        "Live rows: a machine with a supported GPU and both OS environments installed. Supplied rows: no CUDA environment, and the sealed device-comparison-reference-v1 snapshot present."
+      ],
+      "steps": [
+        "Save the M17-DEVICE prediction, then submit the independent task's 40-update adapter_train request from the CPU environment and from the CUDA environment against one root.",
+        "Open the module 17 device comparison and verify evidence intermediate-adapter-comparison-v1.",
+        "On the machine without a CUDA environment, open the device comparison before and after saving the prediction, then verify evidence.",
+        "Verify evidence with two CPU runs, with a pair whose seeds differ, and with a prediction saved after the first comparison job left queued."
+      ],
+      "expected": [
+        "The table shows each run's device and profile, elapsed seconds at update 40, peak resident memory, peak reserved CUDA memory for the GPU run only, per-update losses 1 to 40 with absolute differences and their maximum, validation metrics at updates 0, 10, 20, 30 and 40, and each selected update; every value recomputes from the metrics artifacts; both runs are labelled Local companion job.",
+        "Check intermediate-adapter-comparison-v1.013 passes; no speed, memory or equality threshold is applied; the metrics rows carry peak resident bytes and, on the CUDA run, peak reserved CUDA bytes.",
+        "The snapshot is hidden until the prediction record exists, then shown with its reference machine and labelled Recorded result · supplied snapshot; .013 passes on the exercise record naming the snapshot and its sealed SHA-256.",
+        "Each mismatched submission fails .013; the late prediction has revised_after_job_start true."
+      ],
+      "status": "NOT_RUN"
+    }
+  ]
+}

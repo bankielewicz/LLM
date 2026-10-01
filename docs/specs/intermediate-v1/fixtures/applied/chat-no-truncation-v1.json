@@ -1,0 +1,12 @@
+{
+  "format": "llm-foundations-chat-fixture-v1",
+  "fixture_id": "chat-no-truncation-v1",
+  "request": {
+    "messages": [{"role":"user","content":"Classify this request: I cannot reset my password."}],
+    "max_new_tokens": 64,
+    "temperature": 0,
+    "top_p": 1,
+    "seed": 17
+  },
+  "expected": {"dropped_message_indices": [], "stop_reasons": ["eos", "length"]}
+}

@@ -1,0 +1,66 @@
+{
+  "weights_downloaded": false,
+  "source": "https://huggingface.co/api/models/HuggingFaceTB/SmolLM2-135M-Instruct/tree/12fd25f77366fa6b3b4b768ec3050bf629380bac",
+  "files": [
+    {
+      "path": "README.md",
+      "size": 6772,
+      "oid": "d168166639f4dec33a0d0bb5f8e7d4e20d9d52ac",
+      "lfs": null
+    },
+    {
+      "path": "config.json",
+      "size": 861,
+      "oid": "36293b6099200eb8aeb55ae2c01bca2ba46d80d0",
+      "lfs": null
+    },
+    {
+      "path": "generation_config.json",
+      "size": 132,
+      "oid": "da6c4d71a43aa7e6f785bdbb28ea5025438a73fa",
+      "lfs": null
+    },
+    {
+      "path": "merges.txt",
+      "size": 466391,
+      "oid": "69503b13f727ba3812b6803e97442a6de05ef5eb",
+      "lfs": null
+    },
+    {
+      "path": "model.safetensors",
+      "size": 269060552,
+      "oid": "2ef707371406f95f8aa91fb03a75f22f3c568299",
+      "lfs": {
+        "oid": "5af571cbf074e6d21a03528d2330792e532ca608f24ac70a143f6b369968ab8c",
+        "size": 269060552,
+        "pointerSize": 134
+      }
+    },
+    {
+      "path": "special_tokens_map.json",
+      "size": 655,
+      "oid": "44719d2e365acac0637fd25a3acf46494ca45940",
+      "lfs": null
+    },
+    {
+      "path": "tokenizer.json",
+      "size": 2104556,
+      "oid": "f922b1797f0c88e71addc8393787831f2477a4bd",
+      "lfs": null
+    },
+    {
+      "path": "tokenizer_config.json",
+      "size": 3764,
+      "oid": "8c7b22013909450429303ed10be4398bd63f5457",
+      "lfs": null
+    },
+    {
+      "path": "vocab.json",
+      "size": 800662,
+      "oid": "0ad5ecc2035b7031b88afb544ee95e2d49baa484",
+      "lfs": null
+    }
+  ],
+  "retrieved_utc": "2026-09-29T03:33:25.7659108Z",
+  "revision": "12fd25f77366fa6b3b4b768ec3050bf629380bac"
+}

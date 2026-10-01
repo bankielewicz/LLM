@@ -1,0 +1,13 @@
+{
+  "conversation_id": "13131313-1313-4313-8313-131313131313",
+  "revision": 1,
+  "title": "Practice",
+  "subject": {
+    "model_id": "12121212-1212-4212-8212-121212121212"
+  },
+  "turns": [],
+  "created_at": "2026-09-28T12:00:00.000Z",
+  "updated_at": "2026-09-28T12:00:00.000Z",
+  "origin": "locally_created",
+  "system_prompt": null
+}

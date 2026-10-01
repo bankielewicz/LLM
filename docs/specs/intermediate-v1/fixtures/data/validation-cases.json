@@ -1,0 +1,397 @@
+{
+  "format": "llm-foundations-schema-validation-cases-v1",
+  "cases": [
+    {
+      "id": "DATA-SCHEMA-001",
+      "schema": "../../contracts/schemas/artifact-descriptor.schema.json",
+      "instance": "valid-artifact.json",
+      "valid": true,
+      "expected_rule": "complete immutable artifact descriptor"
+    },
+    {
+      "id": "DATA-SCHEMA-002",
+      "schema": "../../contracts/schemas/artifact-descriptor.schema.json",
+      "instance": "invalid-artifact-path.json",
+      "valid": false,
+      "expected_rule": "relative_path must use the content-addressed objects path"
+    },
+    {
+      "id": "DATA-SCHEMA-003",
+      "schema": "../../contracts/schemas/data-audit.schema.json",
+      "instance": "expected-leaky-audit.json",
+      "valid": true,
+      "expected_rule": "audit-only fixture preserves exact leakage counts"
+    },
+    {
+      "id": "DATA-SCHEMA-004",
+      "schema": "../../contracts/schemas/assessment-record.schema.json",
+      "instance": "valid-assessment.json",
+      "valid": true,
+      "expected_rule": "independent assessment has explicit reviewer, rubric, decision and rationale"
+    },
+    {
+      "id": "DATA-SCHEMA-005",
+      "schema": "../../contracts/schemas/progress-v2.schema.json",
+      "instance": "invalid-progress-module21.json",
+      "valid": false,
+      "expected_rule": "only P00, 00 through 20, E01 and E02 are module keys"
+    },
+    {
+      "id": "DATA-SCHEMA-006",
+      "schema": "../../contracts/schemas/run-manifest.schema.json",
+      "instance": "valid-generate-run.json",
+      "valid": true,
+      "expected_rule": "generation requires no dataset binding and binds preview, model and tokenizer"
+    },
+    {
+      "id": "DATA-SCHEMA-007",
+      "schema": "../../contracts/schemas/run-manifest.schema.json",
+      "instance": "invalid-generate-run-extra.json",
+      "valid": false,
+      "expected_rule": "generation config rejects unknown fields"
+    },
+    {
+      "id": "DATA-SCHEMA-008",
+      "schema": "../../contracts/schemas/metric-record.schema.json",
+      "instance": "valid-scalar-metric.json",
+      "valid": true,
+      "expected_rule": "scalar metric has no payload"
+    },
+    {
+      "id": "DATA-SCHEMA-009",
+      "schema": "../../contracts/schemas/metric-record.schema.json",
+      "instance": "invalid-scalar-metric-payload.json",
+      "valid": false,
+      "expected_rule": "scalar metric rejects payload"
+    },
+    {
+      "id": "DATA-SCHEMA-010",
+      "schema": "../../contracts/schemas/checkpoint-descriptor.schema.json",
+      "instance": "valid-tiny-checkpoint.json",
+      "valid": true,
+      "expected_rule": "tiny backend binds tiny portable format and closed identities"
+    },
+    {
+      "id": "DATA-SCHEMA-011",
+      "schema": "../../contracts/schemas/run-manifest.schema.json",
+      "instance": "invalid-generate-wrong-backend.json",
+      "valid": false,
+      "expected_rule": "generate operation requires tiny_v2 backend"
+    },
+    {
+      "id": "DATA-SCHEMA-012",
+      "schema": "../../contracts/schemas/checkpoint-descriptor.schema.json",
+      "instance": "invalid-checkpoint-extra.json",
+      "valid": false,
+      "expected_rule": "checkpoint model identity rejects unknown fields"
+    },
+    {
+      "id": "DATA-SCHEMA-013",
+      "schema": "../../contracts/schemas/checkpoint-descriptor.schema.json",
+      "instance": "valid-intents-checkpoint.json",
+      "valid": true,
+      "expected_rule": "actual applied preset and exact seed/accumulation/cadence"
+    },
+    {
+      "id": "DATA-SCHEMA-014",
+      "schema": "../../contracts/schemas/checkpoint-descriptor.schema.json",
+      "instance": "invalid-intents-accumulation.json",
+      "valid": false,
+      "expected_rule": "wrong preset accumulation rejected"
+    },
+    {
+      "id": "DATA-SCHEMA-015",
+      "schema": "../../contracts/schemas/checkpoint-descriptor.schema.json",
+      "instance": "valid-capstone-checkpoint.json",
+      "valid": true,
+      "expected_rule": "actual applied preset and exact seed/accumulation/cadence"
+    },
+    {
+      "id": "DATA-SCHEMA-016",
+      "schema": "../../contracts/schemas/checkpoint-descriptor.schema.json",
+      "instance": "invalid-capstone-accumulation.json",
+      "valid": false,
+      "expected_rule": "wrong preset accumulation rejected"
+    },
+    {
+      "id": "DATA-SCHEMA-017",
+      "schema": "../../contracts/schemas/checkpoint-descriptor.schema.json",
+      "instance": "invalid-inference-resume-state.json",
+      "valid": false,
+      "expected_rule": "inference-only cannot claim optimizer state"
+    },
+    {
+      "id": "DATA-SCHEMA-018",
+      "schema": "../../contracts/schemas/bundle-manifest.schema.json",
+      "instance": "valid-bundle-thin-inference.json",
+      "valid": true,
+      "expected_rule": "mode and resume state are independent; fixture validates shape only, payload closure checked separately"
+    },
+    {
+      "id": "DATA-SCHEMA-019",
+      "schema": "../../contracts/schemas/bundle-manifest.schema.json",
+      "instance": "valid-bundle-thin-resume.json",
+      "valid": true,
+      "expected_rule": "mode and resume state are independent; fixture validates shape only, payload closure checked separately"
+    },
+    {
+      "id": "DATA-SCHEMA-020",
+      "schema": "../../contracts/schemas/bundle-manifest.schema.json",
+      "instance": "valid-bundle-full-inference.json",
+      "valid": true,
+      "expected_rule": "mode and resume state are independent; fixture validates shape only, payload closure checked separately"
+    },
+    {
+      "id": "DATA-SCHEMA-021",
+      "schema": "../../contracts/schemas/bundle-manifest.schema.json",
+      "instance": "valid-bundle-full-resume.json",
+      "valid": true,
+      "expected_rule": "mode and resume state are independent; fixture validates shape only, payload closure checked separately"
+    },
+    {
+      "id": "DATA-SCHEMA-022",
+      "schema": "../../contracts/schemas/conversation.schema.json",
+      "instance": "valid-conversation-base.json",
+      "valid": true,
+      "expected_rule": "API and stored conversation use same subject"
+    },
+    {
+      "id": "DATA-SCHEMA-023",
+      "schema": "../../contracts/schemas/conversation.schema.json",
+      "instance": "valid-conversation-adapter.json",
+      "valid": true,
+      "expected_rule": "API and stored conversation use same subject"
+    },
+    {
+      "id": "DATA-SCHEMA-024",
+      "schema": "../../contracts/schemas/bundle-manifest.schema.json",
+      "instance": "invalid-bundle-aggregate-resume.json",
+      "valid": false,
+      "expected_rule": "aggregate resume flag equals any checkpoint resume flag"
+    },
+    {
+      "id": "DATA-SCHEMA-025",
+      "schema": "../../contracts/schemas/bundle-manifest.schema.json",
+      "instance": "invalid-bundle-aggregate-inference.json",
+      "valid": false,
+      "expected_rule": "aggregate resume flag equals any checkpoint resume flag"
+    },
+    {
+      "id": "DATA-SCHEMA-026",
+      "schema": "../../contracts/schemas/run-manifest.schema.json",
+      "instance": "valid-capstone-train-manifest.json",
+      "valid": true,
+      "expected_rule": "initial capstone stores exactly20updates"
+    },
+    {
+      "id": "DATA-SCHEMA-027",
+      "schema": "../../contracts/schemas/run-manifest.schema.json",
+      "instance": "invalid-capstone-initial19.json",
+      "valid": false,
+      "expected_rule": "initial capstone cannot use19updates"
+    },
+    {
+      "id": "DATA-SCHEMA-028",
+      "schema": "../../contracts/schemas/run-manifest.schema.json",
+      "instance": "valid-adapter-chat-manifest.json",
+      "valid": true,
+      "expected_rule": "stored chat identifies exact adapter subject"
+    },
+    {
+      "id": "DATA-SCHEMA-029",
+      "schema": "../../contracts/schemas/run-manifest.schema.json",
+      "instance": "invalid-chat-missing-subject.json",
+      "valid": false,
+      "expected_rule": "chat cannot discard adapter identity"
+    },
+    {
+      "id": "DATA-SCHEMA-030",
+      "schema": "../../contracts/schemas/run-manifest.schema.json",
+      "instance": "invalid-generate-greedy-top-p.json",
+      "valid": false,
+      "expected_rule": "greedy requires top_p1 in request and stored manifest"
+    },
+    {
+      "id": "DATA-SCHEMA-031",
+      "schema": "../../contracts/schemas/run-manifest.schema.json",
+      "instance": "invalid-chat-greedy-top-p.json",
+      "valid": false,
+      "expected_rule": "greedy requires top_p1 in request and stored manifest"
+    },
+    {
+      "id": "DATA-SCHEMA-032",
+      "schema": "../../contracts/schemas/checkpoint-manifest.schema.json",
+      "instance": "valid-tiny-checkpoint-manifest.json",
+      "valid": true,
+      "expected_rule": "resume tiny checkpoint lists exactly its six payload files"
+    },
+    {
+      "id": "DATA-SCHEMA-033",
+      "schema": "../../contracts/schemas/checkpoint-manifest.schema.json",
+      "instance": "invalid-tiny-checkpoint-manifest-resume-missing-rng.json",
+      "valid": false,
+      "expected_rule": "resume portability requires optimizer and RNG state files"
+    },
+    {
+      "id": "DATA-SCHEMA-034",
+      "schema": "../../contracts/schemas/tiny-trainer-state.schema.json",
+      "instance": "valid-tiny-trainer-state.json",
+      "valid": true,
+      "expected_rule": "trainer state binds train and validation splits and a complete incumbent"
+    },
+    {
+      "id": "DATA-SCHEMA-035",
+      "schema": "../../contracts/schemas/tiny-trainer-state.schema.json",
+      "instance": "invalid-tiny-trainer-state-incumbent-half.json",
+      "valid": false,
+      "expected_rule": "incumbent fields are all null or all set"
+    },
+    {
+      "id": "DATA-SCHEMA-036",
+      "schema": "../../contracts/schemas/checkpoint-descriptor.schema.json",
+      "instance": "invalid-tiny-checkpoint-test-binding.json",
+      "valid": false,
+      "expected_rule": "training checkpoints bind exactly train and validation, never test or sealed data"
+    },
+    {
+      "id": "DATA-SCHEMA-037",
+      "schema": "../../contracts/schemas/generation-artifact.schema.json",
+      "instance": "valid-generation-artifact.json",
+      "valid": true,
+      "expected_rule": "one generation artifact field list for tiny and chat"
+    },
+    {
+      "id": "DATA-SCHEMA-038",
+      "schema": "../../contracts/schemas/generation-artifact.schema.json",
+      "instance": "invalid-generation-tiny-conversation.json",
+      "valid": false,
+      "expected_rule": "tiny continuation never carries conversation identity"
+    },
+    {
+      "id": "DATA-SCHEMA-039",
+      "schema": "../../contracts/schemas/e01-receipt.schema.json",
+      "instance": "valid-e01-receipt.json",
+      "valid": true,
+      "expected_rule": "passed receipt lists exactly six passed checks"
+    },
+    {
+      "id": "DATA-SCHEMA-040",
+      "schema": "../../contracts/schemas/e01-receipt.schema.json",
+      "instance": "invalid-e01-receipt-passed-with-failed-test.json",
+      "valid": false,
+      "expected_rule": "a passed receipt cannot contain a failed check"
+    },
+    {
+      "id": "DATA-SCHEMA-041",
+      "schema": "../../contracts/schemas/dataset-manifest.schema.json",
+      "instance": "valid-sealed-dataset-manifest.json",
+      "valid": true,
+      "expected_rule": "sealed capstone test split is logical split test with sealed true and a content-only manifest digest"
+    },
+    {
+      "id": "DATA-SCHEMA-042",
+      "schema": "../../contracts/schemas/dataset-manifest.schema.json",
+      "instance": "invalid-dataset-manifest-sealed-test-key.json",
+      "valid": false,
+      "expected_rule": "registry manifests never use the sealed_test source label as a split key"
+    },
+    {
+      "id": "DATA-SCHEMA-043",
+      "schema": "../../contracts/schemas/bundle-manifest.schema.json",
+      "instance": "invalid-bundle-full-missing-base.json",
+      "valid": false,
+      "expected_rule": "a full bundle carries exactly the eight pinned base files"
+    },
+    {
+      "id": "DATA-SCHEMA-044",
+      "schema": "../../contracts/schemas/reuse-receipt.schema.json",
+      "instance": "valid-reuse-receipt.json",
+      "valid": true,
+      "expected_rule": "clean-root reuse facts are digest-bound in one receipt"
+    },
+    {
+      "id": "DATA-SCHEMA-045",
+      "schema": "../../contracts/schemas/reuse-receipt.schema.json",
+      "instance": "invalid-reuse-receipt-tamper-mutated.json",
+      "valid": false,
+      "expected_rule": "tamper rejection must leave destination mutation count zero"
+    },
+    {
+      "id": "DATA-SCHEMA-046",
+      "schema": "../../contracts/schemas/exercise-record.schema.json",
+      "instance": "valid-exercise-record.json",
+      "valid": true,
+      "expected_rule": "independent submission carries the server-derived early-feedback flag"
+    },
+    {
+      "id": "DATA-SCHEMA-047",
+      "schema": "../../contracts/schemas/exercise-record.schema.json",
+      "instance": "invalid-exercise-record-check-feedback-early.json",
+      "valid": false,
+      "expected_rule": "only independent submissions can carry feedback_opened_early"
+    },
+    {
+      "id": "DATA-SCHEMA-048",
+      "schema": "../../contracts/schemas/notebook-entry.schema.json",
+      "instance": "valid-notebook-entry.json",
+      "valid": true,
+      "expected_rule": "notes link only the 24 allowed module IDs"
+    },
+    {
+      "id": "DATA-SCHEMA-049",
+      "schema": "../../contracts/schemas/notebook-entry.schema.json",
+      "instance": "invalid-notebook-entry-module21.json",
+      "valid": false,
+      "expected_rule": "module 21 does not exist"
+    }
+  ],
+  "semantic_cases": [
+    {
+      "id": "DATA-SEM-001",
+      "method": "semantic",
+      "fixture": "canonical-fixtures.json#data-clinic-leaky-v1",
+      "oracle": {
+        "records": 48,
+        "exact_duplicate_pairs": 1,
+        "normalized_near_duplicate_pairs": 2,
+        "group_overlap_count": 1,
+        "eligibility": "audit_only"
+      },
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "DATA-SEM-002",
+      "method": "semantic",
+      "fixture": "canonical-fixtures.json#capstone-support-v1",
+      "oracle": {
+        "train": 30,
+        "validation": 6,
+        "sealed_test": 12,
+        "one_paired_evaluation": true
+      },
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "DATA-SEM-003",
+      "method": "source",
+      "fixture": "materialized/materialized-manifest.json",
+      "oracle": {
+        "manifest_sha256": "030ff8f771767f319f1abd6b3702891f243a7ef15070e8fc89dda40590a5e4f0",
+        "files": 14,
+        "clean_audit": {
+          "records": 48,
+          "exact_duplicate_pairs": 0,
+          "normalized_near_duplicate_pairs": 0,
+          "group_overlap_count": 0
+        },
+        "leaky_audit": {
+          "records": 48,
+          "exact_duplicate_pairs": 1,
+          "normalized_near_duplicate_pairs": 2,
+          "group_overlap_count": 1
+        }
+      },
+      "status": "NOT_RUN"
+    }
+  ]
+}
