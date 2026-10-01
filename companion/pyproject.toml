@@ -1,0 +1,46 @@
+[build-system]
+requires = ["setuptools==68.1.2", "wheel==0.42.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "llm-foundations-companion"
+version = "0.0.0"
+description = "Local runtime companion for the LLM Foundations intermediate curriculum"
+requires-python = ">=3.12,<3.13"
+dependencies = [
+  "accelerate==1.10.1",
+  "fastapi==0.116.1",
+  "peft==0.17.1",
+  "pydantic==2.11.7",
+  "safetensors==0.6.2",
+  "torch==2.8.0",
+  "transformers==4.57.1",
+  "uvicorn==0.35.0",
+]
+
+[project.optional-dependencies]
+win-cpu = ["torch==2.8.0+cpu; platform_system == 'Windows' and platform_machine == 'AMD64'"]
+win-cuda = ["torch==2.8.0+cu128; platform_system == 'Windows' and platform_machine == 'AMD64'"]
+wsl-cpu = ["torch==2.8.0+cpu; platform_system == 'Linux' and platform_machine == 'x86_64'"]
+wsl-cuda = ["torch==2.8.0+cu128; platform_system == 'Linux' and platform_machine == 'x86_64'"]
+dev = [
+  "build==1.4.0",
+  "jsonschema==4.26.0",
+  "packaging==25.0",
+  "pytest==9.0.2",
+  "referencing==0.37.0",
+  "setuptools==68.1.2",
+  "wheel==0.42.0",
+]
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+include-package-data = true
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "--strict-markers --strict-config"
+pythonpath = ["src"]

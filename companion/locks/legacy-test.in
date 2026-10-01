@@ -1,0 +1,2 @@
+# Protected legacy course regression environment. This is not a companion runtime profile.
+torch==2.11.0+cpu
