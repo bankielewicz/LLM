@@ -70,7 +70,7 @@ def unit_denominator(path, windows_passed):
     if not rows or any(row['status'] == 'FAIL' for row in rows):
         raise ValueError('Unit denominator is empty or contains a failure')
     skipped = [row for row in rows if row['status'] == 'NOT_RUN']
-    allowed = {'companion.tests.test_auth_control::test_actual_windows_named_pipe_has_no_tcp_fallback', 'test_auth_control::test_actual_windows_named_pipe_has_no_tcp_fallback'}
+    allowed = {'tests.test_auth_control::test_actual_windows_named_pipe_has_no_tcp_fallback'}
     # The exact Windows-only test is retained as NOT_RUN in this WSL report.
     # Its independent native process probe is a separately required gate.
     if skipped and (not windows_passed or any(row['test'] not in allowed for row in skipped)):
