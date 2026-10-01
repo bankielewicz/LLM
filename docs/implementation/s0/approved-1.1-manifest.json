@@ -1,6 +1,6 @@
 {
   "format": "llm-foundations-spec-manifest-v1",
-  "spec_revision": "1.2",
+  "spec_revision": "1.1",
   "base_commit": "3a47ea48da53cb9de3ff4727ca5f0f0b6f2b9bf8",
   "exclusions": [
     "reviews/**",
@@ -12,8 +12,8 @@
   "files": [
     {
       "path": "00-DECISIONS.md",
-      "size_bytes": 12595,
-      "sha256": "77d7b1adb857d7210cb2e4a367173ebd6b3d2df619969b3213000cbb1af2cb43"
+      "size_bytes": 12537,
+      "sha256": "178005ef5a9f13f48084c5860fb89e9237f69ef907832f5e47de2c0acf4fb3d3"
     },
     {
       "path": "01-SCOPE.md",
@@ -32,8 +32,8 @@
     },
     {
       "path": "04-RUNTIME-AND-API.md",
-      "size_bytes": 70166,
-      "sha256": "7ed0423a60499c492ed4be41e3aea75c2b5c375ee058f7d1bbf582e8bd0c6bfb"
+      "size_bytes": 70016,
+      "sha256": "ea3f89c5e3c850c70b9d6a046d13ff222a42629f44dc0a25c02c72dede684397"
     },
     {
       "path": "05-DATA-AND-ARTIFACTS.md",
@@ -42,13 +42,13 @@
     },
     {
       "path": "06-APPLIED-MODELS.md",
-      "size_bytes": 51652,
-      "sha256": "a7143c0ef83302f7569f0931b9b86b52380cf9a47ebf0f2a5011a924a4be5a13"
+      "size_bytes": 51525,
+      "sha256": "97849424e6ae76940fbac5e579a3e072bc31e0015734e9fa73c86888163a5c9c"
     },
     {
       "path": "07-INTEGRATION-CONTRACT.md",
-      "size_bytes": 36405,
-      "sha256": "4e60de2b69883b9ef81315499a16c82ab832b48d9996aad80d98a1e143a147d4"
+      "size_bytes": 35967,
+      "sha256": "aebe0dbd5ae4405950ab8b6d635d55595f981e25b3e093a5871d0454e0384f44"
     },
     {
       "path": "08-DELIVERY-AND-ACCEPTANCE.md",
@@ -57,18 +57,18 @@
     },
     {
       "path": "README.md",
-      "size_bytes": 10310,
-      "sha256": "9e2c4f94fd443165df76807f3bd80e2df9348e72e9a3624790812b289bbecebd"
+      "size_bytes": 9771,
+      "sha256": "0838f34bc0fe071778f5dfd76d015c413909360be8c050a601f0daa3c327611b"
     },
     {
       "path": "acceptance-cases.json",
       "size_bytes": 277521,
-      "sha256": "fe8caec52e1be042f61ce10af81046ad3bff833af33c31526f226893713cf7e4"
+      "sha256": "53ffa348434746c4f44c1ff40b8f6d21fcff72882cc5c584ae5a972374b34406"
     },
     {
       "path": "contracts/error-vocabulary.json",
-      "size_bytes": 37002,
-      "sha256": "8568be233921460fbcb2fd386cb4f8fc174af9cb834d92aa5379585794867dc0"
+      "size_bytes": 33312,
+      "sha256": "77c47fcbfd411c7f14b960b7e0dd50f7a0f27076fd329c91d9f0f05cf516a4bf"
     },
     {
       "path": "contracts/evidence-roles.json",
@@ -698,7 +698,7 @@
     {
       "path": "requirements.json",
       "size_bytes": 14807,
-      "sha256": "d4fcd8c69ee5adbcdb0274fd9d7bc5a71b42e0736e19400267b1807105f03cbe"
+      "sha256": "925ebc6baae267d226387f95a58c6dd6400e1c7507f61f21395919cfebf06e9d"
     },
     {
       "path": "tools/check_contract_edges.py",
@@ -712,8 +712,8 @@
     },
     {
       "path": "tools/check_spec.py",
-      "size_bytes": 23381,
-      "sha256": "ee68fc8181dfabe6891582a0326128a60bc923e5fb345e7bb8aa8b91f582fc99"
+      "size_bytes": 19175,
+      "sha256": "5289d26ebcadf6126e3636fceace83e6fd2f8a678e4d0c469b3e77173ab40e0e"
     },
     {
       "path": "tools/seal_spec.py",
@@ -761,5 +761,5 @@
       "sha256": "83b6e8260990bc4b287d046b366c8e245d4979cfe18e387379181b5a009abbdb"
     }
   ],
-  "payload_sha256": "974306b73634d9d073fb90de941fe55c8fb83cd073a585613cb6249b06691571"
+  "payload_sha256": "f611dddea0addf4da6329b2157a8adbb0458614d92c59b9341610921f4918e62"
 }

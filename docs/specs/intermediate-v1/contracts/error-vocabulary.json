@@ -1,6 +1,6 @@
 {
-  "format": "llm-foundations-error-vocabulary-v1",
-  "description": "Closed error vocabulary. kinds: top_level = Error.code; reason = Error.reason_code (with http_status/top_level_code); job = JobError.code; terminal = Job.terminal_reason and TerminalPayload.reason_code. OpenAPI enums ReasonCode, JobErrorCode and TerminalReason are generated from this file and check_spec.py verifies equality and a prose census.",
+  "format": "llm-foundations-error-vocabulary-v2",
+  "description": "Closed role-aware error vocabulary. kinds: top_level = Error.code; reason = Error.reason_code; job = JobError.code; terminal = Job.terminal_reason and TerminalPayload.reason_code. Single-kind rows define http_status, top_level_code and retryable directly. Multi-kind rows define those fields once per kind under bindings; HTTP fields are null for asynchronous job and terminal roles. OpenAPI enums ReasonCode, JobErrorCode and TerminalReason are generated from this file and check_spec.py verifies equality, role bindings, semantic-rule rejections and a prose census.",
   "codes": [
     {
       "code": "ADAPTER_TARGET_MISMATCH",
@@ -33,9 +33,18 @@
         "job"
       ],
       "stage": "archive",
-      "http_status": 400,
-      "top_level_code": "VALIDATION_FAILED",
-      "retryable": false,
+      "bindings": {
+        "reason": {
+          "http_status": 400,
+          "top_level_code": "VALIDATION_FAILED",
+          "retryable": false
+        },
+        "job": {
+          "http_status": null,
+          "top_level_code": null,
+          "retryable": false
+        }
+      },
       "owner": "DAT-009",
       "meaning": "Unsafe archive member, path, link, ratio or expansion."
     },
@@ -178,9 +187,18 @@
         "job"
       ],
       "stage": "semantic",
-      "http_status": 400,
-      "top_level_code": "VALIDATION_FAILED",
-      "retryable": false,
+      "bindings": {
+        "reason": {
+          "http_status": 400,
+          "top_level_code": "VALIDATION_FAILED",
+          "retryable": false
+        },
+        "job": {
+          "http_status": null,
+          "top_level_code": null,
+          "retryable": false
+        }
+      },
       "owner": "APP-015",
       "meaning": "Chat-template digest differs from the pinned profile."
     },
@@ -191,9 +209,18 @@
         "job"
       ],
       "stage": "semantic",
-      "http_status": 400,
-      "top_level_code": "VALIDATION_FAILED",
-      "retryable": false,
+      "bindings": {
+        "reason": {
+          "http_status": 400,
+          "top_level_code": "VALIDATION_FAILED",
+          "retryable": false
+        },
+        "job": {
+          "http_status": null,
+          "top_level_code": null,
+          "retryable": false
+        }
+      },
       "owner": "INT-004",
       "meaning": "Checkpoint identity, profile, lock, dataset, tokenizer or config mismatch."
     },
@@ -228,9 +255,18 @@
         "job"
       ],
       "stage": "digest",
-      "http_status": 400,
-      "top_level_code": "VALIDATION_FAILED",
-      "retryable": false,
+      "bindings": {
+        "reason": {
+          "http_status": 400,
+          "top_level_code": "VALIDATION_FAILED",
+          "retryable": false
+        },
+        "job": {
+          "http_status": null,
+          "top_level_code": null,
+          "retryable": false
+        }
+      },
       "owner": "DAT-013",
       "meaning": "Declared and actual size/SHA-256 differ."
     },
@@ -241,9 +277,18 @@
         "job"
       ],
       "stage": "semantic",
-      "http_status": 400,
-      "top_level_code": "VALIDATION_FAILED",
-      "retryable": false,
+      "bindings": {
+        "reason": {
+          "http_status": 400,
+          "top_level_code": "VALIDATION_FAILED",
+          "retryable": false
+        },
+        "job": {
+          "http_status": null,
+          "top_level_code": null,
+          "retryable": false
+        }
+      },
       "owner": "INT-006",
       "meaning": "Generation request does not match its preview."
     },
@@ -362,9 +407,18 @@
         "job"
       ],
       "stage": "eligibility",
-      "http_status": 400,
-      "top_level_code": "VALIDATION_FAILED",
-      "retryable": false,
+      "bindings": {
+        "reason": {
+          "http_status": 400,
+          "top_level_code": "VALIDATION_FAILED",
+          "retryable": false
+        },
+        "job": {
+          "http_status": null,
+          "top_level_code": null,
+          "retryable": false
+        }
+      },
       "owner": "DAT-003",
       "meaning": "Dataset is audit_only or otherwise not eligible for the operation."
     },
@@ -387,9 +441,18 @@
         "job"
       ],
       "stage": "boundary",
-      "http_status": 503,
-      "top_level_code": null,
-      "retryable": false,
+      "bindings": {
+        "top_level": {
+          "http_status": 503,
+          "top_level_code": null,
+          "retryable": false
+        },
+        "job": {
+          "http_status": null,
+          "top_level_code": null,
+          "retryable": false
+        }
+      },
       "owner": "RUN-005",
       "meaning": "Top-level HTTP error code"
     },
@@ -412,9 +475,18 @@
         "job"
       ],
       "stage": "boundary",
-      "http_status": 503,
-      "top_level_code": null,
-      "retryable": true,
+      "bindings": {
+        "top_level": {
+          "http_status": 503,
+          "top_level_code": null,
+          "retryable": true
+        },
+        "job": {
+          "http_status": null,
+          "top_level_code": null,
+          "retryable": true
+        }
+      },
       "owner": "RUN-005",
       "meaning": "Top-level HTTP error code"
     },
@@ -557,9 +629,18 @@
         "job"
       ],
       "stage": "boundary",
-      "http_status": 500,
-      "top_level_code": null,
-      "retryable": true,
+      "bindings": {
+        "top_level": {
+          "http_status": 500,
+          "top_level_code": null,
+          "retryable": true
+        },
+        "job": {
+          "http_status": null,
+          "top_level_code": null,
+          "retryable": true
+        }
+      },
       "owner": "RUN-005",
       "meaning": "Top-level HTTP error code"
     },
@@ -642,9 +723,18 @@
         "job"
       ],
       "stage": "state",
-      "http_status": 409,
-      "top_level_code": "STATE_CONFLICT",
-      "retryable": false,
+      "bindings": {
+        "reason": {
+          "http_status": 409,
+          "top_level_code": "STATE_CONFLICT",
+          "retryable": false
+        },
+        "job": {
+          "http_status": null,
+          "top_level_code": null,
+          "retryable": false
+        }
+      },
       "owner": "APP-012",
       "meaning": "The pinned base is not prepared in this root."
     },
@@ -763,9 +853,18 @@
         "reason"
       ],
       "stage": "boundary",
-      "http_status": 413,
-      "top_level_code": "VALIDATION_FAILED",
-      "retryable": false,
+      "bindings": {
+        "top_level": {
+          "http_status": 413,
+          "top_level_code": null,
+          "retryable": false
+        },
+        "reason": {
+          "http_status": 400,
+          "top_level_code": "VALIDATION_FAILED",
+          "retryable": false
+        }
+      },
       "owner": "RUN-005",
       "meaning": "Top-level HTTP error code"
     },
@@ -836,9 +935,18 @@
         "job"
       ],
       "stage": "reference",
-      "http_status": 400,
-      "top_level_code": "VALIDATION_FAILED",
-      "retryable": false,
+      "bindings": {
+        "reason": {
+          "http_status": 400,
+          "top_level_code": "VALIDATION_FAILED",
+          "retryable": false
+        },
+        "job": {
+          "http_status": null,
+          "top_level_code": null,
+          "retryable": false
+        }
+      },
       "owner": "DAT-013",
       "meaning": "A referenced registry identity does not exist."
     },
@@ -933,9 +1041,18 @@
         "job"
       ],
       "stage": "schema",
-      "http_status": 400,
-      "top_level_code": "VALIDATION_FAILED",
-      "retryable": false,
+      "bindings": {
+        "reason": {
+          "http_status": 400,
+          "top_level_code": "VALIDATION_FAILED",
+          "retryable": false
+        },
+        "job": {
+          "http_status": null,
+          "top_level_code": null,
+          "retryable": false
+        }
+      },
       "owner": "DAT-013",
       "meaning": "Instance fails its JSON Schema."
     },
@@ -970,9 +1087,18 @@
         "job"
       ],
       "stage": "semantic",
-      "http_status": 400,
-      "top_level_code": "VALIDATION_FAILED",
-      "retryable": false,
+      "bindings": {
+        "reason": {
+          "http_status": 400,
+          "top_level_code": "VALIDATION_FAILED",
+          "retryable": false
+        },
+        "job": {
+          "http_status": null,
+          "top_level_code": null,
+          "retryable": false
+        }
+      },
       "owner": "DAT-013",
       "meaning": "A semantic invariant or role mapping fails."
     },
@@ -1031,9 +1157,18 @@
         "job"
       ],
       "stage": "storage",
-      "http_status": 503,
-      "top_level_code": "STORAGE_UNAVAILABLE",
-      "retryable": false,
+      "bindings": {
+        "reason": {
+          "http_status": 503,
+          "top_level_code": "STORAGE_UNAVAILABLE",
+          "retryable": false
+        },
+        "job": {
+          "http_status": null,
+          "top_level_code": null,
+          "retryable": false
+        }
+      },
       "owner": "DAT-011",
       "meaning": "Integrity check failed; root is in read-only recovery."
     },
@@ -1068,9 +1203,18 @@
         "job"
       ],
       "stage": "semantic",
-      "http_status": 400,
-      "top_level_code": "VALIDATION_FAILED",
-      "retryable": false,
+      "bindings": {
+        "reason": {
+          "http_status": 400,
+          "top_level_code": "VALIDATION_FAILED",
+          "retryable": false
+        },
+        "job": {
+          "http_status": null,
+          "top_level_code": null,
+          "retryable": false
+        }
+      },
       "owner": "APP-001",
       "meaning": "Model family or comparison identities are incompatible."
     },
@@ -1081,9 +1225,18 @@
         "job"
       ],
       "stage": "semantic",
-      "http_status": 400,
-      "top_level_code": "VALIDATION_FAILED",
-      "retryable": false,
+      "bindings": {
+        "reason": {
+          "http_status": 400,
+          "top_level_code": "VALIDATION_FAILED",
+          "retryable": false
+        },
+        "job": {
+          "http_status": null,
+          "top_level_code": null,
+          "retryable": false
+        }
+      },
       "owner": "APP-014",
       "meaning": "Tied-weight alias invalid."
     },
@@ -1106,9 +1259,18 @@
         "job"
       ],
       "stage": "semantic",
-      "http_status": 400,
-      "top_level_code": "VALIDATION_FAILED",
-      "retryable": false,
+      "bindings": {
+        "reason": {
+          "http_status": 400,
+          "top_level_code": "VALIDATION_FAILED",
+          "retryable": false
+        },
+        "job": {
+          "http_status": null,
+          "top_level_code": null,
+          "retryable": false
+        }
+      },
       "owner": "APP-015",
       "meaning": "Tokenizer identity differs from the bound identity."
     },

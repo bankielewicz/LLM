@@ -219,18 +219,64 @@ else:
             if not pathparams<=declared:fail(f'Undeclared path parameter {route} {method}')
     check('openapi_structure',f'{len(openapi.get("paths",{}))} paths and {op_count} operations structurally checked; not full OpenAPI runtime validation')
 vocab=documents.get((ROOT/'contracts/error-vocabulary.json').resolve())
+vocab_bindings={}
 if not vocab: fail('Missing contracts/error-vocabulary.json')
 elif openapi:
     comps=openapi['components']['schemas']; rows=vocab['codes']
-    kinds={k:{r['code'] for r in rows if k in r['kinds']} for k in ('top_level','reason','job','terminal')}
+    role_names=('top_level','reason','job','terminal')
+    binding_fields={'http_status','top_level_code','retryable'}
+    if vocab.get('format')!='llm-foundations-error-vocabulary-v2':
+        fail('error-vocabulary.json must use llm-foundations-error-vocabulary-v2')
+    codes=[r.get('code') for r in rows]
+    if len(codes)!=len(set(codes)): fail('Duplicate error-vocabulary code')
+    kinds={k:{r.get('code') for r in rows if k in r.get('kinds',[])} for k in role_names}
     enums={'top_level':set(comps['Error']['properties']['error']['properties']['code']['enum']),
            'reason':set(comps.get('ReasonCode',{}).get('enum',[])),'job':set(comps.get('JobErrorCode',{}).get('enum',[])),
            'terminal':set(comps.get('TerminalReason',{}).get('enum',[]))}
     for k in kinds:
         if kinds[k]!=enums[k]: fail(f'OpenAPI {k} enum differs from error-vocabulary.json: {sorted(kinds[k]^enums[k])[:10]}')
+    multi_role_count=0
     for r in rows:
-        if 'reason' in r['kinds'] and (r.get('top_level_code') not in kinds['top_level'] or not r.get('http_status')):
-            fail(f'Reason code {r["code"]} lacks a top-level code or HTTP status')
+        code=r.get('code'); row_kinds=r.get('kinds')
+        if not isinstance(code,str) or not isinstance(row_kinds,list) or not row_kinds or len(row_kinds)!=len(set(row_kinds)) or not set(row_kinds)<=set(role_names):
+            fail(f'Invalid kinds for vocabulary code {code!r}')
+            continue
+        if len(row_kinds)==1:
+            if 'bindings' in r: fail(f'Single-role code {code} must use flat binding fields')
+            if not binding_fields<=set(r): fail(f'Single-role code {code} lacks binding fields')
+            vocab_bindings[code]={row_kinds[0]:{field:r.get(field) for field in binding_fields}}
+        else:
+            multi_role_count+=1
+            if binding_fields&set(r): fail(f'Multi-role code {code} must not use flat binding fields')
+            bindings=r.get('bindings')
+            if not isinstance(bindings,dict) or set(bindings)!=set(row_kinds):
+                fail(f'Multi-role code {code} bindings must equal kinds')
+                continue
+            vocab_bindings[code]=bindings
+        for kind,binding in vocab_bindings.get(code,{}).items():
+            if not isinstance(binding,dict) or set(binding)!=binding_fields:
+                fail(f'{code} {kind} binding must contain exactly {sorted(binding_fields)}')
+                continue
+            status=binding['http_status']; top=binding['top_level_code']; retryable=binding['retryable']
+            if not isinstance(retryable,bool): fail(f'{code} {kind} retryable must be boolean')
+            if kind in {'job','terminal'}:
+                if status is not None or top is not None: fail(f'{code} {kind} binding must have null HTTP fields')
+            else:
+                if not isinstance(status,int) or isinstance(status,bool) or not 100<=status<=599:
+                    fail(f'{code} {kind} binding requires a concrete HTTP status')
+                if kind=='top_level' and top is not None: fail(f'{code} top_level binding must have null top_level_code')
+                if kind=='reason' and top not in kinds['top_level']: fail(f'{code} reason binding lacks a known top-level code')
+    for code,bindings in vocab_bindings.items():
+        reason=bindings.get('reason')
+        if reason:
+            top=vocab_bindings.get(reason['top_level_code'],{}).get('top_level')
+            if not top or reason['http_status']!=top['http_status']:
+                fail(f'{code} reason binding status differs from top-level {reason["top_level_code"]}')
+    payload=vocab_bindings.get('PAYLOAD_TOO_LARGE',{})
+    expected_payload={
+        'top_level':{'http_status':413,'top_level_code':None,'retryable':False},
+        'reason':{'http_status':400,'top_level_code':'VALIDATION_FAILED','retryable':False}}
+    if payload!=expected_payload: fail('PAYLOAD_TOO_LARGE role bindings differ from the frozen 413 transport / 400 semantic pair')
     known={r['code'] for r in rows}|set(vocab.get('ignored_tokens',{}))
     known|={r['id'] for r in documents.get((ROOT/'contracts/semantic-rules.json').resolve(),{}).get('rules',[])}
     token_re=re.compile(r'(?<![A-Za-z0-9_\-/.])([A-Z][A-Z0-9]*(?:_[A-Z0-9]+)+)(?![A-Za-z0-9_])')
@@ -244,7 +290,7 @@ elif openapi:
             for tok in token_re.findall(text):
                 if tok not in known: unknown.setdefault(tok,case['id'])
     for tok,where in sorted(unknown.items()): fail(f'Uppercase code {tok} at {where} is not in error-vocabulary.json, semantic-rules.json or ignored_tokens')
-    check('error_vocabulary',f'{len(rows)} vocabulary codes equal the OpenAPI enums; prose and case census clean')
+    check('error_vocabulary',f'{len(rows)} vocabulary codes and {multi_role_count} multi-role bindings equal the OpenAPI enums; role fields, prose and case census clean')
 
 baseline=documents.get((ROOT/'evidence/source-baseline.json').resolve())
 if baseline:
@@ -271,10 +317,31 @@ if args.write_index and not REPORT['errors']:
 rules_doc=documents.get((ROOT/'contracts/semantic-rules.json').resolve(),{})
 rule_ids=[r.get('id') for r in rules_doc.get('rules',[])]
 if len(rule_ids)!=len(set(rule_ids)): fail('Duplicate semantic rule IDs')
+def rejection_binding_error(rejection):
+    if not isinstance(rejection,dict): return 'rejection is not an object'
+    reason_code=rejection.get('reason_code')
+    code=reason_code or rejection.get('code')
+    kind='reason' if reason_code else 'top_level'
+    binding=vocab_bindings.get(code,{}).get(kind)
+    if not binding: return f'{code} has no {kind} binding'
+    if rejection.get('http_status')!=binding['http_status']:
+        return f'{code} {kind} status {rejection.get("http_status")} differs from {binding["http_status"]}'
+    if kind=='reason' and rejection.get('code')!=binding['top_level_code']:
+        return f'{code} reason top-level {rejection.get("code")} differs from {binding["top_level_code"]}'
+    return None
+semantic_rejections=0
 for r in rules_doc.get('rules',[]):
     if not r.get('applies_to') or not (r.get('predicate') or r.get('decision')) or not (r.get('rejection') or r.get('invariant')): fail(f'Semantic rule {r.get("id")} lacks applies_to, predicate/decision or rejection/invariant')
-    rej=r.get('rejection') or {}
-    if rej.get('reason_code') and vocab and rej['reason_code'] not in {v['code'] for v in vocab['codes']}: fail(f'Semantic rule {r["id"]} reason {rej["reason_code"]} not in error vocabulary')
+    rej=r.get('rejection')
+    if rej:
+        semantic_rejections+=1
+        issue=rejection_binding_error(rej)
+        if issue: fail(f'Semantic rule {r["id"]} rejection binding: {issue}')
+bad_payload={'http_status':413,'code':'VALIDATION_FAILED','reason_code':'PAYLOAD_TOO_LARGE'}
+if rejection_binding_error(bad_payload) is None:
+    fail('Role-binding negative control accepted PAYLOAD_TOO_LARGE as a 413 semantic reason')
+else:
+    check('error_role_negative_control','PAYLOAD_TOO_LARGE 413 semantic reason rejected; 413 top-level and 400 reason bindings retained')
 annotated=set()
 for path,data in documents.items():
     for node in walk(data):

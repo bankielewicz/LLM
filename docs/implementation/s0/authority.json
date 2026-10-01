@@ -1,0 +1,29 @@
+{
+  "format": "llm-foundations-s0-authority-v1",
+  "spec_root": "docs/specs/intermediate-v1",
+  "implementation_base_commit": "33223fcb5d02936e80c713968ab308eac05e5b3e",
+  "approved_baseline": {
+    "revision": "1.1",
+    "spec_root": "docs/specs/intermediate-v1",
+    "commit": "acb04d173ab1c4c6395ac95c95ad04b8fa50e849",
+    "retained_manifest": "docs/implementation/s0/approved-1.1-manifest.json",
+    "manifest_sha256": "13645c0e25f45f1d478a34d79fec1affdc4e06304cc304f03967b2194708adaa",
+    "payload_sha256": "f611dddea0addf4da6329b2157a8adbb0458614d92c59b9341610921f4918e62",
+    "file_count": 150
+  },
+  "active_specification": {
+    "revision": "1.2",
+    "spec_root": "docs/specs/intermediate-v1",
+    "manifest_sha256": "7526190e853580adcc3681c9ac0559be4ae8c741878b5a686bdcf624d9f131b8",
+    "payload_sha256": "974306b73634d9d073fb90de941fe55c8fb83cd073a585613cb6249b06691571",
+    "file_count": 150,
+    "authorization": "2026-10-01 owner instruction to proceed with S0 and documented corrections; final product acceptance remains separate"
+  },
+  "protected_source": {
+    "inventory": "docs/specs/intermediate-v1/evidence/source-baseline.json",
+    "inventory_sha256": "72997efb6e91913b4a8c0bdbef6950b35d803df29a765143b7a5e9dcc0ab04e4",
+    "file_count": 107
+  },
+  "acceptance_execution_unit_count": 605,
+  "product_qualification": "NOT_RUN"
+}

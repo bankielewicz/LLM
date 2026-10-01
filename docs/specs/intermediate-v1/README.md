@@ -1,6 +1,6 @@
 # LLM Foundations — intermediate buildout specification
 
-Revision: 1.1 — approved by the owner on 2026-09-30. Assembled 2026-09-30 by an independent specification review from revision 1.0 (commit 0f5bc7c3e6d0dc572530b612e667367d7a164750, payload SHA-256 ccc00c3e3ab78439866617ea750fd176192e8b40c87a3f5914706d39584f702a) and amendments AMD-001 through AMD-053 plus the reseal, AMD-054, all approved by the owner. Revision 1.1 is the sealed authority; revision 1.0's seal and its reviews remain historical. Status: implementation specification; product acceptance is NOT_RUN.
+Revision: 1.2 — scoped specification corrections authorized by the owner on 2026-10-01. Revision 1.1 was approved by the owner on 2026-09-30 at commit acb04d173ab1c4c6395ac95c95ad04b8fa50e849, with payload SHA-256 f611dddea0addf4da6329b2157a8adbb0458614d92c59b9341610921f4918e62. Revision 1.2 is the sealed authority; revisions 1.1 and 1.0 and their reviews remain historical. Status: implementation specification; product acceptance is NOT_RUN.
 
 This package specifies the expansion of **LLM Foundations: build, measure, explain** into an application that teaches an adult beginner to conduct a bounded, reproducible applied LLM experiment. It preserves the supplied thirteen-lesson foundation and Python labs. It adds eight required applied modules, a prerequisite refresher, and two shipped electives, for 24 addressable modules.
 
@@ -35,7 +35,7 @@ Learners must supply foundation-capstone evidence and the objective evidence for
 
 The required capstone compares the frozen pretrained base with a specified adapter on the new support task, retains negative results, records test exposure, and demonstrates bundle reuse. E01 assesses a scoped learner source modification using an explicit local CLI harness; the browser never executes uploaded Python. E02 teaches lexical retrieval with source evidence. Neither elective substitutes for required core evidence.
 
-The reference pretrained model is HuggingFaceTB/SmolLM2-135M-Instruct at revision 12fd25f77366fa6b3b4b768ec3050bf629380bac. This is an already instruction-tuned model. LoRA adaptation is separate from the TinyLM from-scratch path. The release requires Windows CPU, WSL CPU, and explicitly selected WSL CUDA qualification; CPU can complete every required lesson. Dependency pins and model identity are selected requirements, not tested compatibility or performance claims.
+The reference pretrained model is HuggingFaceTB/SmolLM2-135M-Instruct at revision 12fd25f77366fa6b3b4b768ec3050bf629380bac. This is an already instruction-tuned model. LoRA adaptation is separate from the TinyLM from-scratch path. The release requires qualification of Windows CPU, Windows CUDA, WSL CPU, and WSL CUDA; CPU can complete every required lesson. Dependency pins and model identity are selected requirements, not tested compatibility or performance claims.
 
 ## Authoring custody and review
 The work is isolated on local branch spec/intermediate-buildout in the sibling llm-foundations-buildout-spec worktree. The base is commit 3a47ea48da53cb9de3ff4727ca5f0f0b6f2b9bf8. Application/course bytes are outside this task's authoring scope.
@@ -53,7 +53,8 @@ The authoring process used public model/config/license and dependency metadata, 
 | Revision | State | Payload | Content |
 |---|---|---|---|
 | 1.0 | Sealed at commit 0f5bc7c3e6d0dc572530b612e667367d7a164750 | 117 files, SHA-256 ccc00c3e3ab78439866617ea750fd176192e8b40c87a3f5914706d39584f702a | Original package; the reports under reviews/ describe revision 1.0 only. |
-| 1.1 | Approved by the owner 2026-09-30; sealed | [spec-manifest.json](spec-manifest.json) | Revision 1.0 plus AMD-001 through AMD-053 and this reseal, AMD-054, from the independent review of 2026-09-30, applied in amendment-index order; each amendment's unified patch is retained with that review. |
+| 1.1 | Approved by the owner 2026-09-30; sealed | 150 files, SHA-256 f611dddea0addf4da6329b2157a8adbb0458614d92c59b9341610921f4918e62; [retained manifest](../../implementation/s0/approved-1.1-manifest.json) | Revision 1.0 plus AMD-001 through AMD-053 and this reseal, AMD-054, from the independent review of 2026-09-30, applied in amendment-index order; each amendment's unified patch is retained with that review. |
+| 1.2 | Scoped corrections authorized by the owner 2026-10-01; sealed | [spec-manifest.json](spec-manifest.json) | [AMD-055](reviews/s0-amd055-profile-summary.md) corrects the release-profile summary to enumerate the already-normative four profiles. [AMD-056](reviews/s0-amd056-error-role-bindings.md) resolves role-specific HTTP bindings without changing wire behavior. [AMD-057](reviews/s0-amd057-reseal-v1.2.md) reseals the package. No requirement, acceptance case or product status changed. |
 
 ## Reproduce document checks
 Use a Python environment with jsonschema and referencing already available. Revision 1.0 was authored with a Windows Python 3.10 interpreter; from revision 1.1 every document check, including fixture materialization, MUST pass under the qualified Python 3.12 interpreter, which is also the companion target. A check that passes only under another interpreter does not satisfy the S0 gate.

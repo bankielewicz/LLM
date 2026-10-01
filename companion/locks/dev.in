@@ -1,0 +1,8 @@
+# S0 authoring and contract-check dependencies. These are not runtime dependencies.
+build==1.4.0
+jsonschema==4.26.0
+packaging==25.0
+pytest==9.0.2
+referencing==0.37.0
+setuptools==68.1.2
+wheel==0.42.0
