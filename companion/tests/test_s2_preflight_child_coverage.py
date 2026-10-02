@@ -3,7 +3,8 @@
 These tests do not establish CUDA or Windows runtime support.
 """
 import json
-from types import SimpleNamespace
+import sys
+from types import ModuleType, SimpleNamespace
 
 import pytest
 
@@ -25,8 +26,23 @@ def modules(monkeypatch, *, cuda=False, missing=None, wrong=None, cpu_failure=Fa
         if name == missing:
             raise ImportError('private file path')
         return backend[name]
-    monkeypatch.setattr(child.importlib, 'import_module', load)
+    monkeypatch.setattr(child, '_load_backend', load)
     return torch
+
+
+def test_backend_loader_accepts_only_the_five_fixed_names(monkeypatch):
+    names = tuple(child._empty_versions())
+    assert names == ('torch', 'transformers', 'peft', 'accelerate', 'safetensors')
+    fixed = {}
+    for name in names:
+        module = ModuleType(name)
+        monkeypatch.setitem(sys.modules, name, module)
+        fixed[name] = module
+    monkeypatch.setitem(sys.modules, 'learner_controlled', ModuleType('learner_controlled'))
+
+    assert {name: child._load_backend(name) for name in names} == fixed
+    with pytest.raises(ValueError, match='not fixed'):
+        child._load_backend('learner_controlled')
 
 
 @pytest.mark.parametrize('profile', ['wsl-cpu', 'win-cpu'])

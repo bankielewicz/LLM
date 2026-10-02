@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import importlib
 import json
 import math
 import os
@@ -29,6 +28,30 @@ def _empty_versions() -> dict[str, str | None]:
         "accelerate": None,
         "safetensors": None,
     }
+
+
+def _load_backend(name: str) -> ModuleType:
+    if name == "torch":
+        import torch
+
+        return torch
+    if name == "transformers":
+        import transformers
+
+        return transformers
+    if name == "peft":
+        import peft
+
+        return peft
+    if name == "accelerate":
+        import accelerate
+
+        return accelerate
+    if name == "safetensors":
+        import safetensors
+
+        return safetensors
+    raise ValueError("backend name is not fixed")
 
 
 def _failed_cuda(
@@ -178,7 +201,7 @@ def build_child_report(profile: str | None = None) -> dict[str, object]:
     missing: list[str] = []
     for name in versions:
         try:
-            module = importlib.import_module(name)
+            module = _load_backend(name)
         except Exception:
             missing.append(name)
             continue

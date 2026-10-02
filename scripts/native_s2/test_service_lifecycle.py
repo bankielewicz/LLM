@@ -1304,7 +1304,63 @@ class ServiceLifecycle(unittest.TestCase):
         )
         self.assertEqual(failed["state"], "failed")
         self.assertEqual(failed["error"]["code"], "CONTEXT_PREVIEW_STALE")
-        self.assertEqual(failed["committed_artifact_count"], 0)
+        self.assertIsNone(failed["result"])
+        self.assertEqual(failed["step"], 0)
+        self.assertIsNone(failed["checkpoint_boundary"])
+        self.assertEqual(
+            failed["log_artifact_ids"], {"stdout": None, "stderr": None}
+        )
+        job_artifacts = self.service.get(
+            f"/api/v1/artifacts?job_id={failed['job_id']}&limit=100"
+        )["items"]
+        job_artifacts.sort(key=lambda artifact: (artifact["type"], artifact["artifact_id"]))
+        self.assertEqual(failed["committed_artifact_count"], len(job_artifacts))
+        self.assertEqual(
+            {
+                (artifact["type"], artifact["display_name"])
+                for artifact in job_artifacts
+            },
+            {
+                ("job_request", "job-request.json"),
+                ("run_result", "run-result.json"),
+            },
+        )
+        self.assertTrue(
+            all(artifact["job_id"] == failed["job_id"] for artifact in job_artifacts)
+        )
+        artifacts_by_type = {
+            artifact["type"]: artifact for artifact in job_artifacts
+        }
+        self.assertEqual(len(artifacts_by_type), len(job_artifacts))
+        request_artifact = artifacts_by_type["job_request"]
+        run_result_artifact = artifacts_by_type["run_result"]
+        self.assertEqual(
+            request_artifact["artifact_id"], failed["request"]["artifact_id"]
+        )
+        request_raw = self.service.artifact_bytes(request_artifact["artifact_id"])
+        self.assertEqual(request_raw, canonical(request))
+        self.assertEqual(request_artifact["sha256"], digest(request_raw))
+        self.assertEqual(
+            failed["request"]["canonical_sha256"], digest(request_raw)
+        )
+        run_result_raw = self.service.artifact_bytes(
+            run_result_artifact["artifact_id"]
+        )
+        self.assertEqual(
+            run_result_raw,
+            canonical(
+                {
+                    "error": "CONTEXT_PREVIEW_STALE",
+                    "finished_at": failed["finished_at"],
+                    "last_durable_checkpoint_step": None,
+                    "last_observed_step": 0,
+                    "requested_final_step": 0,
+                    "run_id": failed["run_id"],
+                    "status": "failed",
+                }
+            ),
+        )
+        self.assertEqual(run_result_artifact["sha256"], digest(run_result_raw))
         after = {
             name: digest(path.read_bytes())
             for name, path in self.service.checkpoint_files(
@@ -1319,6 +1375,9 @@ class ServiceLifecycle(unittest.TestCase):
             "forged_preview_sha256": digest(changed_raw),
             "error_code": failed["error"]["code"],
             "committed_artifact_count": failed["committed_artifact_count"],
+            "committed_artifact_types": sorted(
+                artifact["type"] for artifact in job_artifacts
+            ),
             "checkpoint_files_unchanged": before,
         }
 
