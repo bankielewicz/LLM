@@ -231,21 +231,34 @@ class ControlServer:
                 )
             self.socket_path.unlink()
         listener = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+        bound_identity: tuple[int, int] | None = None
         try:
             listener.bind(str(self.socket_path))
+            bound_info = self.socket_path.lstat()
+            bound_identity = (bound_info.st_dev, bound_info.st_ino)
             os.chmod(self.socket_path, 0o600)
             listener.listen(8)
             listener.settimeout(0.25)
             info = self.socket_path.lstat()
-            if stat.S_IMODE(info.st_mode) != 0o600:
+            if (
+                (info.st_dev, info.st_ino) != bound_identity
+                or stat.S_IMODE(info.st_mode) != 0o600
+            ):
                 raise ApiError(
                     "STORAGE_UNAVAILABLE",
                     "The private control endpoint permissions are unsafe.",
                 )
-            self._socket_identity = (info.st_dev, info.st_ino)
+            self._socket_identity = bound_identity
             self._listener = listener
         except BaseException:
             listener.close()
+            if bound_identity is not None:
+                try:
+                    current = self.socket_path.lstat()
+                    if (current.st_dev, current.st_ino) == bound_identity:
+                        self.socket_path.unlink()
+                except FileNotFoundError:
+                    pass
             raise
 
     def start(self) -> ControlDescriptor:

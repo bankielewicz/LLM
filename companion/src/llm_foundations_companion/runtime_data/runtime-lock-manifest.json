@@ -1,0 +1,21 @@
+{
+  "format": "llmf-runtime-lock-manifest-v1",
+  "profiles": {
+    "win-cpu": {
+      "dependency_lock_sha256": "02619fe73374e48742a6fe99317067263a106bce77580f8b79c19bca6fbb8872",
+      "wheel_manifest_sha256": "f3ba5dc7e43b0d15e7c395914156d1d43ae1534315e9568d857f010f8dca3dad"
+    },
+    "win-cuda": {
+      "dependency_lock_sha256": "0821cbccf2b612db551d565e6420553cfc7c1aa85a61f7bddb8b699a305edb38",
+      "wheel_manifest_sha256": "60f5f4f29992ed5829d2cf2a90e995122ce5e6acbee133ad29ab3dac3441c227"
+    },
+    "wsl-cpu": {
+      "dependency_lock_sha256": "4c49171d00476f62f80ec1cbb1fdd94c2519f1ac97d37c29c27a042605977cfb",
+      "wheel_manifest_sha256": "e2cad841a03bfed5e6b966f111a3855cf39eb84649f76cef8a13ce351ca4469c"
+    },
+    "wsl-cuda": {
+      "dependency_lock_sha256": "e5ced4cbc9bfb327ec4917f1ae8649b8986878635c115d6f4dd2e323f40e5a52",
+      "wheel_manifest_sha256": "6b3c46d96db2d398b0cfba999aeae37ea83f1483b2cf417c621c3b63e4f46fc3"
+    }
+  }
+}

@@ -10,6 +10,7 @@ import queue
 import secrets
 import signal
 import sqlite3
+import stat
 import subprocess
 import sys
 import threading
@@ -22,14 +23,17 @@ from pathlib import Path
 from typing import Any, BinaryIO
 
 from .errors import ApiError, ERROR_VOCABULARY
-from .events import EventLog, EventPage
+from .events import EVENT_LIMITS, EventLog, EventPage
+from .operation_store import OperationStoreError
 from .operations import OPERATIONS
+from .platform_security import is_reparse_point
 from .schema import canonical_json, strict_json, validate_schema
 from .worker_protocol import (
     ProtocolState,
     WorkerProtocolError,
     make_request_envelope,
     read_frame,
+    validate_input_snapshot,
     write_frame,
 )
 
@@ -144,6 +148,17 @@ REQUEST_SCHEMAS = {
 
 _TERMINAL = frozenset({"completed", "failed", "interrupted"})
 _ACTIVE = frozenset({"starting", "running", "cancelling"})
+_S2_OPERATIONS = frozenset(
+    {
+        "tokenizer_train",
+        "tiny_train",
+        "tiny_resume",
+        "evaluate",
+        "generate",
+        "context_preview",
+    }
+)
+_TRAINING_OPERATIONS = frozenset({"tiny_train", "tiny_resume"})
 
 
 def _utc_now() -> str:
@@ -460,7 +475,10 @@ class OwnedWorkerProcess:
 
     def send_request(self, envelope: Mapping[str, Any]) -> None:
         write_frame(self._request_writer, envelope)
-        self._request_writer.close()
+
+    def send_ack(self, message: Mapping[str, Any]) -> None:
+        parsed = self._protocol_state.acknowledge(message)
+        write_frame(self._request_writer, parsed)
 
     def _read_protocol(self) -> None:
         try:
@@ -625,6 +643,66 @@ class WorkerController:
     def command_prefix(self) -> tuple[str, ...]:
         return (sys.executable, "-I", "-m", "llm_foundations_companion.worker_main")
 
+    @staticmethod
+    def _verify_staging_inputs(
+        staging: Path, input_snapshot: Mapping[str, Any]
+    ) -> None:
+        snapshot = validate_input_snapshot(input_snapshot)
+        if (
+            is_reparse_point(staging)
+            or not stat.S_ISDIR(os.lstat(staging).st_mode)
+            or staging.resolve(strict=True) != staging
+        ):
+            raise OSError("worker staging directory is not confined")
+        entries = {entry.name: entry for entry in os.scandir(staging)}
+        if set(entries) - {"inputs"}:
+            raise OSError("worker staging directory contains undeclared entries")
+        descriptors = tuple(snapshot["inputs"])
+        inputs_root = staging / "inputs"
+        if "inputs" not in entries:
+            if descriptors:
+                raise OSError("worker staging inputs are missing")
+            return
+        inputs_info = os.lstat(inputs_root)
+        if (
+            is_reparse_point(inputs_root)
+            or not stat.S_ISDIR(inputs_info.st_mode)
+            or inputs_root.resolve(strict=True).parent != staging
+        ):
+            raise OSError("worker staging inputs directory is not confined")
+        actual = {entry.name: entry for entry in os.scandir(inputs_root)}
+        expected = {
+            Path(str(item["path"])).name: item for item in descriptors
+        }
+        if len(expected) != len(descriptors) or set(actual) != set(expected):
+            raise OSError("worker staging inputs differ from the snapshot")
+        for name, item in expected.items():
+            path = inputs_root / name
+            info = os.lstat(path)
+            if (
+                is_reparse_point(path)
+                or not stat.S_ISREG(info.st_mode)
+                or path.resolve(strict=True).parent != inputs_root
+            ):
+                raise OSError("worker staging input is not a confined regular file")
+            digest = hashlib.sha256()
+            size = 0
+            flags = (
+                os.O_RDONLY
+                | getattr(os, "O_BINARY", 0)
+                | getattr(os, "O_NOFOLLOW", 0)
+            )
+            descriptor = os.open(path, flags)
+            with os.fdopen(descriptor, "rb") as source:
+                opened = os.fstat(source.fileno())
+                if not stat.S_ISREG(opened.st_mode):
+                    raise OSError("worker staging input changed before verification")
+                for chunk in iter(lambda: source.read(1024 * 1024), b""):
+                    size += len(chunk)
+                    digest.update(chunk)
+            if size != item["size_bytes"] or digest.hexdigest() != item["sha256"]:
+                raise OSError("worker staging input bytes differ from the snapshot")
+
     def launch(
         self,
         *,
@@ -635,6 +713,9 @@ class WorkerController:
         request: Mapping[str, Any],
         request_sha256: str,
         schema_id: str,
+        input_snapshot: Mapping[str, Any],
+        input_snapshot_sha256: str,
+        output_allocations: Mapping[str, Any],
     ) -> OwnedWorkerProcess:
         spawn_nonce = secrets.token_hex(32)
         request_read, request_write = os.pipe()
@@ -645,10 +726,7 @@ class WorkerController:
         try:
             staging = root / "jobs" / job_id / "staging"
             staging.mkdir(mode=0o700, parents=True, exist_ok=True)
-            if staging.is_symlink() or not staging.is_dir() or staging.resolve() != staging:
-                raise OSError("worker staging directory is not confined")
-            if any(staging.iterdir()):
-                raise OSError("worker staging directory is not empty")
+            self._verify_staging_inputs(staging, input_snapshot)
             if self.instance_lease is not None:
                 lease_fd = int(self.instance_lease.make_inheritable())
                 child_fds.append(lease_fd)
@@ -742,6 +820,7 @@ class WorkerController:
                     request_sha256=request_sha256,
                     schema_id=schema_id,
                     operation=str(request["operation"]),
+                    input_snapshot_sha256=input_snapshot_sha256,
                 ),
                 windows_job=windows_job,
             )
@@ -753,6 +832,9 @@ class WorkerController:
                     schema_id=schema_id,
                     request_sha256=request_sha256,
                     request=request,
+                    input_snapshot_sha256=input_snapshot_sha256,
+                    input_snapshot=input_snapshot,
+                    output_allocations=output_allocations,
                 )
             )
             return owned
@@ -784,6 +866,8 @@ class Scheduler:
         app_version: str,
         capabilities: Mapping[str, Any],
         admission_planner: Any = None,
+        training_store: Any = None,
+        operation_store: Any = None,
         worker_controller: Any = None,
         clock: Callable[[], Any] | None = None,
         uuid_factory: Callable[[], Any] | None = None,
@@ -798,12 +882,15 @@ class Scheduler:
         self.app_version = app_version
         self.capabilities = dict(capabilities)
         self.admission_planner = admission_planner or AdmissionPlanner()
+        self.training_store = training_store
+        self.operation_store = operation_store
         self.worker_controller = worker_controller or WorkerController(instance_lease=instance_lease)
         self._clock = clock
         self._uuid_factory = uuid_factory or uuid.uuid4
         self._lock = threading.RLock()
         self._active: OwnedWorkerProcess | Any | None = None
         self._active_job_id: str | None = None
+        self._active_run_id: str | None = None
         self._pending_terminal: Mapping[str, Any] | None = None
         self._scheduling_paused = False
         if not self.database.read_only:
@@ -905,6 +992,7 @@ class Scheduler:
             {"$ref": f"#/components/schemas/{schema_id}"},
             dict(request),
             document="openapi.json",
+            include_semantic=False,
         )
         if not isinstance(normalized_request, dict):
             raise RuntimeError("job request schema did not normalize to an object")
@@ -918,7 +1006,16 @@ class Scheduler:
             return Submission(replay.status_code, replay.response_body, True)
         self.database.assert_writable()
         self._capability(str(operation))
-        reservation = self.admission_planner.plan(normalized_request)
+        admission = (
+            self.admission_planner.resolve(normalized_request)
+            if hasattr(self.admission_planner, "resolve")
+            else None
+        )
+        reservation = (
+            dict(admission.reservation)
+            if admission is not None
+            else self.admission_planner.plan(normalized_request)
+        )
         with self._lock, self.database.transaction() as connection:
             replay = self.idempotency.lookup_in(
                 connection, method, resolved_path, idempotency_key, request_sha256
@@ -951,6 +1048,15 @@ class Scheduler:
                 idempotency_key=idempotency_key,
                 queue_position=queued + 1,
             )
+            if admission is not None:
+                if self.training_store is None:
+                    raise RuntimeError("resolved S2 admission requires a training store")
+                self.training_store.create_job_context_in(
+                    connection,
+                    job_id=job_id,
+                    request_sha256=request_sha256,
+                    plan=admission,
+                )
             connection.execute(
                 """
                 INSERT INTO jobs(
@@ -976,7 +1082,11 @@ class Scheduler:
                 connection,
                 job_id=job_id,
                 event_type="state_changed",
-                payload={"state": "queued", "step": None, "requested_final_step": None},
+                payload={
+                    "state": "queued",
+                    "step": None,
+                    "requested_final_step": record["requested_final_step"],
+                },
                 occurred_at=now,
             )
             body = self.idempotency.record_success(
@@ -1133,6 +1243,32 @@ class Scheduler:
             now,
         )
 
+    def _prepare_terminal_record(
+        self,
+        job_id: str,
+        *,
+        state: str,
+        reason: str,
+        finished_at: str,
+        result: Mapping[str, Any] | None = None,
+    ) -> Any:
+        if self.operation_store is None:
+            return None
+        return self.operation_store.prepare_terminal(
+            job_id,
+            state=state,
+            reason_code=reason,
+            finished_at=finished_at,
+            result=result,
+        )
+
+    def _complete_terminal_record(self, prepared_terminal: Any) -> None:
+        if prepared_terminal is None:
+            return
+        if self.operation_store is None:
+            raise RuntimeError("prepared terminal has no operation store")
+        self.operation_store.complete_terminal(prepared_terminal)
+
     def _terminal(
         self,
         connection: sqlite3.Connection,
@@ -1144,7 +1280,24 @@ class Scheduler:
         now: str,
         result: Mapping[str, Any] | None = None,
         error: Mapping[str, Any] | None = None,
+        prepared_terminal: Any = None,
     ) -> None:
+        if prepared_terminal is not None:
+            if self.operation_store is None:
+                raise RuntimeError("prepared terminal has no operation store")
+            committed = self.operation_store.finalize_terminal_in(
+                connection, prepared_terminal
+            )
+            if state == "completed":
+                result = committed.result
+            if committed.run_id is not None:
+                record["run_id"] = committed.run_id
+            record["committed_artifact_count"] = int(
+                connection.execute(
+                    "SELECT COUNT(*) FROM artifacts WHERE job_id = ? AND deleted_at IS NULL",
+                    (row["job_id"],),
+                ).fetchone()[0]
+            )
         self._transition(connection, row, record, state, now)
         record["finished_at"] = now
         record["phase"] = None
@@ -1233,6 +1386,28 @@ class Scheduler:
                 self._scheduling_paused = True
                 return 0
             try:
+                with self.database.read() as connection:
+                    active_job_ids = tuple(
+                        str(row[0])
+                        for row in connection.execute(
+                            "SELECT job_id FROM jobs "
+                            "WHERE state IN ('starting','running','cancelling') "
+                            "ORDER BY created_at, job_id"
+                        )
+                    )
+                prepared_terminals = {}
+                for job_id in active_job_ids:
+                    finished_at = self._now()
+                    prepared_terminals[job_id] = (
+                        finished_at,
+                        self._prepare_terminal_record(
+                            job_id,
+                            state="interrupted",
+                            reason="service_restarted",
+                            finished_at=finished_at,
+                        ),
+                    )
+                committed_terminals = []
                 with self.database.transaction() as connection:
                     rows = tuple(
                         connection.execute(
@@ -1241,14 +1416,19 @@ class Scheduler:
                     )
                     for row in rows:
                         record = self._decode_record(row)
+                        finished_at, prepared_terminal = prepared_terminals[
+                            str(row["job_id"])
+                        ]
                         self._terminal(
                             connection,
                             row,
                             record,
                             state="interrupted",
                             reason="service_restarted",
-                            now=self._now(),
+                            now=finished_at,
+                            prepared_terminal=prepared_terminal,
                         )
+                        committed_terminals.append(prepared_terminal)
                         recovered += 1
                     for row in connection.execute("SELECT * FROM jobs"):
                         last = int(
@@ -1260,7 +1440,16 @@ class Scheduler:
                         record = self._decode_record(row)
                         if last != int(record["last_cursor"]):
                             raise RuntimeError("job/event cursor mismatch")
-            except (OSError, sqlite3.DatabaseError, RuntimeError, WorkerProtocolError):
+                for prepared_terminal in committed_terminals:
+                    self._complete_terminal_record(prepared_terminal)
+            except (
+                ApiError,
+                OSError,
+                sqlite3.DatabaseError,
+                RuntimeError,
+                WorkerProtocolError,
+            ):
+                recovered = 0
                 self.database.enter_read_only_recovery("STORAGE_CORRUPT")
                 self._scheduling_paused = True
                 return recovered
@@ -1278,12 +1467,28 @@ class Scheduler:
                 if row is None:
                     return None
                 record = self._decode_record(row)
+                job_id = str(row["job_id"])
+                if (
+                    str(row["operation"]) in _TRAINING_OPERATIONS
+                    and record["requested_final_step"] is None
+                    and self.training_store is not None
+                ):
+                    context = self.training_store.get_job_context(job_id)
+                    requested_final = context.resolved.get("requested_final_step")
+                    if (
+                        isinstance(requested_final, bool)
+                        or not isinstance(requested_final, int)
+                        or not 1 <= requested_final <= 2_147_483_647
+                    ):
+                        raise ApiError(
+                            "STORAGE_UNAVAILABLE", reason_code="STORAGE_CORRUPT"
+                        )
+                    record["requested_final_step"] = requested_final
                 now = self._now()
                 record["started_at"] = now
                 self._transition(connection, row, record, "starting", now)
                 self._save(connection, row, record, state="starting", updated_at=now)
                 self.database.bump_revision(connection)
-                job_id = str(row["job_id"])
                 request_artifact_id = str(row["request_artifact_id"])
                 request_sha256 = str(row["request_sha256"])
                 schema_id = str(row["request_schema_id"])
@@ -1299,6 +1504,69 @@ class Scheduler:
                     request,
                     document="openapi.json",
                 )
+                if self.training_store is not None:
+                    snapshot = self.training_store.materialize_worker_snapshot(job_id)
+                    input_snapshot = dict(snapshot.value)
+                    input_snapshot_sha256 = str(snapshot.sha256)
+                    output_allocations = dict(input_snapshot["ids"])
+                else:
+                    output_allocations = {
+                        "run_id": None,
+                        "model_id": None,
+                        "tokenizer_id": None,
+                        "checkpoint_ids": [],
+                    }
+                    input_snapshot = {
+                        "format": "llm-foundations-worker-input-v1",
+                        "job_id": job_id,
+                        "operation": str(request["operation"]),
+                        "request_sha256": request_sha256,
+                        "runtime_profile": self.runtime_profile,
+                        "device": "cuda" if self.runtime_profile.endswith("-cuda") else "cpu",
+                        "dependency_lock_sha256": "0" * 64,
+                        "companion_source_revision": "0" * 40,
+                        "ids": output_allocations,
+                        "resolved": {},
+                        "inputs": [],
+                    }
+                    input_snapshot_sha256 = hashlib.sha256(
+                        canonical_json(input_snapshot)
+                    ).hexdigest()
+                if request["operation"] == "tiny_resume":
+                    parent = input_snapshot.get("resolved", {}).get(
+                        "parent_checkpoint"
+                    )
+                    if not isinstance(parent, Mapping):
+                        raise WorkerProtocolError(
+                            "resume snapshot has no verified parent checkpoint"
+                        )
+                    parent_id = _canonical_uuid(
+                        parent.get("checkpoint_id"), "parent checkpoint_id"
+                    )
+                    parent_step = parent.get("step")
+                    if (
+                        isinstance(parent_step, bool)
+                        or not isinstance(parent_step, int)
+                        or not 0 <= parent_step <= 2_147_483_647
+                    ):
+                        raise WorkerProtocolError("resume parent checkpoint step is invalid")
+                    with self.database.transaction() as connection:
+                        live = connection.execute(
+                            "SELECT * FROM jobs WHERE job_id = ?", (job_id,)
+                        ).fetchone()
+                        if live is None or live["state"] != "starting":
+                            raise WorkerProtocolError(
+                                "resume boundary is no longer applicable"
+                            )
+                        rec = self._decode_record(live)
+                        rec["checkpoint_boundary"] = {
+                            "checkpoint_id": parent_id,
+                            "step": parent_step,
+                        }
+                        rec["step"] = parent_step
+                        now = self._now()
+                        self._save(connection, live, rec, updated_at=now)
+                        self.database.bump_revision(connection)
                 worker = self.worker_controller.launch(
                     job_id=job_id,
                     instance_id=self.instance_id,
@@ -1307,8 +1575,12 @@ class Scheduler:
                     request=request,
                     request_sha256=request_sha256,
                     schema_id=schema_id,
+                    input_snapshot=input_snapshot,
+                    input_snapshot_sha256=input_snapshot_sha256,
+                    output_allocations=output_allocations,
                 )
                 self._active, self._active_job_id = worker, job_id
+                self._active_run_id = output_allocations.get("run_id")
                 self._pending_terminal = None
                 with self.database.transaction() as connection:
                     live = connection.execute("SELECT * FROM jobs WHERE job_id = ?", (job_id,)).fetchone()
@@ -1348,11 +1620,59 @@ class Scheduler:
         retryable = bool(binding.get("retryable", False)) if isinstance(binding, Mapping) else False
         return {"code": code, "message": message, "retryable": retryable, "field_errors": []}
 
+    @staticmethod
+    def _crossed_progress_milestone(
+        previous: int, current: int, total: int
+    ) -> bool:
+        return any(
+            previous < (total * index + 15) // 16 <= current
+            for index in range(1, 17)
+        )
+
+    def _should_persist_progress_in(
+        self,
+        connection: sqlite3.Connection,
+        *,
+        job_id: str,
+        previous: int,
+        current: int,
+        total: int | None,
+        now: str,
+    ) -> bool:
+        if total is not None:
+            return self._crossed_progress_milestone(previous, current, total)
+        count, last = connection.execute(
+            """
+            SELECT COUNT(*), MAX(occurred_at)
+            FROM job_events WHERE job_id = ? AND event_type = 'progress'
+            """,
+            (job_id,),
+        ).fetchone()
+        if int(count) >= EVENT_LIMITS["progress"]:
+            return False
+        return last is None or _parse_time(now) >= _parse_time(str(last)) + timedelta(
+            seconds=5
+        )
+
     def _handle_worker_message(self, message: Mapping[str, Any]) -> None:
         job_id = self._active_job_id
         if job_id is None:
             raise WorkerProtocolError("worker message has no active job")
         kind = message["type"]
+        if kind == "artifact_ready":
+            self._prepare_worker_artifact(job_id, message)
+            return
+        if kind == "checkpoint_ready":
+            self._commit_worker_checkpoint(job_id, message)
+            return
+        if kind in {"result", "error", "interrupted"} and self.operation_store is not None:
+            try:
+                self._finalize_worker_message(job_id, message)
+            except OperationStoreError as exc:
+                raise WorkerProtocolError(
+                    "worker terminal output failed operation-store validation"
+                ) from exc
+            return
         with self.database.transaction() as connection:
             row = connection.execute("SELECT * FROM jobs WHERE job_id = ?", (job_id,)).fetchone()
             if row is None:
@@ -1364,6 +1684,10 @@ class Scheduler:
                     return
                 if row["state"] != "starting":
                     raise WorkerProtocolError("ready acknowledgment in an invalid state")
+                if row["operation"] in _S2_OPERATIONS:
+                    record["run_id"] = self._active_run_id
+                    if record["step"] is None:
+                        record["step"] = 0
                 self._transition(connection, row, record, "running", now)
                 self._save(connection, row, record, state="running", updated_at=now)
                 self.database.bump_revision(connection)
@@ -1372,6 +1696,7 @@ class Scheduler:
                 if row["state"] not in {"running", "cancelling"}:
                     raise WorkerProtocolError("worker event in an invalid state")
                 event_type, payload = str(message["event_type"]), dict(message["payload"])
+                persist_event = True
                 if event_type == "phase_changed":
                     record["phase"] = payload["phase"]
                     record["phase_started_at"] = now
@@ -1381,6 +1706,40 @@ class Scheduler:
                         else None
                     )
                 elif event_type == "progress":
+                    previous_step = record["step"]
+                    previous_progress = record["progress"]["current"]
+                    current = payload["current"]
+                    if row["operation"] in _TRAINING_OPERATIONS:
+                        requested = record["requested_final_step"]
+                        if (
+                            payload["unit"] != "updates"
+                            or isinstance(requested, bool)
+                            or not isinstance(requested, int)
+                            or payload["total"] != requested
+                            or current > requested
+                            or isinstance(previous_step, bool)
+                            or not isinstance(previous_step, int)
+                            or current < previous_step
+                        ):
+                            raise WorkerProtocolError(
+                                "training progress does not match admitted steps"
+                            )
+                        record["step"] = current
+                    previous_observed = max(
+                        previous_progress,
+                        previous_step
+                        if isinstance(previous_step, int)
+                        and not isinstance(previous_step, bool)
+                        else 0,
+                    )
+                    persist_event = self._should_persist_progress_in(
+                        connection,
+                        job_id=str(row["job_id"]),
+                        previous=previous_observed,
+                        current=current,
+                        total=payload["total"],
+                        now=now,
+                    )
                     record["progress"] = payload
                 elif event_type == "warning":
                     if len(record["warnings"]) < 32:
@@ -1395,7 +1754,8 @@ class Scheduler:
                         "step": payload["step"],
                     }
                     record["step"] = payload["step"]
-                self._event(connection, row, record, event_type, payload, now)
+                if persist_event:
+                    self._event(connection, row, record, event_type, payload, now)
                 record["updated_at"] = now
                 self._save(connection, row, record, updated_at=now)
                 return
@@ -1432,6 +1792,189 @@ class Scheduler:
                     now=now,
                     error=message["error"],
                 )
+
+    def _finalize_worker_message(
+        self, job_id: str, message: Mapping[str, Any]
+    ) -> None:
+        with self.database.read() as connection:
+            row = connection.execute(
+                "SELECT * FROM jobs WHERE job_id = ?", (job_id,)
+            ).fetchone()
+            if row is None:
+                raise WorkerProtocolError("active job record is missing")
+            current = self._decode_record(row)
+            operation = str(row["operation"])
+            state_now = str(row["state"])
+        kind = str(message["type"])
+        if kind == "result":
+            if state_now == "cancelling":
+                raise WorkerProtocolError("worker completed after cancellation")
+            state, reason = "completed", "completed"
+            result: Mapping[str, Any] | None = message["result"]
+            error: Mapping[str, Any] | None = None
+        elif kind == "error":
+            error = dict(message["error"])
+            state, reason, result = "failed", str(error["code"]), None
+        else:
+            state, reason, result = "interrupted", str(message["reason_code"]), None
+            error = message["error"]
+            boundary = current["checkpoint_boundary"]
+            expected_id = boundary["checkpoint_id"] if boundary else None
+            expected_step = boundary["step"] if boundary else None
+            if (
+                message["checkpoint_id"] != expected_id
+                or message["checkpoint_step"] != expected_step
+            ):
+                raise WorkerProtocolError(
+                    "worker interruption boundary does not match committed state"
+                )
+        finished_at = self._now()
+        prepared = self._prepare_terminal_record(
+            job_id,
+            state=state,
+            reason=reason,
+            finished_at=finished_at,
+            result=result,
+        )
+        with self.database.transaction() as connection:
+            row = connection.execute(
+                "SELECT * FROM jobs WHERE job_id = ?", (job_id,)
+            ).fetchone()
+            if row is None or row["state"] in _TERMINAL:
+                raise WorkerProtocolError("worker terminal message is no longer applicable")
+            record = self._decode_record(row)
+            self._terminal(
+                connection,
+                row,
+                record,
+                state=state,
+                reason=reason,
+                now=finished_at,
+                result=result,
+                error=error,
+                prepared_terminal=prepared,
+            )
+        self._complete_terminal_record(prepared)
+
+    def _proposal_error(self, kind: str, exc: BaseException) -> dict[str, Any]:
+        if kind == "checkpoint":
+            try:
+                state = self.get(str(self._active_job_id))["state"]
+            except BaseException:
+                state = None
+            if state == "cancelling":
+                return self._job_error(
+                    "CHECKPOINT_WRITE_FAILED",
+                    "The cancellation checkpoint could not be committed.",
+                )
+        code = getattr(exc, "code", None)
+        row = ERROR_VOCABULARY.get(code, {}) if isinstance(code, str) else {}
+        if (
+            not isinstance(code, str)
+            or not isinstance(row, Mapping)
+            or "job" not in row.get("kinds", ())
+        ):
+            code = "INTERNAL_ERROR"
+        return self._job_error(code, "The staged worker output could not be committed.")
+
+    def _send_proposal_rejection(
+        self, worker: Any, kind: str, exc: BaseException
+    ) -> None:
+        try:
+            worker.send_ack(
+                {
+                    "type": "commit_rejected",
+                    "kind": kind,
+                    "error": self._proposal_error(kind, exc),
+                }
+            )
+        except (OSError, WorkerProtocolError) as ack_exc:
+            raise WorkerProtocolError(
+                "proposal rejection could not be delivered"
+            ) from ack_exc
+
+    def _prepare_worker_artifact(
+        self, job_id: str, message: Mapping[str, Any]
+    ) -> None:
+        worker = self._active
+        if worker is None or self.operation_store is None:
+            raise WorkerProtocolError("artifact proposal has no operation store")
+        try:
+            prepared = self.operation_store.prepare_artifact(job_id, message)
+            with self.database.transaction() as connection:
+                row = connection.execute(
+                    "SELECT * FROM jobs WHERE job_id = ?", (job_id,)
+                ).fetchone()
+                if row is None or row["state"] not in {"running", "cancelling"}:
+                    raise WorkerProtocolError("artifact proposal in an invalid job state")
+                commit = self.operation_store.commit_artifact_in(connection, prepared)
+        except WorkerProtocolError:
+            raise
+        except BaseException as exc:
+            self._send_proposal_rejection(worker, "artifact", exc)
+            return
+        try:
+            worker.send_ack(commit.ack)
+        except (OSError, WorkerProtocolError) as exc:
+            raise WorkerProtocolError("artifact acknowledgment could not be delivered") from exc
+
+    def _commit_worker_checkpoint(
+        self, job_id: str, message: Mapping[str, Any]
+    ) -> None:
+        worker = self._active
+        if worker is None or self.operation_store is None:
+            raise WorkerProtocolError("checkpoint proposal has no operation store")
+        try:
+            prepared = self.operation_store.prepare_checkpoint(job_id, message)
+            with self.database.transaction() as connection:
+                row = connection.execute(
+                    "SELECT * FROM jobs WHERE job_id = ?", (job_id,)
+                ).fetchone()
+                if row is None or row["state"] not in {"running", "cancelling"}:
+                    raise WorkerProtocolError("checkpoint proposal in an invalid job state")
+                record = self._decode_record(row)
+                if record["step"] is not None and prepared.step < record["step"]:
+                    raise WorkerProtocolError(
+                        "checkpoint step is behind observed training progress"
+                    )
+                commit = self.operation_store.commit_checkpoint_in(connection, prepared)
+                record["checkpoint_boundary"] = {
+                    "checkpoint_id": commit.checkpoint_id,
+                    "step": commit.step,
+                }
+                record["step"] = commit.step
+                record["run_id"] = commit.run_id
+                record["committed_artifact_count"] = int(
+                    connection.execute(
+                        "SELECT COUNT(*) FROM artifacts WHERE job_id = ? AND deleted_at IS NULL",
+                        (job_id,),
+                    ).fetchone()[0]
+                )
+                now = self._now()
+                self._event(
+                    connection,
+                    row,
+                    record,
+                    "checkpoint_committed",
+                    {
+                        "checkpoint_id": commit.checkpoint_id,
+                        "step": commit.step,
+                        "sha256": commit.sha256,
+                    },
+                    now,
+                )
+                self._save(connection, row, record, updated_at=now)
+                self.database.bump_revision(connection)
+        except WorkerProtocolError:
+            raise
+        except BaseException as exc:
+            self._send_proposal_rejection(worker, "checkpoint", exc)
+            return
+        self.operation_store.complete_checkpoint(prepared)
+        try:
+            worker.send_ack(commit.ack)
+        except (OSError, WorkerProtocolError) as exc:
+            raise WorkerProtocolError("checkpoint acknowledgment could not be delivered") from exc
 
     def _signal_cancel(self, worker: Any, job_id: str, reason: str) -> bool:
         try:
@@ -1547,6 +2090,13 @@ class Scheduler:
                 return self.get(job_id)
 
     def _finish_interrupted(self, job_id: str, reason: str) -> None:
+        finished_at = self._now()
+        prepared = self._prepare_terminal_record(
+            job_id,
+            state="interrupted",
+            reason=reason,
+            finished_at=finished_at,
+        )
         with self.database.transaction() as connection:
             row = connection.execute("SELECT * FROM jobs WHERE job_id = ?", (job_id,)).fetchone()
             if row is None or row["state"] in _TERMINAL:
@@ -1558,10 +2108,19 @@ class Scheduler:
                 record,
                 state="interrupted",
                 reason=reason,
-                now=self._now(),
+                now=finished_at,
+                prepared_terminal=prepared,
             )
+        self._complete_terminal_record(prepared)
 
     def _finish_failed(self, job_id: str, code: str, message: str) -> None:
+        finished_at = self._now()
+        prepared = self._prepare_terminal_record(
+            job_id,
+            state="failed",
+            reason=code,
+            finished_at=finished_at,
+        )
         with self.database.transaction() as connection:
             row = connection.execute("SELECT * FROM jobs WHERE job_id = ?", (job_id,)).fetchone()
             if row is None or row["state"] in _TERMINAL:
@@ -1574,11 +2133,20 @@ class Scheduler:
                 record,
                 state="failed",
                 reason=code,
-                now=self._now(),
+                now=finished_at,
                 error=error,
+                prepared_terminal=prepared,
             )
+        self._complete_terminal_record(prepared)
 
     def _ownership_unknown(self, job_id: str) -> None:
+        finished_at = self._now()
+        prepared = self._prepare_terminal_record(
+            job_id,
+            state="interrupted",
+            reason="worker_ownership_unknown",
+            finished_at=finished_at,
+        )
         with self.database.transaction() as connection:
             row = connection.execute("SELECT * FROM jobs WHERE job_id = ?", (job_id,)).fetchone()
             if row is None or row["state"] in _TERMINAL:
@@ -1593,9 +2161,11 @@ class Scheduler:
                 record,
                 state="interrupted",
                 reason="worker_ownership_unknown",
-                now=self._now(),
+                now=finished_at,
                 error=error,
+                prepared_terminal=prepared,
             )
+        self._complete_terminal_record(prepared)
         self._scheduling_paused = True
 
     def _clear_active(self) -> None:
@@ -1606,6 +2176,7 @@ class Scheduler:
                 pass
         self._active = None
         self._active_job_id = None
+        self._active_run_id = None
         self._pending_terminal = None
 
     def shutdown(self) -> None:

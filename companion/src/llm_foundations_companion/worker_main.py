@@ -1,8 +1,4 @@
-"""Fixed isolated worker entry point.
-
-This module intentionally imports no model framework. Concrete operation
-modules are a later slice; the S1 dispatch map fails closed.
-"""
+"""Fixed isolated worker entry point."""
 
 from __future__ import annotations
 
@@ -11,39 +7,24 @@ import ctypes
 import os
 import signal
 from collections.abc import Mapping
-from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
-from .operations import OperationUnavailable, handler_for
+from .errors import ERROR_VOCABULARY
+from .operations import OperationFailure, OperationUnavailable, handler_for
+from .worker_context import (
+    CommitRejected,
+    WorkerContext,
+    WorkerInterrupted,
+)
 from .worker_protocol import (
     CancellationToken,
     WorkerProtocolError,
     open_inherited_stream,
     read_frame,
-    validate_event_payload,
     validate_request_envelope,
     write_frame,
 )
-
-
-@dataclass(frozen=True)
-class WorkerContext:
-    job_id: str
-    instance_id: str
-    runtime_profile: str
-    staging_path: Path
-    cancellation: CancellationToken
-    _protocol: Any
-
-    def emit(self, event_type: str, payload: Mapping[str, Any]) -> None:
-        validate_event_payload(event_type, payload)
-        if event_type in {"state_changed", "terminal"}:
-            raise WorkerProtocolError("the scheduler owns state and terminal events")
-        write_frame(
-            self._protocol,
-            {"type": "event", "event_type": event_type, "payload": dict(payload)},
-        )
 
 
 def _parser() -> argparse.ArgumentParser:
@@ -53,15 +34,43 @@ def _parser() -> argparse.ArgumentParser:
     return parser
 
 
-def _error(code: str, message: str, *, retryable: bool = False) -> dict[str, Any]:
+def _retryable(code: str) -> bool:
+    row = ERROR_VOCABULARY.get(code, {})
+    bindings = row.get("bindings") if isinstance(row, Mapping) else None
+    binding = bindings.get("job", {}) if isinstance(bindings, Mapping) else row
+    return bool(binding.get("retryable", False)) if isinstance(binding, Mapping) else False
+
+
+def _error(
+    code: str,
+    message: str,
+    *,
+    retryable: bool | None = None,
+    field_errors: tuple[Mapping[str, str], ...] = (),
+) -> dict[str, Any]:
     return {
         "type": "error",
         "error": {
             "code": code,
             "message": message,
-            "retryable": retryable,
-            "field_errors": [],
+            "retryable": _retryable(code) if retryable is None else retryable,
+            "field_errors": [dict(item) for item in field_errors],
         },
+    }
+
+
+def _interrupted(
+    context: WorkerContext | None,
+    reason_code: str,
+    error: Mapping[str, Any] | None = None,
+) -> dict[str, Any]:
+    boundary = context.last_checkpoint if context is not None else None
+    return {
+        "type": "interrupted",
+        "reason_code": reason_code,
+        "checkpoint_id": boundary["checkpoint_id"] if boundary else None,
+        "checkpoint_step": boundary["step"] if boundary else None,
+        "error": dict(error) if error is not None else None,
     }
 
 
@@ -88,6 +97,7 @@ def _verify_environment_identity(job_id: str, instance_id: str) -> None:
 def main(argv: list[str] | None = None) -> int:
     args = _parser().parse_args(argv)
     request_stream = protocol_stream = cancel_stream = None
+    context: WorkerContext | None = None
     try:
         _establish_parent_boundary()
         _verify_environment_identity(args.job_id, args.instance_id)
@@ -117,20 +127,9 @@ def main(argv: list[str] | None = None) -> int:
                 "spawn_nonce": envelope["spawn_nonce"],
                 "request_sha256": envelope["request_sha256"],
                 "schema_id": envelope["schema_id"],
+                "input_snapshot_sha256": envelope["input_snapshot_sha256"],
             },
         )
-        if cancellation.cancelled:
-            write_frame(
-                protocol_stream,
-                {
-                    "type": "interrupted",
-                    "reason_code": cancellation.reason or "user_cancelled",
-                    "checkpoint_id": None,
-                    "checkpoint_step": None,
-                    "error": None,
-                },
-            )
-            return 0
         request = envelope["request"]
         context = WorkerContext(
             job_id=args.job_id,
@@ -138,16 +137,57 @@ def main(argv: list[str] | None = None) -> int:
             runtime_profile=profile,
             staging_path=staging,
             cancellation=cancellation,
-            _protocol=protocol_stream,
+            protocol=protocol_stream,
+            control=request_stream,
+            input_snapshot=envelope["input_snapshot"],
+            output_allocations=envelope["output_allocations"],
         )
+        if cancellation.cancelled:
+            write_frame(
+                protocol_stream,
+                _interrupted(context, cancellation.reason or "user_cancelled"),
+            )
+            return 0
         result = handler_for(request["operation"])(request, context)
         if not isinstance(result, Mapping):
             raise WorkerProtocolError("operation result must be an object")
+        if cancellation.cancelled:
+            write_frame(
+                protocol_stream,
+                _interrupted(context, cancellation.reason or "user_cancelled"),
+            )
+            return 0
         write_frame(
             protocol_stream,
             {"type": "result", "operation": request["operation"], "result": dict(result)},
         )
         return 0
+    except WorkerInterrupted as exc:
+        if protocol_stream is not None:
+            write_frame(
+                protocol_stream,
+                _interrupted(context, exc.reason_code, exc.error),
+            )
+        return 0
+    except CommitRejected as exc:
+        if protocol_stream is not None:
+            write_frame(
+                protocol_stream,
+                {"type": "error", "error": dict(exc.error)},
+            )
+        return 2
+    except OperationFailure as exc:
+        if protocol_stream is not None:
+            write_frame(
+                protocol_stream,
+                _error(
+                    exc.code,
+                    exc.message,
+                    retryable=exc.retryable,
+                    field_errors=exc.field_errors,
+                ),
+            )
+        return 2
     except OperationUnavailable:
         # Admission must prevent this path. If it occurs, fail the accepted job
         # with a legal asynchronous code and preserve the closed dispatch fact.

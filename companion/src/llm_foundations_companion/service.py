@@ -22,6 +22,7 @@ from .platform_security import InstanceLease, StorageSecurityError, resolve_stor
 from .preflight import (StorageProbeResult, build_preflight_receipt, capabilities_from_preflight,
                         detect_cuda_environment_installed, gpu_offer, require_startup_allowed)
 from .schema import canonical_json, strict_json, validate_schema
+from .runtime_identity import profile_lock, source_revision
 from .transport import inspect_zip_archive
 
 
@@ -41,12 +42,28 @@ class Service:
         self.started_at = utc_now()
         self.root = Path(root)
         self.db = self.registry = self.datasets = self.scheduler = self.idempotency = None
+        self.training_store = self.operation_store = None
         self.control = self.lease = None
         self._thread = None
         self._stop = threading.Event()
         self._upload_lock = threading.RLock()
         self._closed = False
         self.capabilities = capabilities_from_preflight(selection, child)
+        try:
+            self.companion_source_revision = source_revision()
+            self.dependency_lock_sha256 = profile_lock(selection.profile)
+        except (ValueError, KeyError, TypeError, OSError) as exc:
+            from .preflight import ProfileSelectionError
+            raise ProfileSelectionError(
+                'BACKEND_VERSION_MISMATCH',
+                'The installed companion does not match its build identity.') from exc
+        if self.companion_source_revision is None:
+            self.capabilities = {
+                name: ({"available": False, "reason_code": "CAPABILITY_UNAVAILABLE",
+                        "message": "Install a built companion wheel to enable lab operations."}
+                       if record["available"] else record)
+                for name, record in self.capabilities.items()
+            }
         self.gpu_offer = gpu_offer(selection, query, cuda_environment_installed=detect_cuda_environment_installed(selection))
         try:
             self.root = resolve_storage_root(self.root, create=True)
@@ -64,11 +81,22 @@ class Service:
                 with self.db.read() as connection:
                     scheduler_schema = connection.execute("SELECT version FROM schema_components WHERE component = 'scheduler'").fetchone()
                 if not self.db.read_only or (scheduler_schema is not None and scheduler_schema[0] == 1):
+                    from .admission import AdmissionPlanner
+                    from .training_store import TrainingStore
+                    from .operation_store import OperationStore
                     self.idempotency = IdempotencyStore(self.db, self.instance_id)
+                    self.training_store = TrainingStore(
+                        self.db, self.registry, runtime_profile=selection.profile,
+                        device=selection.device,
+                        dependency_lock_sha256=self.dependency_lock_sha256,
+                        companion_source_revision=self.companion_source_revision)
+                    self.operation_store = OperationStore(self.db, self.registry, self.training_store)
                     self.scheduler = Scheduler(self.db, self.registry, self.root,
                         instance_id=self.instance_id, installation_id=self.db.installation_id,
                         runtime_profile=selection.profile, app_version=__version__,
-                        capabilities=self.capabilities, instance_lease=self.lease)
+                        capabilities=self.capabilities, instance_lease=self.lease,
+                        admission_planner=AdmissionPlanner(self.training_store),
+                        training_store=self.training_store, operation_store=self.operation_store)
                     self.scheduler.recover()
             self.preflight_receipt = self._make_preflight()
             self.auth = AuthManager(self.instance_id)
@@ -174,13 +202,13 @@ class Service:
         while not self._stop.wait(0.05):
             try:
                 if self.storage_writable:
-                    self.scheduler.tick()
+                    self.scheduler.dispatch_once()
             except (ApiError, OSError, DatabaseError, sqlite3.DatabaseError):
                 self.db.enter_read_only_recovery('SCHEDULER_STORAGE_FAILURE')
 
     @staticmethod
-    def _control_args(arguments, properties, required):
-        return validate_schema({'type': 'object', 'properties': properties, 'required': required, 'additionalProperties': False}, arguments, document='openapi.json')
+    def _control_args(arguments, properties, required, *, include_semantic=True):
+        return validate_schema({'type': 'object', 'properties': properties, 'required': required, 'additionalProperties': False}, arguments, document='openapi.json', include_semantic=include_semantic)
 
     def _control_pair(self, arguments):
         arguments = self._control_args(arguments, {}, [])
@@ -203,7 +231,7 @@ class Service:
             self.audit_request(request_id, None, operation, outcome, entity_ids)
 
     def _control_submit(self, arguments):
-        arguments = self._control_args(arguments, {'request': {'$ref': '#/components/schemas/JobRequest'}, 'idempotency_key': {'$ref': '#/components/schemas/Identifier'}}, ['request', 'idempotency_key'])
+        arguments = self._control_args(arguments, {'request': {'$ref': '#/components/schemas/JobRequest'}, 'idempotency_key': {'$ref': '#/components/schemas/Identifier'}}, ['request', 'idempotency_key'], include_semantic=False)
         _, body, _ = self.submit_job(arguments['request'], arguments['idempotency_key'])
         return strict_json(body)
 

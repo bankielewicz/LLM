@@ -513,6 +513,7 @@ class Registry:
         origin: str,
         job_id: str | None = None,
         artifact_id: str | None = None,
+        preserve_staged: bool = False,
     ) -> dict[str, Any]:
         identity = artifact_id or self.allocate_artifact_id()
         self._validate_artifact_fields(
@@ -536,15 +537,69 @@ class Registry:
         created_at = utc_now()
         if os.path.lexists(destination):
             self._verify_object_path(destination, staged.size, staged.sha256)
-            staged.path.unlink(missing_ok=True)
-            _fsync_directory(staged.path.parent)
+            if not preserve_staged:
+                staged.path.unlink(missing_ok=True)
+                _fsync_directory(staged.path.parent)
         else:
+            temporary: Path | None = None
             try:
-                os.replace(staged.path, destination)
-                if os.name != "nt":
-                    os.chmod(destination, 0o600)
+                if preserve_staged:
+                    temporary = object_dir / (
+                        f".{staged.sha256}.{uuid.uuid4().hex}.partial"
+                    )
+                    digest = hashlib.sha256()
+                    copied = 0
+                    source_flags = (
+                        os.O_RDONLY
+                        | getattr(os, "O_BINARY", 0)
+                        | getattr(os, "O_NOFOLLOW", 0)
+                    )
+                    destination_flags = (
+                        os.O_WRONLY
+                        | os.O_CREAT
+                        | os.O_EXCL
+                        | getattr(os, "O_BINARY", 0)
+                        | getattr(os, "O_NOFOLLOW", 0)
+                    )
+                    source_descriptor = os.open(staged.path, source_flags)
+                    try:
+                        destination_descriptor = os.open(
+                            temporary, destination_flags, 0o600
+                        )
+                        try:
+                            with os.fdopen(
+                                source_descriptor, "rb", closefd=False
+                            ) as source:
+                                with os.fdopen(
+                                    destination_descriptor, "wb", closefd=False
+                                ) as target:
+                                    for chunk in iter(
+                                        lambda: source.read(1024 * 1024), b""
+                                    ):
+                                        copied += len(chunk)
+                                        digest.update(chunk)
+                                        target.write(chunk)
+                                    target.flush()
+                                    os.fsync(target.fileno())
+                        finally:
+                            os.close(destination_descriptor)
+                    finally:
+                        os.close(source_descriptor)
+                    if (
+                        copied != staged.size
+                        or digest.hexdigest() != staged.sha256
+                    ):
+                        raise OSError("staged artifact changed before commit")
+                    os.replace(temporary, destination)
+                    temporary = None
+                else:
+                    os.replace(staged.path, destination)
+                    if os.name != "nt":
+                        os.chmod(destination, 0o600)
                 _fsync_directory(object_dir)
             except OSError as exc:
+                if temporary is not None:
+                    temporary.unlink(missing_ok=True)
                 if exc.errno == errno.ENOSPC:
                     raise ApiError(
                         "DISK_FULL",
@@ -794,6 +849,19 @@ class Registry:
             artifact_id, allow_sealed_internal=allow_sealed_internal
         ) as stream:
             return stream.read()
+
+    def verified_artifact_path(
+        self, artifact_id: str, *, allow_sealed_internal: bool = False
+    ) -> Path:
+        """Return the content-addressed path after verifying its exact bytes."""
+        descriptor = self.assert_content_readable(
+            artifact_id, allow_sealed_internal=allow_sealed_internal
+        )
+        with self.open_verified_artifact(
+            artifact_id, allow_sealed_internal=allow_sealed_internal
+        ):
+            pass
+        return self._registered_path(descriptor)
 
     def recover(self) -> RecoveryReport:
         if self.db.read_only:

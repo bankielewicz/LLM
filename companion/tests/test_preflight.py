@@ -720,7 +720,7 @@ def test_cuda_startup_pass_returns_bound_cuda_metadata() -> None:
     assert result["reason_code"] is None
 
 
-def test_operation_capabilities_are_closed_false_and_enforced() -> None:
+def test_operation_capabilities_are_closed_slice_specific_and_enforced() -> None:
     assert tuple(preflight.OPERATION_CAPABILITIES) == (
         "tokenizer_train",
         "tiny_train",
@@ -741,15 +741,19 @@ def test_operation_capabilities_are_closed_false_and_enforced() -> None:
     capabilities = preflight.capabilities_from_preflight(
         selection(), child_execution()
     )
-    assert all(record == {
-        "available": False,
-        "reason_code": "CAPABILITY_UNAVAILABLE",
-        "message": "Executable lab operations are not implemented in S1.",
-    } for record in capabilities.values())
-    assert preflight.capability_enabled(capabilities, "tiny_train") is False
+    assert {name for name, record in capabilities.items() if record["available"]} == {
+        "tokenizer_train", "tiny_train", "tiny_resume", "evaluate"
+    }
+    for name, record in capabilities.items():
+        if name in preflight.S2_OPERATION_NAMES:
+            assert record == {"available": True}
+        else:
+            assert record["reason_code"] == "CAPABILITY_UNAVAILABLE"
+    assert preflight.capability_enabled(capabilities, "tiny_train") is True
+    preflight.require_capability(capabilities, "tiny_train")
     with pytest.raises(preflight.CapabilityUnavailable) as raised:
-        preflight.require_capability(capabilities, "tiny_train")
-    assert raised.value.operation == "tiny_train"
+        preflight.require_capability(capabilities, "model_prepare")
+    assert raised.value.operation == "model_prepare"
 
 
 @pytest.mark.parametrize(
