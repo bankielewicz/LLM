@@ -85,14 +85,24 @@ _OPERATION_NAMES = (
     "validate_bundle",
     "import_bundle",
 )
-_S1_CAPABILITY_MESSAGE = "Executable lab operations are not implemented in S1."
+S2_OPERATION_NAMES = frozenset(
+    {
+        "tokenizer_train",
+        "tiny_train",
+        "tiny_resume",
+        "evaluate",
+        "generate",
+        "context_preview",
+    }
+)
+_UNAVAILABLE_MESSAGE = "This operation is not available in this implementation slice."
 OPERATION_CAPABILITIES: Mapping[str, Mapping[str, object]] = MappingProxyType(
     {
         operation: MappingProxyType(
-            {
+            {"available": True} if operation in S2_OPERATION_NAMES else {
                 "available": False,
                 "reason_code": "CAPABILITY_UNAVAILABLE",
-                "message": _S1_CAPABILITY_MESSAGE,
+                "message": _UNAVAILABLE_MESSAGE,
             }
         )
         for operation in _OPERATION_NAMES
@@ -994,7 +1004,10 @@ def validate_child_report(value: object) -> Mapping[str, object]:
     )
     if report["format"] != PREFLIGHT_CHILD_FORMAT:
         raise ValueError("preflight child format is invalid")
-    if report["backend_status"] not in {"passed", "missing", "version_mismatch"}:
+    if (
+        not isinstance(report["backend_status"], str)
+        or report["backend_status"] not in {"passed", "missing", "version_mismatch"}
+    ):
         raise ValueError("preflight child backend status is invalid")
     if type(report["device_available"]) is not bool:
         raise ValueError("preflight child device availability is invalid")
@@ -1014,10 +1027,15 @@ def validate_child_report(value: object) -> Mapping[str, object]:
             frozenset({"result", "reason_code", "device"}),
             "child cuda result",
         )
-        if cuda_value["result"] not in {"passed", "failed"}:
+        if (
+            not isinstance(cuda_value["result"], str)
+            or cuda_value["result"] not in {"passed", "failed"}
+        ):
             raise ValueError("child CUDA result is invalid")
         reason = cuda_value["reason_code"]
-        if reason is not None and reason not in _CHILD_CUDA_REASONS:
+        if reason is not None and (
+            not isinstance(reason, str) or reason not in _CHILD_CUDA_REASONS
+        ):
             raise ValueError("child CUDA reason is invalid")
         if cuda_value["device"] is not None:
             _validate_child_device(cuda_value["device"])
@@ -1226,7 +1244,7 @@ def capabilities_from_preflight(
     selection: ProfileSelection,
     child: ChildExecution,
 ) -> dict[str, dict[str, object]]:
-    """Return closed RuntimeInfo capability records for the S1 slice."""
+    """Return closed RuntimeInfo capability records for the current slice."""
 
     reason = _backend_reason(selection, child.report)
     if reason is None:

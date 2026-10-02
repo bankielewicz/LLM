@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "llm-foundations-companion"
-version = "0.1.0"
+version = "0.2.0"
 description = "Local runtime companion for the LLM Foundations intermediate curriculum"
 requires-python = ">=3.12,<3.13"
 dependencies = [
@@ -46,4 +46,4 @@ addopts = "--strict-markers --strict-config"
 pythonpath = ["src"]
 
 [tool.setuptools.package-data]
-llm_foundations_companion = ["contract_data/**/*.json", "contract_data/*.json", "static/**/*", "static/*", "static/course/.gitignore", "migrations/*.sql"]
+llm_foundations_companion = ["contract_data/**/*.json", "contract_data/*.json", "static/**/*", "static/*", "static/course/.gitignore", "migrations/*.sql", "runtime_data/*.json"]

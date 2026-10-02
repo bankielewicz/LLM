@@ -111,6 +111,29 @@ class CursorCodec:
             raise ValueError("cursor_key must contain at least 32 bytes")
         self._key = key
 
+    def _signature(
+        self,
+        payload: bytes,
+        *,
+        schema: str,
+        order: str,
+        filters: Mapping[str, Any],
+    ) -> bytes:
+        context = canonical_json(
+            {
+                "filters": dict(filters),
+                "instance_id": self._instance_id,
+                "order": order,
+                "schema": schema,
+                "version": 2,
+            }
+        )
+        return hmac.digest(
+            self._key,
+            b"llm-foundations-cursor-v2\0" + context + b"\0" + payload,
+            "sha256",
+        )
+
     def encode(
         self,
         *,
@@ -120,19 +143,24 @@ class CursorCodec:
         created_at: str,
         item_id: str,
     ) -> str:
+        if not isinstance(created_at, str) or not isinstance(item_id, str):
+            raise ValueError("cursor anchors must be strings")
         payload = canonical_json(
             {
                 "created_at": created_at,
-                "filters": dict(filters),
-                "instance_id": self._instance_id,
                 "item_id": item_id,
-                "order": order,
-                "schema": schema,
-                "version": 1,
+                "version": 2,
             }
         )
-        signature = hmac.digest(self._key, payload, "sha256")
-        return base64.urlsafe_b64encode(payload + signature).rstrip(b"=").decode("ascii")
+        signature = self._signature(
+            payload, schema=schema, order=order, filters=filters
+        )
+        cursor = base64.urlsafe_b64encode(payload + signature).rstrip(b"=").decode(
+            "ascii"
+        )
+        if len(cursor) > 200:
+            raise ValueError("cursor anchor exceeds the public limit")
+        return cursor
 
     def decode(
         self,
@@ -143,7 +171,7 @@ class CursorCodec:
         filters: Mapping[str, Any],
     ) -> tuple[str, str]:
         try:
-            if not isinstance(cursor, str) or not cursor or len(cursor) > 4_096:
+            if not isinstance(cursor, str) or not cursor or len(cursor) > 200:
                 raise ValueError
             raw = cursor.encode("ascii")
             decoded = base64.b64decode(
@@ -154,26 +182,19 @@ class CursorCodec:
             if len(decoded) <= 32:
                 raise ValueError
             payload, signature = decoded[:-32], decoded[-32:]
-            if not hmac.compare_digest(signature, hmac.digest(self._key, payload, "sha256")):
+            expected_signature = self._signature(
+                payload, schema=schema, order=order, filters=filters
+            )
+            if not hmac.compare_digest(signature, expected_signature):
                 raise ValueError
             value = json.loads(payload.decode("utf-8"))
-            expected = {
-                "created_at",
-                "filters",
-                "instance_id",
-                "item_id",
-                "order",
-                "schema",
-                "version",
-            }
-            if not isinstance(value, dict) or set(value) != expected:
+            if canonical_json(value) != payload:
                 raise ValueError
+            expected = {"created_at", "item_id", "version"}
             if (
-                value["version"] != 1
-                or value["instance_id"] != self._instance_id
-                or value["schema"] != schema
-                or value["order"] != order
-                or value["filters"] != dict(filters)
+                not isinstance(value, dict)
+                or set(value) != expected
+                or value["version"] != 2
                 or not isinstance(value["created_at"], str)
                 or not isinstance(value["item_id"], str)
             ):
@@ -513,6 +534,7 @@ class Registry:
         origin: str,
         job_id: str | None = None,
         artifact_id: str | None = None,
+        preserve_staged: bool = False,
     ) -> dict[str, Any]:
         identity = artifact_id or self.allocate_artifact_id()
         self._validate_artifact_fields(
@@ -536,15 +558,69 @@ class Registry:
         created_at = utc_now()
         if os.path.lexists(destination):
             self._verify_object_path(destination, staged.size, staged.sha256)
-            staged.path.unlink(missing_ok=True)
-            _fsync_directory(staged.path.parent)
+            if not preserve_staged:
+                staged.path.unlink(missing_ok=True)
+                _fsync_directory(staged.path.parent)
         else:
+            temporary: Path | None = None
             try:
-                os.replace(staged.path, destination)
-                if os.name != "nt":
-                    os.chmod(destination, 0o600)
+                if preserve_staged:
+                    temporary = object_dir / (
+                        f".{staged.sha256}.{uuid.uuid4().hex}.partial"
+                    )
+                    digest = hashlib.sha256()
+                    copied = 0
+                    source_flags = (
+                        os.O_RDONLY
+                        | getattr(os, "O_BINARY", 0)
+                        | getattr(os, "O_NOFOLLOW", 0)
+                    )
+                    destination_flags = (
+                        os.O_WRONLY
+                        | os.O_CREAT
+                        | os.O_EXCL
+                        | getattr(os, "O_BINARY", 0)
+                        | getattr(os, "O_NOFOLLOW", 0)
+                    )
+                    source_descriptor = os.open(staged.path, source_flags)
+                    try:
+                        destination_descriptor = os.open(
+                            temporary, destination_flags, 0o600
+                        )
+                        try:
+                            with os.fdopen(
+                                source_descriptor, "rb", closefd=False
+                            ) as source:
+                                with os.fdopen(
+                                    destination_descriptor, "wb", closefd=False
+                                ) as target:
+                                    for chunk in iter(
+                                        lambda: source.read(1024 * 1024), b""
+                                    ):
+                                        copied += len(chunk)
+                                        digest.update(chunk)
+                                        target.write(chunk)
+                                    target.flush()
+                                    os.fsync(target.fileno())
+                        finally:
+                            os.close(destination_descriptor)
+                    finally:
+                        os.close(source_descriptor)
+                    if (
+                        copied != staged.size
+                        or digest.hexdigest() != staged.sha256
+                    ):
+                        raise OSError("staged artifact changed before commit")
+                    os.replace(temporary, destination)
+                    temporary = None
+                else:
+                    os.replace(staged.path, destination)
+                    if os.name != "nt":
+                        os.chmod(destination, 0o600)
                 _fsync_directory(object_dir)
             except OSError as exc:
+                if temporary is not None:
+                    temporary.unlink(missing_ok=True)
                 if exc.errno == errno.ENOSPC:
                     raise ApiError(
                         "DISK_FULL",
@@ -794,6 +870,19 @@ class Registry:
             artifact_id, allow_sealed_internal=allow_sealed_internal
         ) as stream:
             return stream.read()
+
+    def verified_artifact_path(
+        self, artifact_id: str, *, allow_sealed_internal: bool = False
+    ) -> Path:
+        """Return the content-addressed path after verifying its exact bytes."""
+        descriptor = self.assert_content_readable(
+            artifact_id, allow_sealed_internal=allow_sealed_internal
+        )
+        with self.open_verified_artifact(
+            artifact_id, allow_sealed_internal=allow_sealed_internal
+        ):
+            pass
+        return self._registered_path(descriptor)
 
     def recover(self) -> RecoveryReport:
         if self.db.read_only:

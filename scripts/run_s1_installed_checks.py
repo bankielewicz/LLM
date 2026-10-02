@@ -1,7 +1,9 @@
-"""Exercise the installed S1 wheel through real loopback HTTP and owner-only IPC.
+"""Exercise retained local-service boundaries for an installed companion wheel.
 
-This is service integration evidence. It does not execute model operations or
-qualify any browser, Windows profile, CUDA profile, or frozen product case.
+Later slices may enable their fixed operation handlers. These checks retain the
+S1 transport, custody and fail-closed boundaries without requiring the package
+to keep every operation unavailable forever. This is service integration
+evidence; it does not qualify a browser, runtime profile or frozen product case.
 """
 from __future__ import annotations
 
@@ -54,21 +56,41 @@ import time
 import uuid
 
 from llm_foundations_companion.operations import HANDLERS, OPERATIONS, OperationUnavailable
+from llm_foundations_companion.preflight import OPERATION_CAPABILITIES
 from llm_foundations_companion.scheduler import WorkerController
 from llm_foundations_companion.schema import canonical_json
 
 assert tuple(HANDLERS) == OPERATIONS and len(OPERATIONS) == 15
+slice_operations = {
+    'tokenizer_train', 'tiny_train', 'tiny_resume', 'evaluate', 'generate',
+    'context_preview',
+}
+available = {
+    operation for operation, record in OPERATION_CAPABILITIES.items()
+    if record.get('available') is True
+}
+assert available <= slice_operations, available
+supported_handlers = {HANDLERS[name] for name in slice_operations}
+assert len(supported_handlers) == len(slice_operations)
+assert all(
+    HANDLERS[name].__module__.startswith('llm_foundations_companion.')
+    for name in slice_operations
+)
+future_operations = set(OPERATIONS) - slice_operations
 unavailable = 0
-for operation, handler in HANDLERS.items():
+for operation in future_operations:
+    handler = HANDLERS[operation]
     try:
         handler({'operation': operation}, object())
     except OperationUnavailable as exc:
         assert exc.code == 'CAPABILITY_UNAVAILABLE'
         unavailable += 1
     else:
-        raise AssertionError('S1 installed an executable operation handler: ' + operation)
-assert unavailable == len(OPERATIONS)
-assert len(set(HANDLERS.values())) == 1
+        raise AssertionError('A future operation has an executable handler: ' + operation)
+assert unavailable == len(future_operations) == 9
+unavailable_handlers = {HANDLERS[name] for name in future_operations}
+assert len(unavailable_handlers) == 1
+assert supported_handlers.isdisjoint(unavailable_handlers)
 
 controller = WorkerController()
 assert controller.command_prefix == (
@@ -81,6 +103,28 @@ request = {
     'accept_download': True,
 }
 request_sha256 = hashlib.sha256(canonical_json(request)).hexdigest()
+output_allocations = {
+    'run_id': None,
+    'model_id': None,
+    'tokenizer_id': None,
+    'checkpoint_ids': [],
+}
+input_snapshot = {
+    'format': 'llm-foundations-worker-input-v1',
+    'job_id': job_id,
+    'operation': request['operation'],
+    'request_sha256': request_sha256,
+    'runtime_profile': 'wsl-cpu',
+    'device': 'cpu',
+    'dependency_lock_sha256': 'b' * 64,
+    'companion_source_revision': 'c' * 40,
+    'ids': output_allocations,
+    'resolved': {},
+    'inputs': [],
+}
+input_snapshot_sha256 = hashlib.sha256(
+    canonical_json(input_snapshot)
+).hexdigest()
 owned = controller.launch(
     job_id=job_id,
     instance_id=instance_id,
@@ -89,6 +133,9 @@ owned = controller.launch(
     request=request,
     request_sha256=request_sha256,
     schema_id='ModelPrepareRequest',
+    input_snapshot=input_snapshot,
+    input_snapshot_sha256=input_snapshot_sha256,
+    output_allocations=output_allocations,
 )
 messages = []
 try:
@@ -122,7 +169,10 @@ assert owned.stderr is not None and owned.stderr.total_bytes == 0
 print(json.dumps({
     'command_prefix': list(controller.command_prefix),
     'operation_count': len(OPERATIONS),
-    'unavailable_handlers': unavailable,
+    'recognized_s2_handlers': sorted(slice_operations),
+    'available_handlers': sorted(available),
+    'policy_disabled_s2_handlers': sorted(slice_operations - available),
+    'future_unavailable_handlers': unavailable,
     'protocol_messages': ['ready', 'error', 'eof'],
     'error_code': error['error']['code'],
     'exit_code': owned.process.returncode,
@@ -174,7 +224,8 @@ class Installed:
             dist_prefixes = {name.split('/', 1)[0] for name in names if '.dist-info/' in name}
             assert dist_prefixes == {dist_prefix}, 'Candidate wheel has ambiguous dist-info members'
             metadata = email.parser.BytesParser().parsebytes(archive.read(metadata_members[0]))
-            assert metadata['Name'] == 'llm-foundations-companion' and metadata['Version'] == '0.1.0', 'Candidate wheel metadata identity differs'
+            assert metadata['Name'] == 'llm-foundations-companion' and metadata['Version'], 'Candidate wheel metadata identity differs'
+            distribution_version = metadata['Version']
             expected_dist = {name for name in names if name.startswith(dist_prefix + '/') and not name.endswith('/')}
             assert dist_prefix + '/RECORD' in expected_dist, 'Candidate wheel has no RECORD'
             for member in names:
@@ -237,7 +288,8 @@ class Installed:
         assert count > 30, 'Candidate wheel is incomplete'
         return {'wheel_sha256': self.wheel_sha256, 'python_sha256': self.executable_sha256,
             'purelib': str(purelib), 'verified_package_members': count,
-            'verified_distribution_files': len(observed)}
+            'verified_distribution_files': len(observed),
+            'distribution_version': distribution_version}
 
     def worker_probe(self):
         self.identity()
@@ -467,16 +519,69 @@ def run(t):
         return {'inert_transport_only': True, 'sha256': descriptor['sha256']}
     t.check('inert-bundle-upload', bundle)
     def unavailable():
-        request = {'operation': 'tokenizer_train', 'dataset_id': dataset['dataset_id'], 'vocab_size': 257, 'seed': 7, 'tokenizer_profile_id': 'byte-v1'}
-        # Use an authoritative fixture shape supplied by the frozen OpenAPI.
-        request_file = t.report / 'unavailable-request.json'
-        request_file.write_bytes(canonical(request))
-        status, raw, _ = t.http('POST', '/api/v1/jobs', body=request)
-        assert status == 503 and json.loads(raw)['error']['code'] == 'CAPABILITY_UNAVAILABLE', raw
-        result = t.command('request', '--storage', str(t.root), '--file', str(request_file))
-        assert result.returncode == 1 and json.loads(result.stderr)['error']['code'] == 'CAPABILITY_UNAVAILABLE', result.stderr
-        assert t.get('/api/v1/jobs')['items'] == []
-        return {'http': 503, 'control': 'CAPABILITY_UNAVAILABLE', 'job_count': 0}
+        # Future operations have one fail-closed handler. Recognized S2 handlers
+        # may also be policy-disabled; service admission must reject those before
+        # creating a queue row without pretending their implementations are absent.
+        checkpoint_id = '123e4567-e89b-42d3-a456-426614174010'
+        preview_id = '123e4567-e89b-42d3-a456-426614174011'
+        fixtures = {
+            'model_prepare': {
+                'operation': 'model_prepare',
+                'model_profile_id': 'smollm2-135m-instruct-v1',
+                'accept_download': True,
+            },
+            'context_preview': {
+                'operation': 'context_preview',
+                'backend': 'tiny',
+                'checkpoint_id': checkpoint_id,
+                'prompt': 'disabled capability check',
+                'max_new_tokens': 4,
+                'temperature': 0.0,
+                'top_p': 1.0,
+                'seed': 17,
+            },
+            'generate': {
+                'operation': 'generate',
+                'checkpoint_id': checkpoint_id,
+                'prompt': 'disabled capability check',
+                'max_new_tokens': 4,
+                'temperature': 0.0,
+                'top_p': 1.0,
+                'seed': 17,
+                'preview_artifact_id': preview_id,
+                'context_preview_digest': 'a' * 64,
+            },
+        }
+        capabilities = t.get('/api/v1/runtime')['capabilities']
+        policy_disabled = sorted(
+            name for name in ('context_preview', 'generate')
+            if capabilities[name].get('available') is not True
+        )
+        checked = ['model_prepare', *policy_disabled]
+        outcomes = {}
+        for operation in checked:
+            request = fixtures[operation]
+            request_file = t.report / ('unavailable-' + operation + '-request.json')
+            request_file.write_bytes(canonical(request))
+            status, raw, _ = t.http('POST', '/api/v1/jobs', body=request)
+            error = json.loads(raw)['error']
+            assert status == 503 and error['code'] == 'CAPABILITY_UNAVAILABLE', raw
+            result = t.command(
+                'request', '--storage', str(t.root), '--file', str(request_file)
+            )
+            assert result.returncode == 1, result.stderr
+            assert json.loads(result.stderr)['error']['code'] == 'CAPABILITY_UNAVAILABLE', result.stderr
+            assert t.get('/api/v1/jobs')['items'] == []
+            outcomes[operation] = {
+                'http': status,
+                'control': 'CAPABILITY_UNAVAILABLE',
+                'job_count': 0,
+            }
+        return {
+            'checked_operations': checked,
+            'policy_disabled_s2_operations': policy_disabled,
+            'outcomes': outcomes,
+        }
     t.check('unavailable-jobs-create-no-row', unavailable)
     def revoke():
         status, raw, _ = t.http('DELETE', '/api/v1/sessions/current')

@@ -26,6 +26,19 @@ from .schema import canonical_json, strict_json
 PROTOCOL_VERSION = 1
 MAX_FRAME_BYTES = 1_048_576
 _DIGEST = re.compile(r"^[0-9a-f]{64}$")
+_BASENAME = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]{0,119}$")
+ARTIFACT_ROLES = frozenset(
+    {
+        "tokenizer_json",
+        "training_metrics",
+        "evaluation_metrics",
+        "evaluation_records",
+        "evaluation_paired",
+        "context_preview",
+        "generation",
+        "run_result",
+    }
+)
 _EVENT_TYPES = frozenset(
     {
         "state_changed",
@@ -116,6 +129,94 @@ def _bounded_text(value: object, field: str, minimum: int, maximum: int) -> str:
     return value
 
 
+def _basename(value: object, field: str) -> str:
+    if not isinstance(value, str) or _BASENAME.fullmatch(value) is None:
+        raise WorkerProtocolError(f"{field} must be a portable basename")
+    return value
+
+
+def _nullable_uuid(value: object, field: str) -> str | None:
+    return None if value is None else _canonical_uuid(value, field)
+
+
+def validate_output_allocations(value: object) -> Mapping[str, Any]:
+    allocations = _exact(
+        value,
+        {"run_id", "model_id", "tokenizer_id", "checkpoint_ids"},
+        "output allocations",
+    )
+    for name in ("run_id", "model_id", "tokenizer_id"):
+        _nullable_uuid(allocations[name], name)
+    checkpoint_ids = allocations["checkpoint_ids"]
+    if not isinstance(checkpoint_ids, list) or len(checkpoint_ids) > 2_002:
+        raise WorkerProtocolError("checkpoint_ids is invalid")
+    seen: set[str] = set()
+    for index, checkpoint_id in enumerate(checkpoint_ids):
+        parsed = _canonical_uuid(checkpoint_id, f"checkpoint_ids[{index}]")
+        if parsed in seen:
+            raise WorkerProtocolError("checkpoint_ids contains a duplicate")
+        seen.add(parsed)
+    return allocations
+
+
+def validate_input_snapshot(value: object) -> Mapping[str, Any]:
+    snapshot = _exact(
+        value,
+        {
+            "format",
+            "job_id",
+            "operation",
+            "request_sha256",
+            "runtime_profile",
+            "device",
+            "dependency_lock_sha256",
+            "companion_source_revision",
+            "ids",
+            "resolved",
+            "inputs",
+        },
+        "input snapshot",
+    )
+    if snapshot["format"] != "llm-foundations-worker-input-v1":
+        raise WorkerProtocolError("input snapshot format is invalid")
+    _canonical_uuid(snapshot["job_id"], "input snapshot job_id")
+    if snapshot["operation"] not in OPERATIONS:
+        raise WorkerProtocolError("input snapshot operation is invalid")
+    _digest(snapshot["request_sha256"], "input snapshot request_sha256")
+    if snapshot["runtime_profile"] not in {"win-cpu", "win-cuda", "wsl-cpu", "wsl-cuda"}:
+        raise WorkerProtocolError("input snapshot runtime profile is invalid")
+    if snapshot["device"] not in {"cpu", "cuda"}:
+        raise WorkerProtocolError("input snapshot device is invalid")
+    _digest(snapshot["dependency_lock_sha256"], "dependency_lock_sha256")
+    revision = snapshot["companion_source_revision"]
+    if not isinstance(revision, str) or re.fullmatch(r"^[0-9a-f]{40}$", revision) is None:
+        raise WorkerProtocolError("companion_source_revision is invalid")
+    validate_output_allocations(snapshot["ids"])
+    if not isinstance(snapshot["resolved"], Mapping):
+        raise WorkerProtocolError("input snapshot resolved value must be an object")
+    inputs = snapshot["inputs"]
+    if not isinstance(inputs, list) or len(inputs) > 100:
+        raise WorkerProtocolError("input snapshot inputs is invalid")
+    roles: set[str] = set()
+    for index, raw in enumerate(inputs):
+        item = _exact(
+            raw,
+            {"role", "artifact_id", "sha256", "size_bytes", "path"},
+            f"input snapshot inputs[{index}]",
+        )
+        role = _bounded_text(item["role"], "input role", 1, 120)
+        if role in roles:
+            raise WorkerProtocolError("input snapshot roles must be unique")
+        roles.add(role)
+        _canonical_uuid(item["artifact_id"], "input artifact_id")
+        _digest(item["sha256"], "input sha256")
+        _bounded_int(item["size_bytes"], "input size_bytes", maximum=1 << 40)
+        path = _bounded_text(item["path"], "input path", 1, 240)
+        if re.fullmatch(r"inputs/[A-Za-z0-9][A-Za-z0-9._-]{0,119}", path) is None:
+            raise WorkerProtocolError("input path must be a fixed relative staging path")
+    return snapshot
+
+
 def encode_frame(value: Mapping[str, Any]) -> bytes:
     body = canonical_json(dict(value))
     if len(body) > MAX_FRAME_BYTES:
@@ -168,6 +269,9 @@ def make_request_envelope(
     schema_id: str,
     request_sha256: str,
     request: Mapping[str, Any],
+    input_snapshot_sha256: str,
+    input_snapshot: Mapping[str, Any],
+    output_allocations: Mapping[str, Any],
 ) -> dict[str, Any]:
     envelope = {
         "protocol_version": PROTOCOL_VERSION,
@@ -177,6 +281,9 @@ def make_request_envelope(
         "schema_id": schema_id,
         "request_sha256": request_sha256,
         "request": dict(request),
+        "input_snapshot_sha256": input_snapshot_sha256,
+        "input_snapshot": dict(input_snapshot),
+        "output_allocations": dict(output_allocations),
     }
     return dict(validate_request_envelope(envelope, job_id=job_id, instance_id=instance_id))
 
@@ -194,6 +301,9 @@ def validate_request_envelope(
             "schema_id",
             "request_sha256",
             "request",
+            "input_snapshot_sha256",
+            "input_snapshot",
+            "output_allocations",
         },
         "request envelope",
     )
@@ -215,6 +325,19 @@ def validate_request_envelope(
         raise WorkerProtocolError("request operation is outside the closed dispatch map")
     if hashlib.sha256(canonical_json(dict(request))).hexdigest() != request_digest:
         raise WorkerProtocolError("request digest does not match canonical request bytes")
+    snapshot_digest = _digest(envelope["input_snapshot_sha256"], "input_snapshot_sha256")
+    snapshot = validate_input_snapshot(envelope["input_snapshot"])
+    if hashlib.sha256(canonical_json(dict(snapshot))).hexdigest() != snapshot_digest:
+        raise WorkerProtocolError("input snapshot digest does not match canonical bytes")
+    allocations = validate_output_allocations(envelope["output_allocations"])
+    if dict(allocations) != dict(snapshot["ids"]):
+        raise WorkerProtocolError("output allocations do not match the input snapshot")
+    if snapshot["job_id"] != envelope["job_id"]:
+        raise WorkerProtocolError("input snapshot job identity does not match")
+    if snapshot["operation"] != request.get("operation"):
+        raise WorkerProtocolError("input snapshot operation does not match")
+    if snapshot["request_sha256"] != request_digest:
+        raise WorkerProtocolError("input snapshot request digest does not match")
     return envelope
 
 
@@ -304,6 +427,7 @@ def validate_worker_message(value: object) -> Mapping[str, Any]:
                 "spawn_nonce",
                 "request_sha256",
                 "schema_id",
+                "input_snapshot_sha256",
             },
             "ready message",
         )
@@ -313,6 +437,7 @@ def validate_worker_message(value: object) -> Mapping[str, Any]:
         _canonical_uuid(message["instance_id"], "instance_id")
         _digest(message["spawn_nonce"], "spawn_nonce")
         _digest(message["request_sha256"], "request_sha256")
+        _digest(message["input_snapshot_sha256"], "input_snapshot_sha256")
         _bounded_text(message["schema_id"], "schema_id", 1, 200)
         return message
     if kind == "event":
@@ -320,6 +445,55 @@ def validate_worker_message(value: object) -> Mapping[str, Any]:
         validate_event_payload(message["event_type"], message["payload"])
         if message["event_type"] in {"state_changed", "terminal"}:
             raise WorkerProtocolError("the scheduler owns state and terminal events")
+        if message["event_type"] == "checkpoint_committed":
+            raise WorkerProtocolError("the scheduler owns checkpoint committed events")
+        return message
+    if kind == "artifact_ready":
+        message = _exact(
+            value,
+            {"type", "role", "staging_name", "size_bytes", "sha256"},
+            "artifact_ready message",
+        )
+        if message["role"] not in ARTIFACT_ROLES:
+            raise WorkerProtocolError("artifact role is outside the closed vocabulary")
+        _basename(message["staging_name"], "staging_name")
+        _bounded_int(message["size_bytes"], "size_bytes", maximum=1 << 40)
+        _digest(message["sha256"], "sha256")
+        return message
+    if kind == "checkpoint_ready":
+        message = _exact(
+            value,
+            {"type", "staging_name", "manifest_sha256", "files"},
+            "checkpoint_ready message",
+        )
+        _basename(message["staging_name"], "staging_name")
+        _digest(message["manifest_sha256"], "manifest_sha256")
+        files = message["files"]
+        if not isinstance(files, list) or len(files) != 7:
+            raise WorkerProtocolError("checkpoint_ready must describe exactly seven files")
+        names: set[str] = set()
+        for index, raw in enumerate(files):
+            item = _exact(raw, {"name", "size", "sha256"}, f"checkpoint files[{index}]")
+            name = _basename(item["name"], "checkpoint file name")
+            if name in names:
+                raise WorkerProtocolError("checkpoint file names must be unique")
+            names.add(name)
+            _bounded_int(item["size"], "checkpoint file size", maximum=1 << 40)
+            _digest(item["sha256"], "checkpoint file sha256")
+        required = {
+            "model.safetensors",
+            "optimizer.safetensors",
+            "rng.safetensors",
+            "tokenizer.json",
+            "config.json",
+            "trainer_state.json",
+            "manifest.json",
+        }
+        if names != required:
+            raise WorkerProtocolError("checkpoint_ready has the wrong file set")
+        manifest = next(item for item in files if item["name"] == "manifest.json")
+        if manifest["sha256"] != message["manifest_sha256"]:
+            raise WorkerProtocolError("checkpoint manifest digest is inconsistent")
         return message
     if kind == "result":
         message = _exact(value, {"type", "operation", "result"}, "result message")
@@ -347,6 +521,65 @@ def validate_worker_message(value: object) -> Mapping[str, Any]:
         validate_job_error(message["error"])
         return message
     raise WorkerProtocolError("unknown worker message type")
+
+
+def validate_parent_message(value: object) -> Mapping[str, Any]:
+    if not isinstance(value, Mapping) or not isinstance(value.get("type"), str):
+        raise WorkerProtocolError("parent message has no type")
+    kind = value["type"]
+    if kind == "artifact_prepared":
+        message = _exact(
+            value,
+            {"type", "role", "artifact_id", "sha256"},
+            "artifact prepared acknowledgment",
+        )
+        if message["role"] not in ARTIFACT_ROLES:
+            raise WorkerProtocolError("artifact acknowledgment role is invalid")
+        _canonical_uuid(message["artifact_id"], "artifact_id")
+        _digest(message["sha256"], "sha256")
+        return message
+    if kind == "checkpoint_committed":
+        message = _exact(
+            value,
+            {
+                "type",
+                "checkpoint_id",
+                "step",
+                "sha256",
+                "run_id",
+                "artifact_ids",
+            },
+            "checkpoint committed acknowledgment",
+        )
+        _canonical_uuid(message["checkpoint_id"], "checkpoint_id")
+        _bounded_int(message["step"], "step")
+        _digest(message["sha256"], "sha256")
+        _canonical_uuid(message["run_id"], "run_id")
+        artifact_ids = message["artifact_ids"]
+        if not isinstance(artifact_ids, Mapping) or len(artifact_ids) != 7:
+            raise WorkerProtocolError("checkpoint artifact_ids is invalid")
+        required = {
+            "model.safetensors",
+            "optimizer.safetensors",
+            "rng.safetensors",
+            "tokenizer.json",
+            "config.json",
+            "trainer_state.json",
+            "manifest.json",
+        }
+        if set(artifact_ids) != required:
+            raise WorkerProtocolError("checkpoint artifact_ids has the wrong file set")
+        for name, artifact_id in artifact_ids.items():
+            _basename(name, "checkpoint artifact name")
+            _canonical_uuid(artifact_id, "checkpoint artifact_id")
+        return message
+    if kind == "commit_rejected":
+        message = _exact(value, {"type", "kind", "error"}, "commit rejection")
+        if message["kind"] not in {"artifact", "checkpoint"}:
+            raise WorkerProtocolError("commit rejection kind is invalid")
+        validate_job_error(message["error"])
+        return message
+    raise WorkerProtocolError("unknown parent message type")
 
 
 def validate_job_error(value: object, *, interruption: bool = False) -> Mapping[str, Any]:
@@ -377,8 +610,10 @@ class ProtocolState:
     request_sha256: str
     schema_id: str
     operation: str
+    input_snapshot_sha256: str | None = None
     ready: bool = False
     terminal: bool = False
+    awaiting_ack: str | None = None
 
     def accept(self, raw: object) -> Mapping[str, Any]:
         message = validate_worker_message(raw)
@@ -393,6 +628,7 @@ class ProtocolState:
                 "spawn_nonce": self.spawn_nonce,
                 "request_sha256": self.request_sha256,
                 "schema_id": self.schema_id,
+                "input_snapshot_sha256": self.input_snapshot_sha256,
             }
             if any(message[name] != value for name, value in expected.items()):
                 raise WorkerProtocolError("worker acknowledgment identity does not match dispatch")
@@ -400,12 +636,30 @@ class ProtocolState:
             return message
         if message["type"] == "ready":
             raise WorkerProtocolError("worker acknowledged more than once")
+        if self.awaiting_ack is not None:
+            raise WorkerProtocolError("worker emitted data before parent commit acknowledgment")
+        if message["type"] in {"artifact_ready", "checkpoint_ready"}:
+            self.awaiting_ack = "artifact" if message["type"] == "artifact_ready" else "checkpoint"
+            return message
         if message["type"] == "result":
             if message["operation"] != self.operation:
                 raise WorkerProtocolError("worker result operation does not match request")
             self.terminal = True
         elif message["type"] in {"error", "interrupted"}:
             self.terminal = True
+        return message
+
+    def acknowledge(self, raw: object) -> Mapping[str, Any]:
+        message = validate_parent_message(raw)
+        if self.awaiting_ack is None:
+            raise WorkerProtocolError("parent acknowledgment has no pending proposal")
+        if message["type"] == "commit_rejected":
+            kind = message["kind"]
+        else:
+            kind = "artifact" if message["type"] == "artifact_prepared" else "checkpoint"
+        if kind != self.awaiting_ack:
+            raise WorkerProtocolError("parent acknowledgment kind does not match proposal")
+        self.awaiting_ack = None
         return message
 
 
@@ -469,6 +723,7 @@ def open_inherited_stream(variable: str, mode: str) -> BinaryIO:
 
 
 __all__ = [
+    "ARTIFACT_ROLES",
     "CancellationToken",
     "MAX_FRAME_BYTES",
     "PROTOCOL_VERSION",
@@ -480,6 +735,9 @@ __all__ = [
     "read_frame",
     "validate_event_payload",
     "validate_job_error",
+    "validate_input_snapshot",
+    "validate_output_allocations",
+    "validate_parent_message",
     "validate_request_envelope",
     "validate_worker_message",
     "write_frame",

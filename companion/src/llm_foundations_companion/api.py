@@ -142,7 +142,8 @@ class Application:
                 body = None
                 if body_spec:
                     body = await receive_json(receive, content_length=length)
-                    body = validate_schema(body_spec['application/json']['schema'], body, document='openapi.json')
+                    body = validate_schema(body_spec['application/json']['schema'], body, document='openapi.json',
+                        include_semantic=template != '/api/v1/jobs')
                 elif method != 'GET' or length:
                     body_bytes = await self.empty_body(receive, length)
                     if body_bytes:

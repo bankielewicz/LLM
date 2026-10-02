@@ -892,7 +892,10 @@ def _raise_issues(issues: list[_Issue]) -> None:
     )
 
 
-def validate_schema(schema: Schema, value: JSONValue, *, document: str = "openapi.json") -> JSONValue:
+def validate_schema(
+    schema: Schema, value: JSONValue, *, document: str = "openapi.json",
+    include_semantic: bool = True,
+) -> JSONValue:
     """Validate one inline schema with offline refs and return type-normalized JSON."""
 
     name = _resolve_document_name(document)
@@ -909,15 +912,16 @@ def validate_schema(schema: Schema, value: JSONValue, *, document: str = "openap
     if issues:
         _raise_issues(issues)
     normalized = _normalize(schema, deepcopy(value), context)
-    semantic_issues: list[_Issue] = []
-    for rule in _semantic_rules(schema, normalized, context):
-        semantic_issues.extend(_apply_semantic_rule(rule, normalized))
-    if semantic_issues:
-        _raise_issues(semantic_issues)
+    if include_semantic:
+        semantic_issues: list[_Issue] = []
+        for rule in _semantic_rules(schema, normalized, context):
+            semantic_issues.extend(_apply_semantic_rule(rule, normalized))
+        if semantic_issues:
+            _raise_issues(semantic_issues)
     return normalized
 
 
-def validate(schema_name: str, value: JSONValue) -> JSONValue:
+def validate(schema_name: str, value: JSONValue, *, include_semantic: bool = True) -> JSONValue:
     """Validate an OpenAPI component or bundled standalone schema by name."""
 
     if not isinstance(schema_name, str) or not schema_name:
@@ -925,9 +929,9 @@ def validate(schema_name: str, value: JSONValue) -> JSONValue:
     openapi = _load_json_cached("openapi.json")
     components = openapi.get("components", {}).get("schemas", {})
     if schema_name in components:
-        return validate_schema(components[schema_name], value, document="openapi.json")
+        return validate_schema(components[schema_name], value, document="openapi.json", include_semantic=include_semantic)
     document = _resolve_document_name(schema_name)
     schema = _load_json_cached(document)
     if not isinstance(schema, (dict, bool)):
         raise SchemaDefinitionError(f"contract document is not a schema: {document}")
-    return validate_schema(schema, value, document=document)
+    return validate_schema(schema, value, document=document, include_semantic=include_semantic)

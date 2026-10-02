@@ -35,6 +35,7 @@ def test_startup_receipt_is_self_consistent_and_service_imports_no_models(tmp_pa
         without = dict(receipt); digest = without.pop('receipt_sha256'); without.pop('receipt_artifact_id')
         assert hashlib.sha256(canonical_json(without)).hexdigest() == digest
         assert all(not capability['available'] for capability in service.runtime_info()['capabilities'].values())
+        assert service.companion_source_revision is None  # Source tests have no installed build identity.
         assert {'torch', 'transformers', 'peft'} & sys.modules.keys() == before
 
 
@@ -178,3 +179,43 @@ def test_control_stop_failure_still_releases_other_resources(tmp_path, monkeypat
     assert service._closed
     with Service(root, *inputs()):
         pass
+
+
+def test_control_submit_preserves_schema_then_reference_then_semantic_order():
+    service = Service.__new__(Service)
+    admitted = []
+    def reject_missing_reference(request, key):
+        admitted.append(request)
+        raise ApiError('NOT_FOUND', 'The dataset is absent.')
+    service.submit_job = reject_missing_reference
+    request = {
+        'operation': 'tiny_train',
+        'dataset_id': '11111111-1111-4111-8111-111111111111',
+        'tokenizer_id': '22222222-2222-4222-8222-222222222222',
+        'architecture_profile_id': 'tiny-v2-standard-v1',
+        'steps': 1, 'eval_every': 2, 'batch_size': 1,
+        'learning_rate': 0.001, 'seed': 17,
+        'context': 8, 'width': 16, 'heads': 1, 'layers': 1,
+    }
+    envelope = {'request': request, 'idempotency_key': str(uuid.uuid4())}
+    with pytest.raises(ApiError) as reference:
+        service._control_submit(envelope)
+    assert reference.value.code == 'NOT_FOUND'
+    assert len(admitted) == 1
+    with pytest.raises(ApiError) as schema:
+        service._control_submit({**envelope, 'request': {**request, 'steps': 1.0}})
+    assert schema.value.reason_code == 'SCHEMA_INVALID'
+    assert len(admitted) == 1
+
+
+def test_invalid_installed_source_identity_precedes_storage_creation(tmp_path, monkeypatch):
+    from llm_foundations_companion import service as service_module
+    def invalid():
+        raise ValueError('private source detail')
+    monkeypatch.setattr(service_module, 'source_revision', invalid)
+    root = tmp_path / 'not-created'
+    with pytest.raises(ProfileSelectionError) as raised:
+        Service(root, *inputs())
+    assert raised.value.reason_code == 'BACKEND_VERSION_MISMATCH'
+    assert 'private' not in raised.value.message
+    assert not root.exists()

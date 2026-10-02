@@ -1,0 +1,43 @@
+{
+  "format": "llm-foundations-s2-baseline-v1",
+  "captured_at": "2026-10-01T20:09:53+00:00",
+  "base_commit": "bcb358e3c466fdf6ffce1fdefb414b6206b93f8a",
+  "base_tree": "7058d7e8264eb3f85abb6faf8a52cd6ff91a9436",
+  "source_pr": "https://github.com/bankielewicz/LLM/pull/4",
+  "authority_revision": "1.2",
+  "authority_payload_sha256": "974306b73634d9d073fb90de941fe55c8fb83cd073a585613cb6249b06691571",
+  "protected_source_files": 107,
+  "sealed_specification_files": 150,
+  "files": [
+    {
+      "path": "docs/implementation/s0/authority.json",
+      "sha256": "c79bb229e3563fa2b6c0e641653218cdd3444f10bb0b6ed8e74ef56561bf4357"
+    },
+    {
+      "path": "docs/specs/intermediate-v1/spec-manifest.json",
+      "sha256": "7526190e853580adcc3681c9ac0559be4ae8c741878b5a686bdcf624d9f131b8"
+    },
+    {
+      "path": "docs/specs/intermediate-v1/acceptance-cases.json",
+      "sha256": "fe8caec52e1be042f61ce10af81046ad3bff833af33c31526f226893713cf7e4"
+    },
+    {
+      "path": "companion/locks/win-cpu.requirements.txt",
+      "sha256": "02619fe73374e48742a6fe99317067263a106bce77580f8b79c19bca6fbb8872"
+    },
+    {
+      "path": "companion/locks/win-cuda.requirements.txt",
+      "sha256": "0821cbccf2b612db551d565e6420553cfc7c1aa85a61f7bddb8b699a305edb38"
+    },
+    {
+      "path": "companion/locks/wsl-cpu.requirements.txt",
+      "sha256": "4c49171d00476f62f80ec1cbb1fdd94c2519f1ac97d37c29c27a042605977cfb"
+    },
+    {
+      "path": "companion/locks/wsl-cuda.requirements.txt",
+      "sha256": "e5ced4cbc9bfb327ec4917f1ae8649b8986878635c115d6f4dd2e323f40e5a52"
+    }
+  ],
+  "product_acceptance_execution_units": 605,
+  "product_qualification": "NOT_RUN"
+}

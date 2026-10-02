@@ -97,7 +97,7 @@ class Database:
                         self._enter_recovery("STORAGE_CORRUPT")
                         self._initialized = True
                         return
-                    if version == CORE_SCHEMA_VERSION:
+                    if version >= 1:
                         # Validate the identity while the existing database is
                         # still open read-only.  A structurally valid database
                         # with missing or malformed root metadata is corrupt and
@@ -138,7 +138,7 @@ class Database:
                             (
                                 CORE_SCHEMA_VERSION,
                                 now,
-                                "initial companion storage schema",
+                                f"companion storage schema v{CORE_SCHEMA_VERSION}",
                             ),
                         )
                         connection.execute(

@@ -1,4 +1,4 @@
-"""Record and verify the isolated S1 WSL CPU validation environment."""
+"""Record and verify an isolated locked companion runtime environment."""
 from __future__ import annotations
 import hashlib
 import importlib.metadata as metadata
@@ -9,6 +9,8 @@ import re
 import subprocess
 import sys
 
+from llm_foundations_companion import __version__ as companion_version
+
 
 def normalize(name):
     return re.sub(r'[-_.]+', '-', name).lower()
@@ -18,7 +20,10 @@ def main():
     manifest_path = Path(sys.argv[1])
     manifest = json.loads(manifest_path.read_text(encoding='utf-8'))
     expected = {normalize(row['name']): row['version'] for row in manifest['packages']}
-    expected['llm-foundations-companion'] = '0.1.0'
+    # The release package owns its version. Keeping this check tied to the
+    # installed package avoids teaching later slices a historical S1 version
+    # while still comparing the installed distribution metadata below.
+    expected['llm-foundations-companion'] = companion_version
     installed = {}
     for distribution in metadata.distributions():
         name = normalize(distribution.metadata['Name'])

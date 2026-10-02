@@ -61,7 +61,7 @@ def main(argv=None):
             if len(raw) > 1048576:
                 raise ApiError('PAYLOAD_TOO_LARGE')
             request = strict_json(raw)
-            request = validate_schema({'$ref': '#/components/schemas/JobRequest'}, request, document='openapi.json')
+            request = validate_schema({'$ref': '#/components/schemas/JobRequest'}, request, document='openapi.json', include_semantic=False)
             key = args.idempotency_key or str(uuid.uuid4())
             validate_schema({'$ref': '#/components/schemas/Identifier'}, key, document='openapi.json')
             response = client.call('submit_job', {'request': request, 'idempotency_key': key})

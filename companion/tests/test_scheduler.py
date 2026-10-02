@@ -12,6 +12,7 @@ import pytest
 
 from llm_foundations_companion.database import Database
 from llm_foundations_companion.errors import ApiError
+from llm_foundations_companion.operation_store import OperationStoreError
 from llm_foundations_companion.registry import Registry
 from llm_foundations_companion.scheduler import IdempotencyStore, Scheduler
 from llm_foundations_companion.schema import canonical_json, validate_schema
@@ -57,6 +58,7 @@ class ScriptedWorker:
         self.terminated = 0
         self.closed = 0
         self.cancelled = []
+        self.acks = []
 
     def messages(self):
         return self._messages.popleft() if self._messages else []
@@ -68,6 +70,9 @@ class ScriptedWorker:
         if self._cancel_error is not None:
             raise self._cancel_error
         self.cancelled.append(reason)
+
+    def send_ack(self, message):
+        self.acks.append(dict(message))
 
     def terminate_owned(self, expected_nonce):
         assert expected_nonce == self.spawn_nonce
@@ -85,6 +90,102 @@ class ScriptedController:
 
     def launch(self, **_values):
         return self.worker
+
+
+class ScriptedOperationStore:
+    def __init__(self):
+        self.calls = []
+        self.pending_artifact_ids = (PREVIEW_ARTIFACT_ID,)
+
+    def prepare_artifact(self, job_id, proposal):
+        self.calls.append(("prepare_artifact", job_id, dict(proposal)))
+        return dict(proposal)
+
+    def commit_artifact_in(self, connection, prepared):
+        self.calls.append(("commit_artifact", prepared["role"]))
+        return SimpleNamespace(
+            ack={
+                "type": "artifact_prepared",
+                "role": prepared["role"],
+                "artifact_id": PREVIEW_ARTIFACT_ID,
+                "sha256": prepared["sha256"],
+            }
+        )
+
+    def prepare_checkpoint(self, job_id, proposal):
+        self.calls.append(("prepare_checkpoint", job_id, dict(proposal)))
+        return SimpleNamespace(
+            step=0,
+            manifest_sha256=proposal["manifest_sha256"],
+        )
+
+    def commit_checkpoint_in(self, connection, prepared):
+        self.calls.append(("commit_checkpoint", prepared.manifest_sha256))
+        return SimpleNamespace(
+            ack={
+                "type": "checkpoint_committed",
+                "checkpoint_id": CHECKPOINT_ID,
+                "step": 0,
+                "sha256": prepared.manifest_sha256,
+                "run_id": DATASET_ID,
+                "artifact_ids": {
+                    name: str(uuid.uuid5(uuid.NAMESPACE_URL, name))
+                    for name in (
+                        "model.safetensors",
+                        "optimizer.safetensors",
+                        "rng.safetensors",
+                        "tokenizer.json",
+                        "config.json",
+                        "trainer_state.json",
+                        "manifest.json",
+                    )
+                },
+            },
+            checkpoint_id=CHECKPOINT_ID,
+            step=0,
+            sha256=prepared.manifest_sha256,
+            artifact_ids=(),
+            run_id=DATASET_ID,
+        )
+
+    def complete_checkpoint(self, prepared):
+        self.calls.append(
+            (
+                "complete_checkpoint",
+                prepared.manifest_sha256,
+            )
+        )
+
+    def prepare_terminal(
+        self, job_id, *, state, reason_code, finished_at, result=None
+    ):
+        self.calls.append(
+            ("prepare_terminal", job_id, state, reason_code, finished_at)
+        )
+        return SimpleNamespace(
+            state=state,
+            result=result,
+            finished_at=finished_at,
+            pending_artifact_ids=self.pending_artifact_ids,
+        )
+
+    def finalize_terminal_in(self, connection, prepared):
+        self.calls.append(("finalize_terminal", prepared.state))
+        return SimpleNamespace(
+            result=prepared.result,
+            run_id=DATASET_ID if prepared.state == "completed" else None,
+            model_id=None,
+            artifact_ids=(),
+        )
+
+    def complete_terminal(self, prepared):
+        self.calls.append(
+            (
+                "complete_terminal",
+                prepared.state,
+                prepared.pending_artifact_ids,
+            )
+        )
 
 
 class Clock:
@@ -128,6 +229,24 @@ def generate():
     }
 
 
+def tiny_train(steps=3):
+    return {
+        "operation": "tiny_train",
+        "dataset_id": DATASET_ID,
+        "tokenizer_id": PREVIEW_ARTIFACT_ID,
+        "architecture_profile_id": "tiny-v2-standard-v1",
+        "steps": steps,
+        "eval_every": 1,
+        "batch_size": 1,
+        "learning_rate": 0.001,
+        "context": 8,
+        "width": 16,
+        "heads": 1,
+        "layers": 1,
+        "seed": 17,
+    }
+
+
 @pytest.fixture
 def runtime(tmp_path):
     db = Database(tmp_path / "storage")
@@ -143,7 +262,12 @@ def runtime(tmp_path):
         "0.1.0",
         {
             operation: {"available": True}
-            for operation in ("model_prepare", "tokenizer_train", "generate")
+            for operation in (
+                "model_prepare",
+                "tokenizer_train",
+                "tiny_train",
+                "generate",
+            )
         },
         admission_planner=TinyReservation(),
         clock=Clock(),
@@ -160,6 +284,19 @@ def counts(db):
         return tuple(
             int(connection.execute(f"SELECT COUNT(*) FROM {table}").fetchone()[0])
             for table in ("jobs", "job_events", "artifacts", "reservations", "idempotency_records")
+        )
+
+
+def set_requested_final_step(db, job_id, step):
+    with db.transaction() as connection:
+        row = connection.execute(
+            "SELECT record_json FROM jobs WHERE job_id = ?", (job_id,)
+        ).fetchone()
+        record = json.loads(row[0])
+        record["requested_final_step"] = step
+        connection.execute(
+            "UPDATE jobs SET record_json = ? WHERE job_id = ?",
+            (canonical_json(record).decode(), job_id),
         )
 
 
@@ -190,6 +327,133 @@ def test_submit_is_one_atomic_job_artifact_reservation_event_and_replay(runtime)
     assert caught.value.code == "IDEMPOTENCY_CONFLICT"
     assert counts(db) == (1, 1, 1, 1, 1)
 
+
+
+def test_training_target_is_hidden_while_queued_and_bound_when_starting(
+    tmp_path,
+) -> None:
+    run_id, model_id, checkpoint_id = (str(uuid.uuid4()) for _ in range(3))
+
+    class Planner:
+        def resolve(self, request):
+            return SimpleNamespace(
+                operation="tiny_train",
+                reservation={
+                    "byte_count": 1_000_000,
+                    "artifact_rows": 16,
+                    "dataset_rows": 0,
+                    "run_rows": 1,
+                    "model_rows": 1,
+                    "checkpoint_rows": 2,
+                },
+                resolved={
+                    "request": dict(request),
+                    "requested_final_step": request["steps"],
+                    "_inputs": [],
+                },
+                run_id=run_id,
+                model_id=model_id,
+                tokenizer_id=None,
+                checkpoint_ids=(checkpoint_id,),
+            )
+
+    class PersistedContexts:
+        def __init__(self):
+            self.values = {}
+
+        def create_job_context_in(
+            self, _connection, *, job_id, request_sha256, plan
+        ):
+            self.values[job_id] = (request_sha256, plan)
+
+        def get_job_context(self, job_id):
+            return SimpleNamespace(resolved=self.values[job_id][1].resolved)
+
+        def materialize_worker_snapshot(self, job_id):
+            request_sha256, plan = self.values[job_id]
+            value = {
+                "format": "llm-foundations-worker-input-v1",
+                "job_id": job_id,
+                "operation": plan.operation,
+                "request_sha256": request_sha256,
+                "runtime_profile": "wsl-cpu",
+                "device": "cpu",
+                "dependency_lock_sha256": "b" * 64,
+                "companion_source_revision": "c" * 40,
+                "ids": {
+                    "run_id": plan.run_id,
+                    "model_id": plan.model_id,
+                    "tokenizer_id": plan.tokenizer_id,
+                    "checkpoint_ids": list(plan.checkpoint_ids),
+                },
+                "resolved": {
+                    key: value
+                    for key, value in plan.resolved.items()
+                    if key != "_inputs"
+                },
+                "inputs": [],
+            }
+            return SimpleNamespace(
+                value=value,
+                sha256=hashlib.sha256(canonical_json(value)).hexdigest(),
+            )
+
+    db = Database(tmp_path / "storage")
+    db.initialize()
+    registry = Registry(db, db.root, INSTANCE_ID, b"c" * 32)
+    contexts = PersistedContexts()
+    worker = ScriptedWorker([], None, protocol_eof=False)
+    scheduler = Scheduler(
+        db,
+        registry,
+        db.root,
+        INSTANCE_ID,
+        INSTALLATION_ID,
+        "wsl-cpu",
+        "0.1.0",
+        {"tiny_train": {"available": True}},
+        admission_planner=Planner(),
+        training_store=contexts,
+        worker_controller=ScriptedController(worker),
+        clock=Clock(),
+    )
+    try:
+        key = str(uuid.uuid4())
+        submission = scheduler.submit(tiny_train(steps=3), key)
+        queued = submission.job
+        assert queued["requested_final_step"] is None
+        assert (
+            validate_schema(
+                {"$ref": "#/components/schemas/Job"},
+                queued,
+                document="openapi.json",
+            )
+            == queued
+        )
+        queued_event = scheduler.list_events(queued["job_id"]).items[0]
+        assert queued_event["payload"]["requested_final_step"] is None
+        assert scheduler.submit(tiny_train(steps=3), key).response_body == submission.response_body
+
+        starting = scheduler.dispatch_once()
+        assert starting["state"] == "starting"
+        assert starting["requested_final_step"] == 3
+        assert (
+            validate_schema(
+                {"$ref": "#/components/schemas/Job"},
+                starting,
+                document="openapi.json",
+            )
+            == starting
+        )
+        starting_event = scheduler.list_events(queued["job_id"]).items[-1]
+        assert starting_event["payload"] == {
+            "state": "starting",
+            "step": None,
+            "requested_final_step": 3,
+        }
+    finally:
+        scheduler._clear_active()
+        db.close()
 
 def test_submit_canonicalizes_the_schema_normalized_request(runtime):
     _, registry, scheduler = runtime
@@ -276,6 +540,8 @@ def test_queue_cap_and_queued_cancel_are_atomic_and_release_capacity(runtime):
     assert caught.value.code == "QUEUE_FULL"
     assert counts(db) == before
 
+    store = ScriptedOperationStore()
+    scheduler.operation_store = store
     cancelled = scheduler.cancel(jobs[0]["job_id"])
     assert cancelled["state"] == "interrupted"
     assert cancelled["started_at"] is None
@@ -303,6 +569,7 @@ def test_queue_cap_and_queued_cancel_are_atomic_and_release_capacity(runtime):
         ).fetchone()[0]
     assert state == "released"
     assert scheduler.get(jobs[1]["job_id"])["queue_position"] == 1
+    assert store.calls == []
 
 
 def test_list_cursor_binds_filters_instance_and_order(runtime):
@@ -345,6 +612,8 @@ def test_event_replay_bounds_and_immutable_trigger(runtime):
 
 def test_recovery_interrupts_prior_active_jobs_and_leaves_queued_fifo(runtime):
     db, _, scheduler = runtime
+    store = ScriptedOperationStore()
+    scheduler.operation_store = store
     active = scheduler.submit(model_prepare(), str(uuid.uuid4())).job
     queued = scheduler.submit(model_prepare(), str(uuid.uuid4())).job
     with db.transaction() as connection:
@@ -376,6 +645,40 @@ def test_recovery_interrupts_prior_active_jobs_and_leaves_queued_fifo(runtime):
     assert recovered["terminal_reason"] == "service_restarted"
     assert scheduler.get(queued["job_id"])["state"] == "queued"
     assert scheduler.get(queued["job_id"])["queue_position"] == 1
+    assert [call[0] for call in store.calls] == [
+        "prepare_terminal",
+        "finalize_terminal",
+        "complete_terminal",
+    ]
+
+
+def test_ownership_unknown_finalizes_store_metadata_and_pauses_scheduling(runtime):
+    _, _, scheduler = runtime
+    worker = ScriptedWorker(
+        [{"type": "ready"}],
+        None,
+        protocol_eof=False,
+        cancel_error=BrokenPipeError(),
+        terminate_error=OSError("ownership proof lost"),
+    )
+    store = ScriptedOperationStore()
+    scheduler.worker_controller = ScriptedController(worker)
+    scheduler.operation_store = store
+    accepted = scheduler.submit(model_prepare(), str(uuid.uuid4())).job
+    scheduler.dispatch_once()
+    assert scheduler.tick()["state"] == "running"
+
+    interrupted = scheduler.cancel(accepted["job_id"])
+
+    assert interrupted["state"] == "interrupted"
+    assert interrupted["terminal_reason"] == "worker_ownership_unknown"
+    assert interrupted["error"]["code"] == "WORKER_OWNERSHIP_UNKNOWN"
+    assert scheduler._scheduling_paused is True
+    assert [call[0] for call in store.calls] == [
+        "prepare_terminal",
+        "finalize_terminal",
+        "complete_terminal",
+    ]
 
 
 @pytest.mark.parametrize(
@@ -468,6 +771,34 @@ def test_expected_worker_error_may_exit_nonzero_after_clean_protocol(runtime):
     assert scheduler.get(accepted["job_id"])["state"] == "failed"
 
 
+def test_nontraining_s2_ready_persists_zero_completed_steps(runtime):
+    _, _, scheduler = runtime
+    worker = ScriptedWorker(
+        [
+            {"type": "ready"},
+            {
+                "type": "error",
+                "error": {
+                    "code": "WORKER_PROTOCOL_ERROR",
+                    "message": "Stopped after readiness.",
+                    "retryable": False,
+                    "field_errors": [],
+                },
+            },
+            None,
+        ],
+        2,
+    )
+    scheduler.worker_controller = ScriptedController(worker)
+    accepted = scheduler.submit(generate(), str(uuid.uuid4())).job
+    scheduler.dispatch_once()
+
+    failed = scheduler.tick()
+
+    assert failed["state"] == "failed"
+    assert failed["step"] == 0
+
+
 def test_expected_interrupted_terminal_reconciles_after_cancel(runtime):
     _, _, scheduler = runtime
     worker = ScriptedWorker([{"type": "ready"}], None, protocol_eof=False)
@@ -498,6 +829,452 @@ def test_expected_interrupted_terminal_reconciles_after_cancel(runtime):
     assert interrupted["terminal_reason"] == "user_cancelled"
     assert worker.terminated == 1
     assert worker.closed == 1
+
+
+def test_checkpoint_ready_is_committed_with_event_before_worker_ack(runtime):
+    _, _, scheduler = runtime
+    digest = "d" * 64
+    names = (
+        "model.safetensors",
+        "optimizer.safetensors",
+        "rng.safetensors",
+        "tokenizer.json",
+        "config.json",
+        "trainer_state.json",
+        "manifest.json",
+    )
+    proposal = {
+        "type": "checkpoint_ready",
+        "staging_name": "checkpoint-temp",
+        "manifest_sha256": digest,
+        "files": [
+            {"name": name, "size": 1, "sha256": digest} for name in names
+        ],
+    }
+    worker = ScriptedWorker(
+        [{"type": "ready"}, proposal],
+        None,
+        protocol_eof=False,
+    )
+    store = ScriptedOperationStore()
+    scheduler.worker_controller = ScriptedController(worker)
+    scheduler.operation_store = store
+    accepted = scheduler.submit(model_prepare(), str(uuid.uuid4())).job
+    scheduler.dispatch_once()
+
+    running = scheduler.tick()
+
+    assert running["state"] == "running"
+    assert running["checkpoint_boundary"] == {
+        "checkpoint_id": CHECKPOINT_ID,
+        "step": 0,
+    }
+    assert worker.acks[0]["type"] == "checkpoint_committed"
+    events = scheduler.list_events(accepted["job_id"]).items
+    assert events[-1]["event_type"] == "checkpoint_committed"
+    assert events[-1]["payload"]["checkpoint_id"] == CHECKPOINT_ID
+    assert store.calls[-2:] == [
+        ("commit_checkpoint", digest),
+        ("complete_checkpoint", digest),
+    ]
+    assert scheduler.cancel(accepted["job_id"])["state"] == "cancelling"
+    worker._messages.append(
+        [
+            {
+                "type": "interrupted",
+                "reason_code": "user_cancelled",
+                "checkpoint_id": CHECKPOINT_ID,
+                "checkpoint_step": 0,
+                "error": None,
+            },
+            None,
+        ]
+    )
+    worker._exit_code = 0
+    worker.protocol_eof = True
+    assert scheduler.tick()["state"] == "interrupted"
+
+
+def test_training_failure_retains_latest_progress_after_prior_checkpoint(runtime):
+    db, _, scheduler = runtime
+    digest = "d" * 64
+    names = (
+        "model.safetensors",
+        "optimizer.safetensors",
+        "rng.safetensors",
+        "tokenizer.json",
+        "config.json",
+        "trainer_state.json",
+        "manifest.json",
+    )
+    proposal = {
+        "type": "checkpoint_ready",
+        "staging_name": "checkpoint-temp",
+        "manifest_sha256": digest,
+        "files": [
+            {"name": name, "size": 1, "sha256": digest} for name in names
+        ],
+    }
+    worker = ScriptedWorker(
+        [
+            {"type": "ready"},
+            proposal,
+            {
+                "type": "event",
+                "event_type": "progress",
+                "payload": {
+                    "current": 1,
+                    "total": 3,
+                    "unit": "updates",
+                    "message": "step 1",
+                },
+            },
+            {
+                "type": "error",
+                "error": {
+                    "code": "WORKER_PROTOCOL_ERROR",
+                    "message": "Stopped between checkpoints.",
+                    "retryable": False,
+                    "field_errors": [],
+                },
+            },
+            None,
+        ],
+        2,
+    )
+    store = ScriptedOperationStore()
+    scheduler.worker_controller = ScriptedController(worker)
+    scheduler.operation_store = store
+    accepted = scheduler.submit(tiny_train(), str(uuid.uuid4())).job
+    set_requested_final_step(db, accepted["job_id"], 3)
+    scheduler.dispatch_once()
+
+    failed = scheduler.tick()
+
+    assert failed["state"] == "failed"
+    assert failed["step"] == 1
+    assert failed["checkpoint_boundary"] == {
+        "checkpoint_id": CHECKPOINT_ID,
+        "step": 0,
+    }
+    prepared = next(call for call in store.calls if call[0] == "prepare_terminal")
+    assert prepared[-1] == failed["finished_at"]
+
+
+def test_checkpoint_pending_cleanup_waits_for_transaction_commit(
+    runtime, monkeypatch
+):
+    _, _, scheduler = runtime
+    digest = "d" * 64
+    names = (
+        "model.safetensors",
+        "optimizer.safetensors",
+        "rng.safetensors",
+        "tokenizer.json",
+        "config.json",
+        "trainer_state.json",
+        "manifest.json",
+    )
+    proposal = {
+        "type": "checkpoint_ready",
+        "staging_name": "checkpoint-temp",
+        "manifest_sha256": digest,
+        "files": [
+            {"name": name, "size": 1, "sha256": digest} for name in names
+        ],
+    }
+    worker = ScriptedWorker(
+        [{"type": "ready"}],
+        None,
+        protocol_eof=False,
+    )
+    store = ScriptedOperationStore()
+    scheduler.worker_controller = ScriptedController(worker)
+    scheduler.operation_store = store
+    accepted = scheduler.submit(model_prepare(), str(uuid.uuid4())).job
+    scheduler.dispatch_once()
+    assert scheduler.tick()["state"] == "running"
+    save = scheduler._save
+
+    def fail_save(*_args, **_kwargs):
+        raise sqlite3.OperationalError("forced checkpoint rollback")
+
+    monkeypatch.setattr(scheduler, "_save", fail_save)
+    scheduler._commit_worker_checkpoint(accepted["job_id"], proposal)
+
+    running = scheduler.get(accepted["job_id"])
+    assert running["state"] == "running"
+    assert running["checkpoint_boundary"] is None
+    assert [call[0] for call in store.calls] == [
+        "prepare_checkpoint",
+        "commit_checkpoint",
+    ]
+    assert worker.acks[0]["type"] == "commit_rejected"
+
+    monkeypatch.setattr(scheduler, "_save", save)
+    scheduler._commit_worker_checkpoint(accepted["job_id"], proposal)
+
+    committed = scheduler.get(accepted["job_id"])
+    assert committed["checkpoint_boundary"] == {
+        "checkpoint_id": CHECKPOINT_ID,
+        "step": 0,
+    }
+    assert [call[0] for call in store.calls] == [
+        "prepare_checkpoint",
+        "commit_checkpoint",
+        "prepare_checkpoint",
+        "commit_checkpoint",
+        "complete_checkpoint",
+    ]
+    assert worker.acks[-1]["type"] == "checkpoint_committed"
+    scheduler._clear_active()
+
+
+def test_checkpoint_cannot_regress_below_observed_training_progress(runtime):
+    db, _, scheduler = runtime
+    digest = "d" * 64
+    names = (
+        "model.safetensors",
+        "optimizer.safetensors",
+        "rng.safetensors",
+        "tokenizer.json",
+        "config.json",
+        "trainer_state.json",
+        "manifest.json",
+    )
+    proposal = {
+        "type": "checkpoint_ready",
+        "staging_name": "checkpoint-temp",
+        "manifest_sha256": digest,
+        "files": [
+            {"name": name, "size": 1, "sha256": digest} for name in names
+        ],
+    }
+    worker = ScriptedWorker(
+        [
+            {"type": "ready"},
+            {
+                "type": "event",
+                "event_type": "progress",
+                "payload": {
+                    "current": 1,
+                    "total": 3,
+                    "unit": "updates",
+                    "message": "step 1",
+                },
+            },
+            proposal,
+        ],
+        None,
+        protocol_eof=False,
+    )
+    store = ScriptedOperationStore()
+    scheduler.worker_controller = ScriptedController(worker)
+    scheduler.operation_store = store
+    accepted = scheduler.submit(tiny_train(), str(uuid.uuid4())).job
+    set_requested_final_step(db, accepted["job_id"], 3)
+    scheduler.dispatch_once()
+
+    failed = scheduler.tick()
+
+    assert failed["state"] == "failed"
+    assert failed["step"] == 1
+    assert worker.terminated == 1
+    assert not any(call[0] == "commit_checkpoint" for call in store.calls)
+
+
+def test_resume_dispatch_seeds_verified_parent_boundary_without_checkpoint_event(
+    runtime,
+):
+    _, _, scheduler = runtime
+    parent_id = str(uuid.uuid4())
+    request = {
+        "operation": "tiny_resume",
+        "checkpoint_id": parent_id,
+        "additional_steps": 25,
+    }
+    request_sha256 = hashlib.sha256(canonical_json(request)).hexdigest()
+    allocations = {
+        "run_id": str(uuid.uuid4()),
+        "model_id": str(uuid.uuid4()),
+        "tokenizer_id": None,
+        "checkpoint_ids": [str(uuid.uuid4())],
+    }
+    snapshot = {
+        "format": "llm-foundations-worker-input-v1",
+        "job_id": None,
+        "operation": "tiny_resume",
+        "request_sha256": request_sha256,
+        "runtime_profile": "wsl-cpu",
+        "device": "cpu",
+        "dependency_lock_sha256": "b" * 64,
+        "companion_source_revision": "c" * 40,
+        "ids": allocations,
+        "resolved": {
+            "parent_checkpoint": {
+                "checkpoint_id": parent_id,
+                "step": 25,
+            },
+            "requested_final_step": 50,
+        },
+        "inputs": [],
+    }
+
+    class SnapshotStore:
+        def get_job_context(self, _job_id):
+            return SimpleNamespace(resolved=snapshot["resolved"])
+
+        def materialize_worker_snapshot(self, job_id):
+            value = {**snapshot, "job_id": job_id}
+            return SimpleNamespace(
+                value=value,
+                sha256=hashlib.sha256(canonical_json(value)).hexdigest(),
+            )
+
+    worker = ScriptedWorker(
+        [
+            {"type": "ready"},
+            {
+                "type": "interrupted",
+                "reason_code": "user_cancelled",
+                "checkpoint_id": parent_id,
+                "checkpoint_step": 25,
+                "error": None,
+            },
+            None,
+        ],
+        0,
+    )
+    scheduler.capabilities["tiny_resume"] = {"available": True}
+    scheduler.training_store = SnapshotStore()
+    scheduler.worker_controller = ScriptedController(worker)
+    accepted = scheduler.submit(request, str(uuid.uuid4())).job
+
+    starting = scheduler.dispatch_once()
+
+    assert starting["checkpoint_boundary"] == {
+        "checkpoint_id": parent_id,
+        "step": 25,
+    }
+    assert starting["step"] == 25
+    assert all(
+        event["event_type"] != "checkpoint_committed"
+        for event in scheduler.list_events(accepted["job_id"]).items
+    )
+    interrupted = scheduler.tick()
+    assert interrupted["state"] == "interrupted"
+    assert interrupted["run_id"] == allocations["run_id"]
+    assert interrupted["step"] == 25
+    assert interrupted["checkpoint_boundary"] == {
+        "checkpoint_id": parent_id,
+        "step": 25,
+    }
+    assert all(
+        event["event_type"] != "checkpoint_committed"
+        for event in scheduler.list_events(accepted["job_id"]).items
+    )
+
+
+def test_artifact_prepare_then_result_finalize_is_one_terminal_transaction(runtime):
+    _, _, scheduler = runtime
+    digest = hashlib.sha256(b"{}").hexdigest()
+    result = {"operation": "model_prepare", "model_id": DATASET_ID, "artifact_ids": []}
+    worker = ScriptedWorker(
+        [
+            {"type": "ready"},
+            {
+                "type": "artifact_ready",
+                "role": "run_result",
+                "staging_name": "result.partial",
+                "size_bytes": 2,
+                "sha256": digest,
+            },
+            {"type": "result", "operation": "model_prepare", "result": result},
+            None,
+        ],
+        0,
+    )
+    store = ScriptedOperationStore()
+    scheduler.worker_controller = ScriptedController(worker)
+    scheduler.operation_store = store
+    accepted = scheduler.submit(model_prepare(), str(uuid.uuid4())).job
+    scheduler.dispatch_once()
+
+    completed = scheduler.tick()
+
+    assert completed["state"] == "completed"
+    assert completed["result"] == result
+    assert completed["run_id"] == DATASET_ID
+    assert worker.acks == [
+        {
+            "type": "artifact_prepared",
+            "role": "run_result",
+            "artifact_id": PREVIEW_ARTIFACT_ID,
+            "sha256": digest,
+        }
+    ]
+    assert [call[0] for call in store.calls] == [
+        "prepare_artifact",
+        "commit_artifact",
+        "prepare_terminal",
+        "finalize_terminal",
+        "complete_terminal",
+    ]
+
+
+def test_terminal_pending_cleanup_waits_for_transaction_commit(
+    runtime, monkeypatch
+):
+    _, _, scheduler = runtime
+    worker = ScriptedWorker(
+        [{"type": "ready"}],
+        None,
+        protocol_eof=False,
+    )
+    store = ScriptedOperationStore()
+    scheduler.worker_controller = ScriptedController(worker)
+    scheduler.operation_store = store
+    accepted = scheduler.submit(model_prepare(), str(uuid.uuid4())).job
+    scheduler.dispatch_once()
+    assert scheduler.tick()["state"] == "running"
+    terminal = {
+        "type": "error",
+        "error": {
+            "code": "WORKER_PROTOCOL_ERROR",
+            "message": "Stopped after readiness.",
+            "retryable": False,
+            "field_errors": [],
+        },
+    }
+    release_capacity = scheduler.registry.release_capacity
+
+    def fail_release(*_args, **_kwargs):
+        raise sqlite3.OperationalError("forced terminal rollback")
+
+    monkeypatch.setattr(scheduler.registry, "release_capacity", fail_release)
+    with pytest.raises(sqlite3.OperationalError, match="forced terminal rollback"):
+        scheduler._finalize_worker_message(accepted["job_id"], terminal)
+
+    assert scheduler.get(accepted["job_id"])["state"] == "running"
+    assert [call[0] for call in store.calls] == [
+        "prepare_terminal",
+        "finalize_terminal",
+    ]
+
+    monkeypatch.setattr(scheduler.registry, "release_capacity", release_capacity)
+    scheduler._finalize_worker_message(accepted["job_id"], terminal)
+
+    failed = scheduler.get(accepted["job_id"])
+    assert failed["state"] == "failed"
+    assert [call[0] for call in store.calls] == [
+        "prepare_terminal",
+        "finalize_terminal",
+        "prepare_terminal",
+        "finalize_terminal",
+        "complete_terminal",
+    ]
+    assert store.calls[-1][2] == (PREVIEW_ARTIFACT_ID,)
+    scheduler._clear_active()
 
 
 def test_read_only_recovery_shutdown_terminates_without_database_write(runtime):
@@ -538,3 +1315,388 @@ def test_read_only_recovery_shutdown_retains_worker_when_termination_fails(runti
     assert worker.closed == 0
     worker._terminate_error = None
     scheduler.shutdown()
+
+
+
+def test_invalid_completed_store_output_fails_job_and_allows_future_dispatch(runtime):
+    db, _, scheduler = runtime
+    digest = "d" * 64
+    names = (
+        "model.safetensors",
+        "optimizer.safetensors",
+        "rng.safetensors",
+        "tokenizer.json",
+        "config.json",
+        "trainer_state.json",
+        "manifest.json",
+    )
+    checkpoint = {
+        "type": "checkpoint_ready",
+        "staging_name": "checkpoint-temp",
+        "manifest_sha256": digest,
+        "files": [
+            {"name": name, "size": 1, "sha256": digest} for name in names
+        ],
+    }
+    metric_digest = hashlib.sha256(b"{}\n").hexdigest()
+    metrics = {
+        "type": "artifact_ready",
+        "role": "training_metrics",
+        "staging_name": "metrics.jsonl",
+        "size_bytes": 3,
+        "sha256": metric_digest,
+    }
+
+    class InvalidCompletedStore(ScriptedOperationStore):
+        def prepare_terminal(
+            self, job_id, *, state, reason_code, finished_at, result=None
+        ):
+            if state == "completed":
+                self.calls.append(
+                    ("reject_terminal", job_id, state, reason_code, finished_at)
+                )
+                raise OperationStoreError(
+                    "WORKER_PROTOCOL_ERROR", "Metric output violates its schema."
+                )
+            return super().prepare_terminal(
+                job_id,
+                state=state,
+                reason_code=reason_code,
+                finished_at=finished_at,
+                result=result,
+            )
+
+    worker = ScriptedWorker(
+        [
+            {"type": "ready"},
+            checkpoint,
+            metrics,
+            {
+                "type": "result",
+                "operation": "tiny_train",
+                "result": {"operation": "tiny_train"},
+            },
+            None,
+        ],
+        0,
+    )
+    store = InvalidCompletedStore()
+    scheduler.worker_controller = ScriptedController(worker)
+    scheduler.operation_store = store
+    first = scheduler.submit(tiny_train(), str(uuid.uuid4())).job
+    second = scheduler.submit(model_prepare(), str(uuid.uuid4())).job
+    set_requested_final_step(db, first["job_id"], 3)
+    scheduler.dispatch_once()
+
+    failed = scheduler.tick()
+
+    assert failed["state"] == "failed"
+    assert failed["error"]["code"] == "WORKER_PROTOCOL_ERROR"
+    assert failed["checkpoint_boundary"] == {
+        "checkpoint_id": CHECKPOINT_ID,
+        "step": 0,
+    }
+    assert worker.terminated == 2
+    assert worker.closed == 1
+    assert [ack["type"] for ack in worker.acks] == [
+        "checkpoint_committed",
+        "artifact_prepared",
+    ]
+    assert [call[0] for call in store.calls] == [
+        "prepare_checkpoint",
+        "commit_checkpoint",
+        "complete_checkpoint",
+        "prepare_artifact",
+        "commit_artifact",
+        "reject_terminal",
+        "prepare_terminal",
+        "finalize_terminal",
+        "complete_terminal",
+    ]
+
+    next_worker = ScriptedWorker([], None, protocol_eof=False)
+    scheduler.worker_controller = ScriptedController(next_worker)
+    dispatched = scheduler.dispatch_once()
+    assert dispatched["job_id"] == second["job_id"]
+    assert dispatched["state"] == "starting"
+    scheduler._clear_active()
+
+
+def _training_progress(current, total):
+    return {
+        "type": "event",
+        "event_type": "progress",
+        "payload": {
+            "current": current,
+            "total": total,
+            "unit": "updates",
+            "message": "Training",
+        },
+    }
+
+
+def _persisted_progress(scheduler, job_id):
+    return [
+        event
+        for event in scheduler.list_events(job_id, 0, 100).items
+        if event["event_type"] == "progress"
+    ]
+
+
+def test_training_progress_updates_each_step_but_persists_only_sixteenth_milestones(
+    runtime,
+):
+    db, _, scheduler = runtime
+    worker = ScriptedWorker(
+        [
+            {"type": "ready"},
+            *[_training_progress(step, 50) for step in range(1, 51)],
+            {
+                "type": "error",
+                "error": {
+                    "code": "WORKER_PROTOCOL_ERROR",
+                    "message": "Stopped after all observed updates.",
+                    "retryable": False,
+                    "field_errors": [],
+                },
+            },
+            None,
+        ],
+        2,
+    )
+    scheduler.worker_controller = ScriptedController(worker)
+    scheduler.operation_store = ScriptedOperationStore()
+    accepted = scheduler.submit(tiny_train(steps=50), str(uuid.uuid4())).job
+    set_requested_final_step(db, accepted["job_id"], 50)
+    scheduler.dispatch_once()
+
+    failed = scheduler.tick()
+
+    assert failed["state"] == "failed"
+    assert failed["step"] == 50
+    assert failed["progress"]["current"] == 50
+    assert [event["payload"]["current"] for event in _persisted_progress(
+        scheduler, accepted["job_id"]
+    )] == [4, 7, 10, 13, 16, 19, 22, 25, 29, 32, 35, 38, 41, 44, 47, 50]
+
+
+def test_training_progress_between_milestones_updates_job_without_inventing_event(
+    runtime,
+):
+    db, _, scheduler = runtime
+    worker = ScriptedWorker(
+        [
+            {"type": "ready"},
+            _training_progress(1, 50),
+            _training_progress(2, 50),
+            _training_progress(3, 50),
+        ],
+        None,
+        protocol_eof=False,
+    )
+    scheduler.worker_controller = ScriptedController(worker)
+    accepted = scheduler.submit(tiny_train(steps=50), str(uuid.uuid4())).job
+    set_requested_final_step(db, accepted["job_id"], 50)
+    scheduler.dispatch_once()
+
+    running = scheduler.tick()
+    scheduler._clear_active()
+
+    assert running["state"] == "running"
+    assert running["step"] == 3
+    assert running["progress"]["current"] == 3
+    assert _persisted_progress(scheduler, accepted["job_id"]) == []
+
+
+def test_training_failure_between_checkpoints_retains_latest_observed_update(runtime):
+    db, _, scheduler = runtime
+    digest = "d" * 64
+    names = (
+        "model.safetensors",
+        "optimizer.safetensors",
+        "rng.safetensors",
+        "tokenizer.json",
+        "config.json",
+        "trainer_state.json",
+        "manifest.json",
+    )
+    checkpoint = {
+        "type": "checkpoint_ready",
+        "staging_name": "checkpoint-temp",
+        "manifest_sha256": digest,
+        "files": [{"name": name, "size": 1, "sha256": digest} for name in names],
+    }
+    worker = ScriptedWorker(
+        [
+            {"type": "ready"},
+            checkpoint,
+            *[_training_progress(step, 50) for step in range(1, 6)],
+            {
+                "type": "error",
+                "error": {
+                    "code": "WORKER_PROTOCOL_ERROR",
+                    "message": "Stopped between checkpoints.",
+                    "retryable": False,
+                    "field_errors": [],
+                },
+            },
+            None,
+        ],
+        2,
+    )
+    scheduler.worker_controller = ScriptedController(worker)
+    scheduler.operation_store = ScriptedOperationStore()
+    accepted = scheduler.submit(tiny_train(steps=50), str(uuid.uuid4())).job
+    set_requested_final_step(db, accepted["job_id"], 50)
+    scheduler.dispatch_once()
+
+    failed = scheduler.tick()
+
+    assert failed["state"] == "failed"
+    assert failed["step"] == 5
+    assert failed["checkpoint_boundary"] == {
+        "checkpoint_id": CHECKPOINT_ID,
+        "step": 0,
+    }
+    assert [event["payload"]["current"] for event in _persisted_progress(
+        scheduler, accepted["job_id"]
+    )] == [4]
+
+
+def test_resumed_training_persists_only_remaining_absolute_milestones(runtime):
+    _, _, scheduler = runtime
+    parent_id = str(uuid.uuid4())
+    request = {
+        "operation": "tiny_resume",
+        "checkpoint_id": parent_id,
+        "additional_steps": 25,
+    }
+    request_sha256 = hashlib.sha256(canonical_json(request)).hexdigest()
+    allocations = {
+        "run_id": str(uuid.uuid4()),
+        "model_id": str(uuid.uuid4()),
+        "tokenizer_id": None,
+        "checkpoint_ids": [str(uuid.uuid4())],
+    }
+    resolved = {
+        "parent_checkpoint": {"checkpoint_id": parent_id, "step": 25},
+        "requested_final_step": 50,
+    }
+
+    class ResumeSnapshotStore:
+        def get_job_context(self, _job_id):
+            return SimpleNamespace(resolved=resolved)
+
+        def materialize_worker_snapshot(self, job_id):
+            value = {
+                "format": "llm-foundations-worker-input-v1",
+                "job_id": job_id,
+                "operation": "tiny_resume",
+                "request_sha256": request_sha256,
+                "runtime_profile": "wsl-cpu",
+                "device": "cpu",
+                "dependency_lock_sha256": "b" * 64,
+                "companion_source_revision": "c" * 40,
+                "ids": allocations,
+                "resolved": resolved,
+                "inputs": [],
+            }
+            return SimpleNamespace(
+                value=value,
+                sha256=hashlib.sha256(canonical_json(value)).hexdigest(),
+            )
+
+    worker = ScriptedWorker(
+        [
+            {"type": "ready"},
+            *[_training_progress(step, 50) for step in range(26, 51)],
+            {
+                "type": "error",
+                "error": {
+                    "code": "WORKER_PROTOCOL_ERROR",
+                    "message": "Stopped after resumed updates.",
+                    "retryable": False,
+                    "field_errors": [],
+                },
+            },
+            None,
+        ],
+        2,
+    )
+    scheduler.capabilities["tiny_resume"] = {"available": True}
+    scheduler.training_store = ResumeSnapshotStore()
+    scheduler.worker_controller = ScriptedController(worker)
+    scheduler.operation_store = ScriptedOperationStore()
+    accepted = scheduler.submit(request, str(uuid.uuid4())).job
+    scheduler.dispatch_once()
+
+    failed = scheduler.tick()
+
+    assert failed["state"] == "failed"
+    assert failed["step"] == 50
+    assert [event["payload"]["current"] for event in _persisted_progress(
+        scheduler, accepted["job_id"]
+    )] == [29, 32, 35, 38, 41, 44, 47, 50]
+
+
+def test_unknown_total_progress_persists_at_most_once_per_five_seconds_and_sixteen(
+    runtime,
+):
+    _, _, scheduler = runtime
+
+    class ManualClock:
+        def __init__(self):
+            self.value = datetime(2026, 10, 1, 13, 0, tzinfo=timezone.utc)
+
+        def __call__(self):
+            return self.value
+
+        def advance(self, seconds):
+            self.value += timedelta(seconds=seconds)
+
+    worker = ScriptedWorker([{"type": "ready"}], None, protocol_eof=False)
+    scheduler.worker_controller = ScriptedController(worker)
+    accepted = scheduler.submit(generate(), str(uuid.uuid4())).job
+    scheduler.dispatch_once()
+    assert scheduler.tick()["state"] == "running"
+    clock = ManualClock()
+    scheduler._clock = clock
+
+    def observe(current):
+        scheduler._handle_worker_message(
+            {
+                "type": "event",
+                "event_type": "progress",
+                "payload": {
+                    "current": current,
+                    "total": None,
+                    "unit": "records",
+                    "message": "Working",
+                },
+            }
+        )
+
+    try:
+        observe(1)
+        clock.advance(4)
+        observe(2)
+        clock.advance(1)
+        observe(3)
+        for current in range(4, 23):
+            clock.advance(5)
+            observe(current)
+    finally:
+        scheduler._clear_active()
+
+    running = scheduler.get(accepted["job_id"])
+    events = _persisted_progress(scheduler, accepted["job_id"])
+    assert running["progress"]["current"] == 22
+    assert len(events) == 16
+    assert events[0]["payload"]["current"] == 1
+    assert events[1]["payload"]["current"] == 3
+    timestamps = [datetime.fromisoformat(event["occurred_at"].replace("Z", "+00:00")) for event in events]
+    assert all(
+        later - earlier >= timedelta(seconds=5)
+        for earlier, later in zip(timestamps, timestamps[1:])
+    )
+    scheduler._clear_active()

@@ -187,13 +187,34 @@ def test_local_shell_preserves_reader_and_contains_credentials() -> None:
         assert label in session_js or label in local_html
 
 
-def test_wheel_contains_complete_reader_without_cache_files(tmp_path: Path) -> None:
+def _detached_project_with_provenance(tmp_path: Path) -> tuple[Path, dict]:
     project = tmp_path / "companion"
     shutil.copytree(
         REPOSITORY / "companion",
         project,
         ignore=shutil.ignore_patterns("__pycache__", "*.pyc", "*.pyo", "build", "*.egg-info"),
     )
+    package = project / "src" / "llm_foundations_companion"
+    rows = [{"path": path.relative_to(package).as_posix(),
+             "sha256": hashlib.sha256(path.read_bytes()).hexdigest(),
+             "size_bytes": path.stat().st_size}
+            for path in sorted(package.rglob("*")) if path.is_file()]
+    rows.sort(key=lambda row: row["path"])
+    def git(*args: str) -> str:
+        return subprocess.check_output(["git", "-C", str(REPOSITORY), *args], text=True).strip()
+    provenance = {
+        "format": "llmf-build-provenance-v1",
+        "source_revision": git("rev-parse", "HEAD"),
+        "source_tree": git("rev-parse", "HEAD^{tree}"),
+        "dirty": bool(git("status", "--porcelain", "--untracked-files=all")),
+        "package_source_sha256": hashlib.sha256(json.dumps(rows, sort_keys=True, separators=(",", ":")).encode()).hexdigest(),
+    }
+    (project / "build-provenance.json").write_text(json.dumps(provenance), encoding="utf-8")
+    return project, provenance
+
+
+def test_wheel_contains_complete_reader_without_cache_files(tmp_path: Path) -> None:
+    project, provenance = _detached_project_with_provenance(tmp_path)
     wheelhouse = tmp_path / "wheelhouse"
     completed = subprocess.run(
         [
@@ -218,6 +239,7 @@ def test_wheel_contains_complete_reader_without_cache_files(tmp_path: Path) -> N
     prefix = "llm_foundations_companion/static/"
     with zipfile.ZipFile(wheels[0]) as archive:
         members = set(archive.namelist())
+        assert json.loads(archive.read("llm_foundations_companion/runtime_data/build-provenance.json")) == provenance
         packaged = {name.removeprefix(prefix) for name in members if name.startswith(prefix)}
     expected = {
         path.relative_to(PACKAGE).as_posix()
@@ -226,3 +248,15 @@ def test_wheel_contains_complete_reader_without_cache_files(tmp_path: Path) -> N
     }
     assert packaged == expected
     assert not any("__pycache__" in name or name.endswith((".pyc", ".pyo")) for name in members)
+
+
+def test_detached_wheel_rejects_changed_source_after_provenance_capture(tmp_path: Path) -> None:
+    project, _ = _detached_project_with_provenance(tmp_path)
+    module = project / "src" / "llm_foundations_companion" / "__init__.py"
+    module.write_bytes(module.read_bytes() + b"\n# modified after source capture\n")
+    completed = subprocess.run(
+        [sys.executable, "-m", "build", "--no-isolation", "--wheel", "--outdir", str(tmp_path / "wheelhouse"), str(project)],
+        cwd=REPOSITORY, check=False, capture_output=True, text=True,
+    )
+    assert completed.returncode != 0
+    assert "Source archive differs from its retained build provenance" in completed.stdout + completed.stderr

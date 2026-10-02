@@ -254,3 +254,70 @@ def test_raw_sqlite_read_failure_has_bounded_storage_error():
     assert status == 503 and body['error']['code'] == 'STORAGE_UNAVAILABLE'
     assert reasons == ['HTTP_STORAGE_FAILURE']
     assert 'private' not in json.dumps(body)
+
+
+def _tiny_stage_request():
+    return {
+        'operation': 'tiny_train',
+        'dataset_id': '11111111-1111-4111-8111-111111111111',
+        'tokenizer_id': '22222222-2222-4222-8222-222222222222',
+        'architecture_profile_id': 'tiny-v2-standard-v1',
+        'steps': 1, 'eval_every': 2, 'batch_size': 1,
+        'learning_rate': 0.001, 'seed': 17,
+        'context': 8, 'width': 16, 'heads': 1, 'layers': 1,
+    }
+
+
+def test_job_schema_only_pass_defers_semantics_but_preserves_type_checks():
+    from llm_foundations_companion.schema import validate
+    request = _tiny_stage_request()
+    assert validate('JobRequest', request, include_semantic=False) == request
+    with pytest.raises(ApiError) as semantic:
+        validate('JobRequest', request)
+    assert semantic.value.code == 'VALIDATION_FAILED'
+    assert semantic.value.reason_code is None
+    assert any('Semantic rule' in item['message'] for item in semantic.value.field_errors)
+    with pytest.raises(ApiError) as schema:
+        validate('JobRequest', {**request, 'steps': 1.0}, include_semantic=False)
+    assert schema.value.reason_code == 'SCHEMA_INVALID'
+
+
+def test_http_job_reference_stage_precedes_request_semantics():
+    h = Harness()
+    admitted = []
+    def submit(request, key):
+        admitted.append(request)
+        raise ApiError('VALIDATION_FAILED', reason_code='REFERENCE_MISSING',
+            field_errors=[{'field_path': '/dataset_id', 'message': 'The dataset does not exist.'}])
+    h.submit_job = submit
+    status, body, _ = h.request('/api/v1/jobs', method='POST',
+        body=json.dumps(_tiny_stage_request()).encode(), headers={'content-type': 'application/json'})
+    assert status == 400 and body['error']['reason_code'] == 'REFERENCE_MISSING'
+    assert len(admitted) == 1 and admitted[0]['eval_every'] > admitted[0]['steps']
+    admitted.clear()
+    status, body, _ = h.request('/api/v1/jobs', method='POST',
+        body=json.dumps({**_tiny_stage_request(), 'steps': 1.0}).encode(),
+        headers={'content-type': 'application/json'})
+    assert status == 400 and body['error']['reason_code'] == 'SCHEMA_INVALID'
+    assert admitted == []
+
+
+def test_owner_cli_defers_job_semantics_to_reference_admission(tmp_path, monkeypatch, capsys):
+    from llm_foundations_companion import cli, control
+    calls = []
+    class Client:
+        def __init__(self, root):
+            pass
+        def verify_instance(self):
+            return {}
+        def call(self, operation, arguments):
+            calls.append((operation, arguments))
+            raise ApiError('VALIDATION_FAILED', reason_code='REFERENCE_MISSING',
+                field_errors=[{'field_path': '/dataset_id', 'message': 'The dataset does not exist.'}])
+    monkeypatch.setattr(control, 'ControlClient', Client)
+    request_file = tmp_path / 'request.json'
+    request_file.write_text(json.dumps(_tiny_stage_request()))
+    assert cli.main(['request', '--file', str(request_file), '--storage', str(tmp_path)]) == 1
+    assert json.loads(capsys.readouterr().err)['error']['reason_code'] == 'REFERENCE_MISSING'
+    assert len(calls) == 1 and calls[0][0] == 'submit_job'
+    assert calls[0][1]['request']['eval_every'] == 2

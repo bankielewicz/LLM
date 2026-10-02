@@ -1,0 +1,42 @@
+{
+  "amendment": {
+    "id": "APP-009-revision-1.3",
+    "path": "docs/specs/intermediate-v1-amendments/APP-009-revision-1.3.md",
+    "sha256": "4559e05d354cb938dd4e65955b66ff2b3ab6a9073b538d1e98e536d8ff5eaad9",
+    "target": {
+      "base_path": "docs/specs/intermediate-v1/06-APPLIED-MODELS.md",
+      "base_sha256": "a7143c0ef83302f7569f0931b9b86b52380cf9a47ebf0f2a5011a924a4be5a13",
+      "new_phrase": "Its request uses `backend: \"tiny\"` with the prospective `checkpoint_id`, prompt, and decoding fields",
+      "new_phrase_occurrences_in_base": 0,
+      "old_phrase": "Its request uses `backend: \"tiny\"` with the prospective `model_id`, prompt, and decoding fields",
+      "old_phrase_occurrences_in_base": 1
+    }
+  },
+  "authorization": {
+    "approved_on": "2026-10-01",
+    "proposal_path": "docs/implementation/s2/APP-009-amendment-proposal.md",
+    "proposal_sha256": "88e4458774e3c0fa38e92042d1c604fc2804b09dc8b396bcdf509ab425189a7c",
+    "status": "APPROVED"
+  },
+  "base_authority": {
+    "file_count": 150,
+    "manifest_path": "docs/specs/intermediate-v1/spec-manifest.json",
+    "manifest_sha256": "7526190e853580adcc3681c9ac0559be4ae8c741878b5a686bdcf624d9f131b8",
+    "payload_sha256": "974306b73634d9d073fb90de941fe55c8fb83cd073a585613cb6249b06691571",
+    "revision": "1.2",
+    "s0_authority_path": "docs/implementation/s0/authority.json",
+    "s0_authority_sha256": "c79bb229e3563fa2b6c0e641653218cdd3444f10bb0b6ed8e74ef56561bf4357",
+    "s2_baseline_path": "docs/implementation/s2/baseline.json",
+    "s2_baseline_sha256": "7b607dd7405d139bba30b81e757c4fa97f5461d64f32599557bab8a239fe9914"
+  },
+  "effective_revision": "1.3",
+  "format": "llm-foundations-s2-authority-amendment-v1",
+  "preserved_contracts": {
+    "acceptance_execution_unit_count": 605,
+    "acceptance_registry_path": "docs/specs/intermediate-v1/acceptance-cases.json",
+    "acceptance_registry_sha256": "fe8caec52e1be042f61ce10af81046ad3bff833af33c31526f226893713cf7e4",
+    "openapi_path": "docs/specs/intermediate-v1/contracts/openapi.json",
+    "openapi_sha256": "e0602505eb4f9381695950c2ed1610ec74e0a0166014de6006e1dc05e2053585",
+    "product_qualification": "NOT_RUN"
+  }
+}
