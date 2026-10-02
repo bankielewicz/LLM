@@ -278,7 +278,10 @@ class ControlServer:
         return self.descriptor
 
     def serve_forever(self) -> None:
-        self._prepare()
+        with self._state_lock:
+            if self._stop_event.is_set():
+                return
+            self._prepare()
         if os.name == "nt":
             self._serve_windows()
         else:
@@ -287,6 +290,8 @@ class ControlServer:
     def _serve_unix(self) -> None:
         listener = self._listener
         if listener is None:
+            if self._stop_event.is_set():
+                return
             raise RuntimeError("Unix control listener was not prepared")
         while not self._stop_event.is_set():
             try:

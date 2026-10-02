@@ -485,6 +485,56 @@ def test_unix_prepare_rejects_an_occupied_nonsocket(tmp_path: Path) -> None:
 
 
 @pytest.mark.skipif(os.name == "nt", reason="Unix-domain socket invariant")
+@pytest.mark.parametrize(
+    "entry_after_stop_returns",
+    [False, True],
+    ids=["entry-during-stop-join", "entry-after-stop-returns"],
+)
+def test_stop_before_deferred_unix_server_entry_is_clean(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    entry_after_stop_returns: bool,
+) -> None:
+    deferred: list[Any] = []
+
+    class DeferredThread:
+        def __init__(self, *, target: Any, name: str, daemon: bool) -> None:
+            self.target = target
+            self.name = name
+            self.daemon = daemon
+            self.started = False
+            self.join_timeout: float | None = None
+            deferred.append(self)
+
+        def start(self) -> None:
+            self.started = True
+
+        def join(self, timeout: float | None = None) -> None:
+            assert self.started
+            self.join_timeout = timeout
+            if not entry_after_stop_returns:
+                self.target()
+
+    monkeypatch.setattr(control.threading, "Thread", DeferredThread)
+    server = _server(tmp_path)
+
+    server.start()
+    assert server._listener is not None
+    assert len(deferred) == 1
+
+    server.stop()
+
+    assert deferred[0].join_timeout == 3.0
+    if entry_after_stop_returns:
+        deferred[0].target()
+    server._serve_unix()
+    assert server._listener is None
+    assert not server._prepared
+    assert not server.control_path.exists()
+    assert not server.socket_path.exists()
+
+
+@pytest.mark.skipif(os.name == "nt", reason="Unix-domain socket invariant")
 def test_failed_private_mode_check_removes_the_exact_socket_it_bound(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
