@@ -1,16 +1,19 @@
 # S2 tiny-model operations
 
-This work slice adds the four tiny-model operations that can proceed under the
-sealed revision 1.2 contracts. It starts from the S1 merge bound by
-[`baseline.json`](baseline.json), preserves the approved specification and
-protected foundation files, and does not authorize the separate
-[`APP-009` amendment proposal](APP-009-amendment-proposal.md).
+This work slice adds six tiny-model operations under the sealed revision 1.2
+contracts and the separately owner-approved
+[APP-009 revision 1.3 amendment](../../specs/intermediate-v1-amendments/APP-009-revision-1.3.md).
+It starts from the S1 merge bound by [`baseline.json`](baseline.json). The
+composite authority in [`authority.json`](authority.json) preserves the sealed
+specification, baseline records, original proposal, and protected foundation
+files byte for byte.
 
 ## Delivered surface
 
-An installed companion wheel can advertise and run exactly four new operations:
-`tokenizer_train`, `tiny_train`, `tiny_resume`, and tiny-subject `evaluate`.
-The existing authenticated API and owner `request` command submit all four.
+An installed companion wheel can advertise and run exactly six operations:
+`tokenizer_train`, `tiny_train`, `tiny_resume`, tiny-subject `evaluate`,
+tiny-backend `context_preview`, and `generate`.
+The existing authenticated API and owner `request` command submit all six.
 They remain distinct operations with separately bound inputs, runs, artifacts,
 and terminal results.
 
@@ -35,11 +38,13 @@ record and target including EOS under the byte-normalized profile, and does not
 update weights. The parent verifies the summary metrics and the complete
 subject-major record artifact against that split before publishing either.
 
-Tiny `context_preview` and `generate` remain unavailable because APP-009's
-client subject conflicts with the otherwise checkpoint-bound contracts. A
-request receives `CAPABILITY_UNAVAILABLE` before a job is created. Delivering
-the four operations therefore does not complete S2 while that hold remains.
-Applied-model, chat, retrieval, and bundle operations also remain unavailable.
+Tiny `context_preview` selects a prospective `checkpoint_id` and tokenizes
+the prompt without loading model weights. `generate` verifies the matching
+preview and checkpoint, performs deterministic greedy or seeded top-p decoding,
+and preserves weights. A stale preview is rejected at admission or rechecked
+by the fixed worker before use. The resolved subject identity still contains
+its separate `model_id`; the amendment changes only the client request field.
+Applied-model, chat, retrieval, and bundle operations remain unavailable.
 
 S3 supplies the learner interface, forms, navigation, and evidence flow; this
 slice does not add browser training controls. The E01 learner-source verifier,
@@ -56,7 +61,7 @@ not install it into the global Python environment.
 The service verifies the loaded package against the installed distribution,
 its exact wheel `RECORD`, embedded build provenance, source revision, package
 digest, and selected profile lock. A source-checkout launch has no installed
-build identity and advertises the four S2 operations as unavailable. Source
+build identity and advertises the six S2 operations as unavailable. Source
 tests are development evidence; they are not an installed execution path.
 
 The current command surface is:
@@ -86,9 +91,9 @@ source tests cover the inspected operation, checkpoint, scheduler, worker, and
 service boundaries. They do not qualify an installed wheel or a native runtime
 profile.
 
-The contributor guide added on `main` during S2 also requires at least 95%
-line coverage for each affected executable component's complete source tree,
-with reproducible commands and no exclusion of untested production logic.
+S2 retains its implemented publication gate of at least 95% line coverage
+across the affected executable component's complete source tree, with
+reproducible commands and no exclusion of untested production logic.
 Coverage is an additional publication gate; the source and native subsets do
 not replace it. For this slice the measured component is the complete
 `companion/src/llm_foundations_companion/` Python tree, including bundled lab
@@ -100,9 +105,11 @@ separate check.
 Pass the sealed measurement receipt to `scripts/run_s2_gate.py` with
 `--coverage-result <coverage-attempt>/result.json`, together with the gate's
 runtime, legacy-runtime, Node, Windows-Python, canonical-course, and report
-arguments. The gate checks exact source, commit, tree, wheel and evidence
-identities, the complete Python-file inventory, zero excluded lines, and an
-unrounded coverage ratio of at least 95 percent. A missing receipt is blocked;
+arguments. The gate checks the separately approved amendment before and after execution,
+exact source, commit, tree, wheel and evidence identities, the complete
+Python-file inventory, zero excluded lines, and an unrounded coverage ratio
+of at least 95 percent. All 25 native cases must pass; prior evidence that
+retains seven APP-009-blocked cases cannot satisfy the amended gate. A missing receipt is blocked;
 a stale, incomplete, or failing receipt fails the coverage check. Retain the
 measurement scripts, commands, configuration, phase receipts, raw traces, and
 hash indexes with that receipt so the measurement can be reproduced.

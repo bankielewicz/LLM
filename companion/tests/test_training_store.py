@@ -364,6 +364,43 @@ def test_applied_context_preview_has_closed_capability_response_without_checkpoi
     assert caught.value.code == "CAPABILITY_UNAVAILABLE"
 
 
+def test_tiny_context_preview_request_is_checkpoint_bound_before_admission(
+    tmp_path: Path,
+) -> None:
+    _, _, store = _store(tmp_path)
+    checkpoint_id = str(uuid.uuid4())
+    request = {
+        "operation": "context_preview",
+        "backend": "tiny",
+        "checkpoint_id": checkpoint_id,
+        "prompt": "hello",
+        "max_new_tokens": 1,
+        "temperature": 0.0,
+        "top_p": 1.0,
+        "seed": 17,
+    }
+    with pytest.raises(ApiError) as caught:
+        store.resolve(request)
+    assert caught.value.reason_code == "REFERENCE_MISSING"
+    assert [dict(item) for item in caught.value.field_errors] == [
+        {
+            "field_path": "/checkpoint_id",
+            "message": "The referenced resource does not exist.",
+        }
+    ]
+
+    legacy = dict(request)
+    legacy.pop("checkpoint_id")
+    legacy["model_id"] = str(uuid.uuid4())
+    with pytest.raises(ApiError) as caught:
+        store.resolve(legacy)
+    assert caught.value.reason_code == "SCHEMA_INVALID"
+    assert {item["field_path"] for item in caught.value.field_errors} == {
+        "/checkpoint_id",
+        "/model_id",
+    }
+
+
 def test_job_context_is_immutable_and_snapshot_is_exact_and_repeatable(
     tmp_path: Path,
 ) -> None:

@@ -742,7 +742,12 @@ def test_operation_capabilities_are_closed_slice_specific_and_enforced() -> None
         selection(), child_execution()
     )
     assert {name for name, record in capabilities.items() if record["available"]} == {
-        "tokenizer_train", "tiny_train", "tiny_resume", "evaluate"
+        "tokenizer_train",
+        "tiny_train",
+        "tiny_resume",
+        "evaluate",
+        "generate",
+        "context_preview",
     }
     for name, record in capabilities.items():
         if name in preflight.S2_OPERATION_NAMES:

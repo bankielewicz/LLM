@@ -13,15 +13,20 @@ import subprocess
 import sys
 import textwrap
 import time
+import uuid
 
-from check_custody import audit, canonical, sha256
+from check_custody import audit as custody_audit, canonical, sha256
+from check_s2_authority import audit as s2_authority_audit
 from run_s0_gate import authoring_environment, git, qualified_python, source_manifest, write_new
 from run_s1_gate import unit_denominator
+from run_s2_native_checks import CASE_RE as NATIVE_CASE_RE
+from run_s2_native_checks import EXPECTED_SUPPORT_TESTS, TEST_CASE_IDS
 
 
 PLAN = (
     "python-runtime",
     "authoring-environment",
+    "s2-authority-before",
     "custody-before",
     "runtime-lock-identities",
     "s0-regression-gate",
@@ -40,24 +45,29 @@ PLAN = (
     "legacy-lab-checks",
     "native-model-checks",
     "native-denominator",
+    "s2-authority-after",
     "custody-after",
     "candidate-stability",
-)
-CAPABILITY_BLOCKED_IDS = frozenset(
-    {
-        "S2-NATIVE-002",
-        "S2-NATIVE-011",
-        "S2-NATIVE-012",
-        "S2-NATIVE-013",
-        "S2-NATIVE-014",
-        "S2-NATIVE-015",
-        "S2-NATIVE-025",
-    }
 )
 _SHA256_RE = re.compile(r"^[0-9a-f]{64}$")
 _GIT_OBJECT_RE = re.compile(r"^[0-9a-f]{40}$")
 _RAW_PID_RE = re.compile(r"(?:^|[.])pid([1-9][0-9]*)(?:[.]|$)")
-_COVERAGE_FORMAT = "s2-combined-coverage-result-v3"
+_COVERAGE_FORMAT = "s2-combined-coverage-result-v4"
+_EXPECTED_NATIVE_ROLE_COUNTS = {
+    "runner_parent": 1,
+    "service": 1,
+    "preflight_support": 1,
+    "cli_support": 1,
+    "worker": 19,
+}
+_EXPECTED_NATIVE_OPERATION_COUNTS = {
+    "tokenizer_train": 4,
+    "tiny_train": 5,
+    "tiny_resume": 2,
+    "evaluate": 1,
+    "context_preview": 4,
+    "generate": 3,
+}
 _COVERAGE_INDEX_FORMAT = "s2-combined-coverage-evidence-index-v1"
 _INDEX_RECEIPT_FORMAT = "s2-artifact-index-self-hash-v1"
 _PACKAGE_PATH = PurePosixPath("companion/src/llm_foundations_companion")
@@ -373,25 +383,26 @@ def launcher(path: Path, parser: argparse.ArgumentParser, label: str) -> Path:
     return absolute
 
 
-def native_denominator(
-    path: Path, *, exclude_capability_blocked: bool = False
-) -> dict[str, object]:
+def native_denominator(path: Path) -> dict[str, object]:
     value = json.loads(path.read_text(encoding="utf-8"))
     if value.get("format") != "llm-foundations-s2-native-development-v1":
         raise ValueError("Native result format differs")
-    if value.get("denominator") != 25 or len(value.get("cases", [])) != 25:
-        raise ValueError("Native S2 denominator is not exactly 25")
-    identifiers = [item.get("case_id") for item in value["cases"]]
+    cases = value.get("cases")
     expected = [f"S2-NATIVE-{number:03d}" for number in range(1, 26)]
-    if identifiers != expected:
-        raise ValueError("Native S2 case identities or order differ")
-    canonical = value.get("canonical_acceptance", {})
+    if (
+        value.get("denominator") != 25
+        or not isinstance(cases, list)
+        or len(cases) != 25
+        or [item.get("case_id") for item in cases] != expected
+    ):
+        raise ValueError("Native S2 denominator identities or order differ")
+    canonical_acceptance = value.get("canonical_acceptance", {})
     mapped = value.get("mapped_s2_acceptance", {})
     if (
-        canonical.get("execution_units") != 605
-        or canonical.get("passed") != 0
-        or canonical.get("not_run") != 605
-        or canonical.get("product_qualification") != "NOT_RUN"
+        canonical_acceptance.get("execution_units") != 605
+        or canonical_acceptance.get("passed") != 0
+        or canonical_acceptance.get("not_run") != 605
+        or canonical_acceptance.get("product_qualification") != "NOT_RUN"
     ):
         raise ValueError("Full acceptance denominator was promoted or changed")
     if (
@@ -400,66 +411,21 @@ def native_denominator(
         or mapped.get("not_run") != 20
     ):
         raise ValueError("Mapped S2 acceptance units were promoted or changed")
-    cases = value["cases"]
-    counts = value.get("counts")
     supporting = value.get("supporting_tests")
+    exclusions = value.get("development_exclusions")
     if (
-        not isinstance(supporting, list)
+        any(not isinstance(item, dict) or item.get("status") != "PASS" for item in cases)
+        or value.get("counts")
+        != {"PASS": 25, "FAIL": 0, "BLOCKED": 0, "NOT_RUN": 0}
+        or not isinstance(supporting, list)
+        or [item.get("test") for item in supporting] != list(EXPECTED_SUPPORT_TESTS)
         or any(
             not isinstance(item, dict) or item.get("status") != "PASS"
             for item in supporting
         )
         or value.get("unknown_or_duplicate_tests") != []
         or value.get("discovery_error") is not None
-    ):
-        raise ValueError("Native S2 supporting checks did not pass exactly")
-    exclusions = value.get("development_exclusions")
-    if exclude_capability_blocked:
-        blocked = {
-            item.get("case_id")
-            for item in cases
-            if item.get("status") == "BLOCKED"
-        }
-        passed = {
-            item.get("case_id")
-            for item in cases
-            if item.get("status") == "PASS"
-        }
-        expected_passed = set(expected) - CAPABILITY_BLOCKED_IDS
-        if (
-            blocked != CAPABILITY_BLOCKED_IDS
-            or passed != expected_passed
-            or any(
-                item.get("status") not in {"PASS", "BLOCKED"} for item in cases
-            )
-            or counts
-            != {"PASS": 18, "FAIL": 0, "BLOCKED": 7, "NOT_RUN": 0}
-            or not isinstance(exclusions, dict)
-            or exclusions.get("enabled") is not True
-            or exclusions.get("case_ids") != sorted(CAPABILITY_BLOCKED_IDS)
-            or not isinstance(exclusions.get("reason"), str)
-            or not exclusions["reason"]
-            or value.get("s2_native_development_gate") != "FAIL"
-        ):
-            raise ValueError(
-                "Native S2 capability-blocked denominator differs from the exact APP-009 profile"
-            )
-        return {
-            "status": "BLOCKED",
-            "denominator": 25,
-            "passed": 18,
-            "blocked": 7,
-            "blocked_case_ids": sorted(CAPABILITY_BLOCKED_IDS),
-            "canonical_acceptance_not_run": 605,
-            "mapped_s2_acceptance_not_run": 20,
-            "profile": value.get("profile"),
-        }
-    if (
-        any(item.get("status") != "PASS" for item in cases)
-        or counts != {"PASS": 25, "FAIL": 0, "BLOCKED": 0, "NOT_RUN": 0}
-        or not isinstance(exclusions, dict)
-        or exclusions.get("enabled") is not False
-        or exclusions.get("case_ids") != []
+        or exclusions != {"enabled": False, "case_ids": [], "reason": None}
         or value.get("s2_native_development_gate") != "PASS"
     ):
         raise ValueError("Native S2 denominator is not exactly 25 PASS")
@@ -467,11 +433,11 @@ def native_denominator(
         "status": "PASS",
         "denominator": 25,
         "passed": 25,
+        "supporting_tests": len(EXPECTED_SUPPORT_TESTS),
         "canonical_acceptance_not_run": 605,
         "mapped_s2_acceptance_not_run": 20,
         "profile": value.get("profile"),
     }
-
 
 def _required(condition: bool, message: str) -> None:
     if not condition:
@@ -1343,7 +1309,9 @@ def verify_complete_source_coverage(
                 "qualification",
                 "successful",
                 "tests_run",
-                "known_app009_blocked_count",
+                "case_count",
+                "supporting_test_count",
+                "excluded_case_ids",
                 "failures",
                 "errors",
                 "skipped",
@@ -1351,25 +1319,25 @@ def verify_complete_source_coverage(
                 "unexpected_successes",
                 "artifact",
             }
+            outcome_keys = (
+                "failures",
+                "errors",
+                "skipped",
+                "expected_failures",
+                "unexpected_successes",
+            )
             _required(
                 isinstance(instrumented, dict)
                 and set(instrumented) == native_keys
-                and instrumented["format"] == "s2-instrumented-native-unittest-v1"
+                and instrumented["format"] == "s2-native-instrumented-v2"
                 and instrumented["qualification"] == qualifications[phase]
                 and instrumented["successful"] is True
-                and _integer(instrumented["tests_run"])
-                and instrumented["tests_run"] > 0
-                and instrumented["known_app009_blocked_count"] == 7
-                and all(
-                    instrumented[key] == 0
-                    for key in (
-                        "failures",
-                        "errors",
-                        "skipped",
-                        "expected_failures",
-                        "unexpected_successes",
-                    )
-                )
+                and instrumented["tests_run"] == 54
+                and instrumented["case_count"] == len(TEST_CASE_IDS)
+                and instrumented["supporting_test_count"]
+                == len(EXPECTED_SUPPORT_TESTS)
+                and instrumented["excluded_case_ids"] == []
+                and all(instrumented[key] == 0 for key in outcome_keys)
                 and phase_result.get("instrumented_native") == instrumented
                 and phase_result.get("instrumented_legacy") is None,
                 "Instrumented native unittest summary differs",
@@ -1384,55 +1352,72 @@ def verify_complete_source_coverage(
                 "Instrumented native result is absent from its phase index",
             )
             instrumented_document = _strict_json(instrumented_path)
-            tests = (
-                instrumented_document.get("tests", [])
+            document_keys = (native_keys - {"artifact"}) | {
+                "started_at",
+                "ended_at",
+                "case_results",
+                "supporting_test_results",
+            }
+            case_results = (
+                instrumented_document.get("case_results", [])
                 if isinstance(instrumented_document, dict)
                 else []
             )
-            known_cases = (
-                instrumented_document.get("known_app009_cases", [])
+            supporting_results = (
+                instrumented_document.get("supporting_test_results", [])
                 if isinstance(instrumented_document, dict)
                 else []
             )
+            expected_case_ids = sorted(TEST_CASE_IDS)
+            expected_scalar = {
+                key: value
+                for key, value in instrumented.items()
+                if key != "artifact"
+            }
             _required(
                 isinstance(instrumented_document, dict)
-                and instrumented_document.get("format")
-                == "s2-instrumented-native-unittest-v1"
-                and instrumented_document.get("qualification")
-                == qualifications[phase]
-                and instrumented_document.get("successful") is True
-                and instrumented_document.get("tests_run")
-                == instrumented["tests_run"]
-                and instrumented_document.get("known_app009_blocked_count") == 7
-                and {
-                    item.get("case_id")
-                    for item in known_cases
-                    if isinstance(item, dict)
-                    and item.get("status") == "BLOCKED"
-                    and item.get("executed") is False
-                }
-                == CAPABILITY_BLOCKED_IDS
-                and len(known_cases) == 7
-                and len(tests) == instrumented["tests_run"]
-                and len({item.get("test") for item in tests}) == len(tests)
+                and set(instrumented_document) == document_keys
+                and all(
+                    instrumented_document.get(key) == value
+                    for key, value in expected_scalar.items()
+                )
+                and isinstance(instrumented_document["started_at"], str)
+                and bool(instrumented_document["started_at"])
+                and isinstance(instrumented_document["ended_at"], str)
+                and bool(instrumented_document["ended_at"])
+                and isinstance(case_results, list)
+                and len(case_results) == len(expected_case_ids)
+                and [item.get("case_id") for item in case_results]
+                == expected_case_ids
+                and all(
+                    isinstance(item, dict)
+                    and set(item)
+                    == {"case_id", "test", "status", "started_at", "ended_at"}
+                    and item["status"] == "PASS"
+                    and isinstance(item["test"], str)
+                    and (
+                        (match := NATIVE_CASE_RE.search(item["test"]))
+                        is not None
+                    )
+                    and f"S2-NATIVE-{match.group('number')}" == item["case_id"]
+                    for item in case_results
+                )
+                and isinstance(supporting_results, list)
+                and [item.get("test") for item in supporting_results]
+                == list(EXPECTED_SUPPORT_TESTS)
                 and all(
                     isinstance(item, dict)
                     and set(item) == {"test", "status", "started_at", "ended_at"}
                     and item["status"] == "PASS"
-                    and isinstance(item["test"], str)
-                    and item["test"]
-                    for item in tests
+                    for item in supporting_results
                 )
-                and all(
-                    instrumented_document.get(key) == 0
-                    for key in (
-                        "failures",
-                        "errors",
-                        "skipped",
-                        "expected_failures",
-                        "unexpected_successes",
-                    )
-                ),
+                and len(
+                    {
+                        item["test"]
+                        for item in [*case_results, *supporting_results]
+                    }
+                )
+                == instrumented["tests_run"],
                 "Instrumented native unittest result differs",
             )
         else:
@@ -1519,11 +1504,10 @@ def verify_complete_source_coverage(
     _required(
         isinstance(native_authority, dict)
         and native_authority.get("artifact_path") == "ordinary-authority/native-result.json"
-        and native_authority.get("aggregate") == "FAIL_WITH_7_KNOWN_APP009_BLOCKED"
-        and native_authority.get("counts") == {"PASS": 18, "FAIL": 0, "BLOCKED": 7, "NOT_RUN": 0}
-        and _integer(native_authority.get("supporting_tests"))
-        and native_authority["supporting_tests"] > 0
-        and native_authority.get("excluded_case_ids") == sorted(CAPABILITY_BLOCKED_IDS)
+        and native_authority.get("aggregate") == "PASS"
+        and native_authority.get("counts") == {"PASS": 25, "FAIL": 0, "BLOCKED": 0, "NOT_RUN": 0}
+        and native_authority.get("supporting_tests") == len(EXPECTED_SUPPORT_TESTS)
+        and native_authority.get("excluded_case_ids") == []
         and native_authority.get("wheel_sha256") == wheel_value["sha256"],
         "Ordinary native authority differs",
     )
@@ -1563,18 +1547,22 @@ def verify_complete_source_coverage(
         and [item.get("case_id") for item in native_cases]
         == [f"S2-NATIVE-{number:03d}" for number in range(1, 26)]
         and native_document.get("counts") == native_authority["counts"]
-        and native_document.get("s2_native_development_gate") == "FAIL"
+        and all(
+            isinstance(item, dict) and item.get("status") == "PASS"
+            for item in native_cases
+        )
+        and native_document.get("s2_native_development_gate") == "PASS"
         and native_document.get("unknown_or_duplicate_tests") == []
         and native_document.get("discovery_error") is None
         and isinstance(native_supporting, list)
-        and len(native_supporting) == native_authority["supporting_tests"]
+        and [item.get("test") for item in native_supporting]
+        == list(EXPECTED_SUPPORT_TESTS)
         and all(
             isinstance(item, dict) and item.get("status") == "PASS"
             for item in native_supporting
         )
-        and native_document.get("development_exclusions", {}).get("enabled") is True
-        and native_document.get("development_exclusions", {}).get("case_ids")
-        == sorted(CAPABILITY_BLOCKED_IDS),
+        and native_document.get("development_exclusions")
+        == {"enabled": False, "case_ids": [], "reason": None},
         "Copied ordinary native authority differs",
     )
     legacy_document = authority_documents["legacy"]
@@ -1602,39 +1590,86 @@ def verify_complete_source_coverage(
     )
 
     native_summary = result["native_process_audit"]
+    native_summary_keys = {
+        "status",
+        "expected_process_count",
+        "observed_process_count",
+        "expected_role_counts",
+        "observed_role_counts",
+        "complete_disjoint_role_roster",
+        "job_roster_status",
+        "expected_job_count",
+        "observed_job_count",
+        "expected_operation_counts",
+        "observed_operation_counts",
+        "artifact",
+    }
     _required(
         isinstance(native_summary, dict)
-        and set(native_summary)
-        == {
-            "status",
-            "service_raw_file_count",
-            "worker_raw_file_count",
-            "parent_or_support_raw_file_count",
-            "artifact",
-        },
+        and set(native_summary) == native_summary_keys,
         "Native subprocess coverage summary differs",
     )
     native_audit_path = _member(root, native_summary["artifact"], final_members)
     native_audit = _strict_json(native_audit_path)
     native_raw = [row for row in raw_rows if row["phase"] == "native"]
+    expected_process_count = sum(_EXPECTED_NATIVE_ROLE_COUNTS.values())
+    expected_job_count = sum(_EXPECTED_NATIVE_OPERATION_COUNTS.values())
+    expected_summary = {
+        "status": "PASS",
+        "expected_process_count": expected_process_count,
+        "observed_process_count": expected_process_count,
+        "expected_role_counts": _EXPECTED_NATIVE_ROLE_COUNTS,
+        "observed_role_counts": _EXPECTED_NATIVE_ROLE_COUNTS,
+        "complete_disjoint_role_roster": True,
+        "job_roster_status": "PASS",
+        "expected_job_count": expected_job_count,
+        "observed_job_count": expected_job_count,
+        "expected_operation_counts": _EXPECTED_NATIVE_OPERATION_COUNTS,
+        "observed_operation_counts": _EXPECTED_NATIVE_OPERATION_COUNTS,
+    }
     _required(
-        native_summary.get("status") == "PASS"
-        and native_summary["artifact"]["path"] in child["native"]
-        and isinstance(native_audit, dict)
-        and native_audit.get("format") == "s2-native-raw-process-audit-v3"
+        all(native_summary.get(key) == value for key, value in expected_summary.items())
+        and native_summary["artifact"]["path"] in child["native"],
+        "Native subprocess coverage summary differs",
+    )
+    native_audit_keys = {
+        "format",
+        "status",
+        "roots",
+        "expected_process_count",
+        "new_raw_file_count",
+        "expected_role_counts",
+        "observed_role_counts",
+        "role_raw_files",
+        "job_roster",
+        "binding_failures",
+        "contexts_ok",
+        "pid_binding_ok",
+        "distinct_parsed_pid_count",
+        "complete_disjoint_role_roster",
+        "files",
+    }
+    _required(
+        isinstance(native_audit, dict)
+        and set(native_audit) == native_audit_keys
+        and native_audit.get("format") == "s2-native-raw-process-audit-v4"
         and native_audit.get("status") == "PASS"
+        and native_audit.get("expected_process_count") == expected_process_count
         and native_audit.get("new_raw_file_count") == len(native_raw)
+        and native_audit.get("expected_role_counts") == _EXPECTED_NATIVE_ROLE_COUNTS
+        and native_audit.get("observed_role_counts") == _EXPECTED_NATIVE_ROLE_COUNTS
         and native_audit.get("binding_failures") == []
         and native_audit.get("contexts_ok") is True
-        and isinstance(native_audit.get("service_raw_files"), list)
-        and isinstance(native_audit.get("worker_raw_files"), list)
-        and isinstance(native_audit.get("parent_or_support_raw_files"), list)
+        and native_audit.get("pid_binding_ok") is True
+        and native_audit.get("distinct_parsed_pid_count") == expected_process_count
+        and native_audit.get("complete_disjoint_role_roster") is True
         and isinstance(native_audit.get("files"), list),
         "Native subprocess coverage audit differs",
     )
     native_rows = {item.get("name"): item for item in native_audit["files"]}
     _required(
         len(native_rows) == len(native_audit["files"])
+        and len(native_rows) == expected_process_count
         and set(native_rows) == {row["name"] for row in native_raw},
         "Native subprocess audit file roster differs",
     )
@@ -1657,33 +1692,23 @@ def verify_complete_source_coverage(
         name: Path(value)
         for name, value in native_roots_value.items()
     }
-    native_partitions = {
-        "service": native_audit["service_raw_files"],
-        "worker": native_audit["worker_raw_files"],
-        "parent_or_support": native_audit["parent_or_support_raw_files"],
-    }
+    native_partitions = native_audit.get("role_raw_files")
     _required(
-        all(
+        isinstance(native_partitions, dict)
+        and set(native_partitions) == set(_EXPECTED_NATIVE_ROLE_COUNTS)
+        and all(
             isinstance(names, list)
-            and len(names) == len(set(names))
-            for names in native_partitions.values()
+            and names == sorted(set(names))
+            and len(names) == _EXPECTED_NATIVE_ROLE_COUNTS[role]
+            for role, names in native_partitions.items()
         )
         and set().union(*(set(names) for names in native_partitions.values()))
         == set(native_rows)
         and sum(len(names) for names in native_partitions.values())
-        == len(native_rows)
-        and len(native_rows) == 15
-        and len(native_partitions["service"]) == 1
-        and len(native_partitions["worker"]) == 12
-        and len(native_partitions["parent_or_support"]) == 2
-        and native_summary.get("service_raw_file_count")
-        == len(native_partitions["service"])
-        and native_summary.get("worker_raw_file_count")
-        == len(native_partitions["worker"])
-        and native_summary.get("parent_or_support_raw_file_count")
-        == len(native_partitions["parent_or_support"]),
+        == len(native_rows),
         "Native subprocess role partitions differ",
     )
+    observed_role_counts = {role: 0 for role in _EXPECTED_NATIVE_ROLE_COUNTS}
     for raw_row in native_raw:
         item = native_rows[raw_row["name"]]
         bindings = _audit_raw_row(
@@ -1692,7 +1717,7 @@ def verify_complete_source_coverage(
             raw_data_by_name[raw_row["name"]],
             inventory,
             context="native",
-            roles={"service", "worker", "parent_or_support"},
+            roles=set(_EXPECTED_NATIVE_ROLE_COUNTS),
             roots={"source", "installed", "original_installed"},
             root_paths=native_roots,
         )
@@ -1701,20 +1726,91 @@ def verify_complete_source_coverage(
         relative_paths = set(bindings)
         expected_role = (
             "service"
-            if {"service.py", "__main__.py"} <= relative_paths
+            if "service.py" in relative_paths
             else "worker"
-            if "worker_main.py" in relative_paths and "service.py" not in relative_paths
-            else "parent_or_support"
+            if "worker_main.py" in relative_paths
+            else "preflight_support"
+            if "preflight_main.py" in relative_paths
+            else "cli_support"
+            if "cli.py" in relative_paths
+            else "runner_parent"
         )
         _required(
             item["role"] == expected_role
             and raw_row["name"] in native_partitions[expected_role],
             "Native subprocess role evidence differs",
         )
+        observed_role_counts[expected_role] += 1
     _required(
-        len({item["pid"] for item in native_rows.values()}) == len(native_rows)
+        observed_role_counts == _EXPECTED_NATIVE_ROLE_COUNTS
+        and native_audit["observed_role_counts"] == observed_role_counts
+        and native_summary["observed_role_counts"] == observed_role_counts
+        and len({item["pid"] for item in native_rows.values()})
+        == expected_process_count
         and len({row["sha256"] for row in native_raw}) == len(native_raw),
-        "Native subprocess raw identities are not distinct",
+        "Native subprocess raw identities or derived roles differ",
+    )
+
+    job_roster = native_audit.get("job_roster")
+    _required(
+        isinstance(job_roster, dict)
+        and set(job_roster)
+        == {
+            "status",
+            "expected_job_count",
+            "observed_job_count",
+            "expected_operation_counts",
+            "observed_operation_counts",
+            "jobs",
+        }
+        and job_roster.get("status") == "PASS"
+        and job_roster.get("expected_job_count") == expected_job_count
+        and job_roster.get("observed_job_count") == expected_job_count
+        and job_roster.get("expected_operation_counts")
+        == _EXPECTED_NATIVE_OPERATION_COUNTS
+        and job_roster.get("observed_operation_counts")
+        == _EXPECTED_NATIVE_OPERATION_COUNTS
+        and isinstance(job_roster.get("jobs"), list)
+        and len(job_roster["jobs"]) == expected_job_count,
+        "Native job roster differs",
+    )
+    observed_operations = {key: 0 for key in _EXPECTED_NATIVE_OPERATION_COUNTS}
+    observed_job_ids: list[str] = []
+    observed_snapshot_paths: list[str] = []
+    for job in job_roster["jobs"]:
+        _required(
+            isinstance(job, dict)
+            and set(job) == {"job_id", "operation", "input_snapshot"}
+            and isinstance(job["job_id"], str)
+            and str(uuid.UUID(job["job_id"])) == job["job_id"]
+            and job["operation"] in _EXPECTED_NATIVE_OPERATION_COUNTS,
+            "Native job identity or operation differs",
+        )
+        snapshot_path = _member(root, job["input_snapshot"], final_members)
+        snapshot_relative = job["input_snapshot"]["path"]
+        _required(
+            snapshot_relative in child["native"],
+            "Native job input snapshot is absent from its phase index",
+        )
+        snapshot = _strict_json(snapshot_path)
+        _required(
+            isinstance(snapshot, dict)
+            and snapshot.get("format") == "llm-foundations-worker-input-v1"
+            and snapshot.get("job_id") == job["job_id"]
+            and snapshot.get("operation") == job["operation"],
+            "Native job input snapshot differs",
+        )
+        observed_job_ids.append(job["job_id"])
+        observed_snapshot_paths.append(snapshot_relative)
+        observed_operations[job["operation"]] += 1
+    _required(
+        observed_job_ids == sorted(set(observed_job_ids))
+        and len(set(observed_snapshot_paths)) == expected_job_count
+        and observed_operations == _EXPECTED_NATIVE_OPERATION_COUNTS
+        and job_roster["observed_operation_counts"] == observed_operations
+        and native_summary["observed_operation_counts"] == observed_operations
+        and native_summary["observed_job_count"] == len(observed_job_ids),
+        "Native job input snapshots do not establish the expected operation roster",
     )
 
     legacy_summary = result["legacy_path_audit"]
@@ -2003,14 +2099,6 @@ def main() -> int:
             "a complete installed RECORD audit."
         ),
     )
-    parser.add_argument(
-        "--exclude-capability-blocked",
-        action="store_true",
-        help=(
-            "Retain the exact pending APP-009 native cases as BLOCKED while "
-            "running the other native cases; this mode can never pass S2."
-        ),
-    )
     args = parser.parse_args()
 
     repo = Path(__file__).resolve().parents[1]
@@ -2032,9 +2120,10 @@ def main() -> int:
 
     gate.observe("python-runtime", qualified_python)
     gate.observe("authoring-environment", lambda: authoring_environment(repo))
+    gate.observe("s2-authority-before", lambda: s2_authority_audit(repo))
     gate.observe(
         "custody-before",
-        lambda: audit(repo, repo / "docs/implementation/s0/authority.json"),
+        lambda: custody_audit(repo, repo / "docs/implementation/s0/authority.json"),
     )
     gate.command(
         "runtime-lock-identities",
@@ -2246,59 +2335,17 @@ def main() -> int:
                 "--report-dir",
                 str(reports / "native"),
             ]
-            if args.exclude_capability_blocked:
-                native_argv.append("--exclude-capability-blocked")
             native = gate.command(
                 "native-model-checks",
                 native_argv,
                 timeout=1_800,
-                announce=not args.exclude_capability_blocked,
             )
         else:
             native = gate.blocked(
                 "native-model-checks",
                 "Runtime identity or the protected legacy suite did not pass.",
             )
-        if args.exclude_capability_blocked:
-            native_result = reports / "native/result.json"
-            try:
-                denominator = native_denominator(
-                    native_result, exclude_capability_blocked=True
-                )
-            except BaseException:
-                print(
-                    f"native-model-checks: {native['status']}",
-                    flush=True,
-                )
-                gate.observe(
-                    "native-denominator",
-                    lambda: native_denominator(
-                        native_result, exclude_capability_blocked=True
-                    ),
-                )
-            else:
-                if native.get("exit_code") == 1:
-                    native["status"] = "BLOCKED"
-                    native["reason"] = (
-                        "The exact seven APP-009 capability cases remain BLOCKED; "
-                        "the other 18 native cases and supporting checks passed."
-                    )
-                else:
-                    native["status"] = "FAIL"
-                    native["reason"] = (
-                        "The capability-blocked native runner returned an "
-                        "unexpected exit status."
-                    )
-                print(
-                    f"native-model-checks: {native['status']}",
-                    flush=True,
-                )
-                blocked = gate.blocked(
-                    "native-denominator",
-                    "The exact seven APP-009 capability cases remain BLOCKED.",
-                )
-                blocked["observation"] = denominator
-        elif native["status"] == "PASS":
+        if native["status"] == "PASS":
             gate.observe(
                 "native-denominator",
                 lambda: native_denominator(reports / "native/result.json"),
@@ -2308,9 +2355,11 @@ def main() -> int:
                 "native-denominator", "The native S2 development checks did not pass."
             )
 
+
+    gate.observe("s2-authority-after", lambda: s2_authority_audit(repo))
     gate.observe(
         "custody-after",
-        lambda: audit(repo, repo / "docs/implementation/s0/authority.json"),
+        lambda: custody_audit(repo, repo / "docs/implementation/s0/authority.json"),
     )
 
     def stable() -> dict[str, object]:

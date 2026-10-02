@@ -4,6 +4,13 @@ This record describes the scoped source review before the retained,
 candidate-specific S2 gate. It is not installed-native qualification, product
 qualification, or owner acceptance.
 
+This is the retained pre-amendment review. References below to the four enabled
+operations and the APP-009 hold describe that historical candidate. The owner
+has since approved the exact proposal; the separate revision 1.3 amendment and
+`authority.json` record the effective change. The amended six-operation
+candidate requires fresh source, installed-native, coverage, and final-gate
+evidence; historical counts below do not qualify it.
+
 ## Review scope and disposition
 
 - **Capability and provenance boundary:** independent review confirmed that the

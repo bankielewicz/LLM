@@ -250,6 +250,16 @@ class TrainingStore:
                     errors.append(
                         {"field_path": "/dataset_id", "message": "The dataset is missing a required split."}
                     )
+        if (
+            operation == "generate"
+            and len(errors) == 1
+            and errors[0]["field_path"] == "/preview_artifact_id"
+        ):
+            raise _field_error(
+                "CONTEXT_PREVIEW_STALE",
+                "/preview_artifact_id",
+                "The context preview no longer matches this request.",
+            )
         if operation == "tiny_train" and request["architecture_profile_id"] == "tiny-v2-weight-tied-v1":
             errors.append(
                 {
@@ -1131,9 +1141,22 @@ class TrainingStore:
             preview_id = str(value["preview_artifact_id"])
             try:
                 preview_descriptor = self.registry.get_artifact(preview_id)
-                if preview_descriptor["type"] != "context_preview":
-                    raise ValueError
+                if preview_descriptor.get("type") != "context_preview":
+                    raise _field_error(
+                        "CONTEXT_PREVIEW_STALE",
+                        "/preview_artifact_id",
+                        "The context preview no longer matches this request.",
+                    )
                 preview_bytes = self.registry.read_artifact_bytes(preview_id)
+            except ApiError as exc:
+                if exc.code != "NOT_FOUND":
+                    raise
+                raise _field_error(
+                    "CONTEXT_PREVIEW_STALE",
+                    "/preview_artifact_id",
+                    "The context preview no longer matches this request.",
+                ) from exc
+            try:
                 preview = strict_json(preview_bytes)
                 if not isinstance(preview, Mapping):
                     raise ValueError
@@ -1196,8 +1219,12 @@ class TrainingStore:
                     != checkpoint["context"]
                 ):
                     raise ValueError
-            except ApiError:
-                raise
+            except ApiError as exc:
+                raise _field_error(
+                    "CONTEXT_PREVIEW_STALE",
+                    "/preview_artifact_id",
+                    "The context preview no longer matches this request.",
+                ) from exc
             except (KeyError, TypeError, ValueError, UnicodeError) as exc:
                 raise _field_error(
                     "CONTEXT_PREVIEW_STALE",
@@ -1205,7 +1232,16 @@ class TrainingStore:
                     "The context preview no longer matches this request.",
                 ) from exc
             validate("JobRequest", value)
-            preview_input = self._input("context_preview", preview_id)
+            try:
+                preview_input = self._input("context_preview", preview_id)
+            except ApiError as exc:
+                if exc.code != "NOT_FOUND":
+                    raise
+                raise _field_error(
+                    "CONTEXT_PREVIEW_STALE",
+                    "/preview_artifact_id",
+                    "The context preview no longer matches this request.",
+                ) from exc
             return AdmissionPlan(
                 operation=operation,
                 reservation=self._ordinary_reservation(run_rows=1),

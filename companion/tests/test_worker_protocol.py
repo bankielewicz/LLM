@@ -14,6 +14,7 @@ import pytest
 
 from llm_foundations_companion.database import Database
 from llm_foundations_companion.operations import HANDLERS, OPERATIONS, OperationUnavailable
+from llm_foundations_companion.preflight import S2_OPERATION_NAMES
 from llm_foundations_companion.registry import Registry
 from llm_foundations_companion.scheduler import OwnedWorkerProcess, WorkerController
 from llm_foundations_companion.schema import canonical_json
@@ -589,6 +590,7 @@ def test_s2_production_dispatch_is_closed_and_keeps_later_slices_unavailable() -
         "generate",
         "context_preview",
     }
+    assert implemented == S2_OPERATION_NAMES
     for operation, handler in HANDLERS.items():
         if operation in implemented:
             assert handler.__module__ == "llm_foundations_companion.operations"

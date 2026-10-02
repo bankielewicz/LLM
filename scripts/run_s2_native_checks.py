@@ -69,19 +69,74 @@ CASES = dict(
 )
 
 TEST_CASE_IDS = frozenset(CASES) - {"S2-NATIVE-001", "S2-NATIVE-002", "S2-NATIVE-024"}
-CAPABILITY_BLOCKED_IDS = frozenset(
-    {
-        "S2-NATIVE-002",
-        "S2-NATIVE-011",
-        "S2-NATIVE-012",
-        "S2-NATIVE-013",
-        "S2-NATIVE-014",
-        "S2-NATIVE-015",
-        "S2-NATIVE-025",
-    }
-)
 S2_OPERATIONS = frozenset(
     {"tokenizer_train", "tiny_train", "tiny_resume", "evaluate", "generate", "context_preview"}
+)
+EXPECTED_SUPPORT_TESTS = (
+    "test_resume_scheduler_boundaries.InstalledSchedulerBoundaryChecks."
+    "test_recovery_finalizes_prior_active_job_and_preserves_fifo",
+    "test_resume_scheduler_boundaries.InstalledSchedulerBoundaryChecks."
+    "test_resume_dispatch_starts_at_verified_parent_boundary",
+    "test_resume_scheduler_boundaries.InstalledSchedulerBoundaryChecks."
+    "test_started_protocol_loss_finalizes_terminal_metadata",
+    "test_resume_scheduler_boundaries.InstalledSchedulerBoundaryChecks."
+    "test_worker_context_starts_at_verified_parent_boundary",
+    "test_s2_model_failure_coverage.S2ModelFailureCoverage."
+    "test_checkpoint_config_and_source_boundaries",
+    "test_s2_model_failure_coverage.S2ModelFailureCoverage."
+    "test_checkpoint_expectations_and_tensor_failures",
+    "test_s2_model_failure_coverage.S2ModelFailureCoverage."
+    "test_decoding_rejects_nonfinite_logits_and_preserves_stop_causes",
+    "test_s2_model_failure_coverage.S2ModelFailureCoverage."
+    "test_evaluation_rejects_corrupt_rows_and_model_outputs",
+    "test_s2_model_failure_coverage.S2ModelFailureCoverage."
+    "test_trainer_hold_contract_requires_a_committed_boundary",
+    "test_s2_model_failure_coverage.S2ModelFailureCoverage."
+    "test_trainer_rejects_nondurable_and_nonfinite_boundaries",
+    "test_s2_model_failure_coverage.S2ModelFailureCoverage."
+    "test_training_callback_emits_all_steps_as_valid_protocol_progress",
+    "test_s2_model_failure_coverage.S2ModelFailureCoverage."
+    "test_training_configuration_and_restored_state_bounds",
+    "test_s2_model_failure_coverage.S2ModelFailureCoverage."
+    "test_training_metric_serializer_matches_sealed_long_form_schema",
+    "test_s2_tiny_boundary_coverage.S2TinyBoundaryCoverage."
+    "test_decoding_argument_and_positive_sampling_boundaries",
+    "test_s2_tiny_boundary_coverage.S2TinyBoundaryCoverage."
+    "test_document_constructor_and_jsonl_input_boundaries",
+    "test_s2_tiny_boundary_coverage.S2TinyBoundaryCoverage."
+    "test_document_stream_selection_and_encoding_boundaries",
+    "test_s2_tiny_boundary_coverage.S2TinyBoundaryCoverage."
+    "test_evaluation_argument_and_record_boundaries",
+    "test_s2_tiny_boundary_coverage.S2TinyBoundaryCoverage."
+    "test_model_config_profiles_and_input_length_boundaries",
+    "test_s2_tiny_boundary_coverage.S2TinyBoundaryCoverage."
+    "test_prompt_preview_rejects_invalid_or_lossy_tokenization",
+    "test_s2_tiny_boundary_coverage.S2TinyBoundaryCoverage."
+    "test_tokenizer_constructor_training_and_artifact_boundaries",
+    "test_s2_torch_boundary_coverage.S2TorchBoundaryCoverage."
+    "test_cancellation_commits_before_and_after_a_training_update",
+    "test_s2_torch_boundary_coverage.S2TorchBoundaryCoverage."
+    "test_checkpoint_rejects_optimizer_rng_and_identity_tampering",
+    "test_s2_torch_boundary_coverage.S2TorchBoundaryCoverage."
+    "test_checkpoint_write_rejects_inconsistent_optimizer_state_and_cleans_up",
+    "test_s2_torch_boundary_coverage.S2TorchBoundaryCoverage."
+    "test_config_metadata_accepts_profiles_and_rejects_malformed_values",
+    "test_s2_torch_boundary_coverage.S2TorchBoundaryCoverage."
+    "test_determinism_rejects_invalid_inputs_and_unavailable_cuda",
+    "test_s2_torch_boundary_coverage.S2TorchBoundaryCoverage."
+    "test_dispatch_failure_contract_and_allocated_tokenizer_identity",
+    "test_s2_torch_boundary_coverage.S2TorchBoundaryCoverage."
+    "test_preview_generation_round_trip_and_stale_preview_rejection",
+    "test_s2_torch_boundary_coverage.S2TorchBoundaryCoverage."
+    "test_two_subject_evaluation_and_failure_translation",
+    "test_s2_torch_boundary_coverage.S2TorchBoundaryCoverage."
+    "test_weight_tied_resume_round_trip_restores_all_torch_state",
+    "test_service_lifecycle.ServiceLifecycle."
+    "test_support_training_event_caps_and_full_metrics",
+    "test_tiny_training.TinyTrainingNativeCases."
+    "test_phase_events_stay_bounded_and_reserve_terminal_boundaries",
+    "test_tiny_training.TinyTrainingNativeCases."
+    "test_resume_cancellation_reuses_parent_boundary",
 )
 CASE_RE = re.compile(r"(?:^|\.)test_s2_native_(?P<number>[0-9]{3})(?:_|$)")
 FROZEN_LIKE_RE = re.compile(r"(?:^|\.)test_s2_native_")
@@ -306,25 +361,6 @@ def execute_builtin(identifier: str, action: object) -> dict[str, object]:
         )
 
 
-def without_cases(
-    suite: unittest.TestSuite,
-    excluded: frozenset[str],
-) -> unittest.TestSuite:
-    """Return a suite without explicitly blocked frozen cases."""
-
-    retained = unittest.TestSuite()
-    for item in suite:
-        if isinstance(item, unittest.TestSuite):
-            nested = without_cases(item, excluded)
-            if nested.countTestCases():
-                retained.addTest(nested)
-            continue
-        identifier = NativeResult.case_id(item)
-        if identifier not in excluded:
-            retained.addTest(item)
-    return retained
-
-
 def legacy_row(path: Path | None) -> dict[str, object]:
     if path is None:
         return row(
@@ -377,14 +413,6 @@ def main() -> int:
     parser.add_argument("--report-dir", type=Path)
     parser.add_argument("--wheel", type=Path)
     parser.add_argument("--legacy-result", type=Path)
-    parser.add_argument(
-        "--exclude-capability-blocked",
-        action="store_true",
-        help=(
-            "retain pending APP-009 cases as BLOCKED while running all independent "
-            "installed checks; this mode can never pass the development gate"
-        ),
-    )
     parser.add_argument("--list-plan", action="store_true")
     args = parser.parse_args()
 
@@ -404,22 +432,13 @@ def main() -> int:
     os.environ["LLMF_S2_NATIVE_ARTIFACT_ROOT"] = str(artifacts)
     os.environ["LLMF_S2_CANDIDATE_WHEEL"] = str(wheel)
 
-    excluded = CAPABILITY_BLOCKED_IDS if args.exclude_capability_blocked else frozenset()
-    exclusion_reason = (
-        "Pending APP-009 keeps context-preview and generation capabilities disabled; "
-        "this case was retained in the denominator but intentionally not executed."
-    )
-    rows: dict[str, dict[str, object]] = {
-        identifier: row(identifier, "BLOCKED", reason=exclusion_reason)
-        for identifier in excluded
-    }
+    rows: dict[str, dict[str, object]] = {}
     rows["S2-NATIVE-001"] = execute_builtin(
         "S2-NATIVE-001", lambda: installed_identity(wheel)
     )
-    if "S2-NATIVE-002" not in excluded:
-        rows["S2-NATIVE-002"] = execute_builtin(
-            "S2-NATIVE-002", dispatch_identity
-        )
+    rows["S2-NATIVE-002"] = execute_builtin(
+        "S2-NATIVE-002", dispatch_identity
+    )
 
     raw_output = io.StringIO()
     native_result: NativeResult | None = None
@@ -429,7 +448,6 @@ def main() -> int:
             suite = unittest.defaultTestLoader.discover(
                 str(test_root), pattern="test_*.py", top_level_dir=str(test_root)
             )
-            suite = without_cases(suite, excluded)
             runner = unittest.TextTestRunner(
                 stream=raw_output, verbosity=2, resultclass=NativeResult
             )
@@ -458,10 +476,11 @@ def main() -> int:
     unknown = native_result.unknown_tests if native_result is not None else []
     support_rows = native_result.support_rows if native_result is not None else []
     passed = (
-        not excluded
-        and len(ordered) == 25
+        len(ordered) == 25
         and discovery_error is None
         and not unknown
+        and [item.get("test") for item in support_rows]
+        == list(EXPECTED_SUPPORT_TESTS)
         and all(item["status"] == "PASS" for item in support_rows)
         and native_result is not None
         and native_result.wasSuccessful()
@@ -482,9 +501,9 @@ def main() -> int:
         "unknown_or_duplicate_tests": unknown,
         "discovery_error": discovery_error,
         "development_exclusions": {
-            "enabled": bool(excluded),
-            "case_ids": sorted(excluded),
-            "reason": exclusion_reason if excluded else None,
+            "enabled": False,
+            "case_ids": [],
+            "reason": None,
         },
         "artifacts": artifact_manifest(reports),
         "canonical_acceptance": {

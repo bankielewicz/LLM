@@ -1,6 +1,6 @@
 # S2 internal format and integration decisions
 
-These choices fill implementation details left open by the sealed contract. They do not replace public schemas or qualify the product. The separate APP-009 proposal is an actual cross-contract conflict and remains outside these decisions.
+These choices fill implementation details left open by the sealed contract. They do not replace public schemas or qualify the product. The separately approved APP-009 revision 1.3 amendment resolves the request-field conflict and remains outside these implementation choices; see `authority.json` and `../../specs/intermediate-v1-amendments/APP-009-revision-1.3.md`.
 
 ## Dependency and source identity
 

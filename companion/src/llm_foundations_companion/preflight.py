@@ -85,7 +85,16 @@ _OPERATION_NAMES = (
     "validate_bundle",
     "import_bundle",
 )
-S2_OPERATION_NAMES = frozenset({"tokenizer_train", "tiny_train", "tiny_resume", "evaluate"})
+S2_OPERATION_NAMES = frozenset(
+    {
+        "tokenizer_train",
+        "tiny_train",
+        "tiny_resume",
+        "evaluate",
+        "generate",
+        "context_preview",
+    }
+)
 _UNAVAILABLE_MESSAGE = "This operation is not available in this implementation slice."
 OPERATION_CAPABILITIES: Mapping[str, Mapping[str, object]] = MappingProxyType(
     {

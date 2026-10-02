@@ -6,6 +6,7 @@ from pathlib import Path
 import shutil
 import sys
 from typing import Any
+import uuid
 
 import pytest
 from coverage import CoverageData
@@ -15,6 +16,7 @@ if str(SCRIPTS) not in sys.path:
     sys.path.insert(0, str(SCRIPTS))
 
 import run_s2_gate as gate_module
+import run_s2_native_checks as native_module
 
 
 COMMIT = "a" * 40
@@ -54,14 +56,15 @@ def _fixture(
     unrelated_combined: bool = False,
     pid_mismatch: bool = False,
     copied_native_raw: bool = False,
+    stale_result_format: bool = False,
 ) -> tuple[Path, Path, Path]:
     repo = tmp_path / "repo"
     package = repo / "companion/src/llm_foundations_companion"
     package.mkdir(parents=True)
     relative_names = sorted(
         LABS
-        + ["__main__.py", "service.py", "worker_main.py"]
-        + [f"module_{index:02d}.py" for index in range(45)]
+        + ["__main__.py", "cli.py", "preflight_main.py", "service.py", "worker_main.py"]
+        + [f"module_{index:02d}.py" for index in range(43)]
     )
     inventory: dict[str, dict[str, object]] = {}
     statement_lines: dict[str, list[int]] = {}
@@ -194,15 +197,26 @@ def _fixture(
             "native",
             {"worker_main.py": [index + 1]},
         )
-        for index in range(12)
+        for index in range(19)
     )
     raw_rows.extend(
-        coverage_row(
-            f".coverage.fixture.pid{1013 + index}.native_support",
-            "native",
-            {"module_00.py": [index + 1]},
-        )
-        for index in range(2)
+        [
+            coverage_row(
+                ".coverage.fixture.pid1020.native_runner_parent",
+                "native",
+                {"module_00.py": [1]},
+            ),
+            coverage_row(
+                ".coverage.fixture.pid1021.native_preflight_support",
+                "native",
+                {"preflight_main.py": [1]},
+            ),
+            coverage_row(
+                ".coverage.fixture.pid1022.native_cli_support",
+                "native",
+                {"cli.py": [1]},
+            ),
+        ]
     )
     raw_rows.append(
         coverage_row(
@@ -319,34 +333,30 @@ def _fixture(
             "executed_path_bindings": bindings,
         }
 
-    blocked_ids = sorted(gate_module.CAPABILITY_BLOCKED_IDS)
+    native_case_ids = [f"S2-NATIVE-{number:03d}" for number in range(1, 26)]
     native_authority_document = {
         "format": "llm-foundations-s2-native-development-v1",
         "denominator": 25,
         "cases": [
             {
-                "case_id": f"S2-NATIVE-{number:03d}",
-                "status": (
-                    "BLOCKED"
-                    if f"S2-NATIVE-{number:03d}" in blocked_ids
-                    else "PASS"
-                ),
+                "case_id": case_id,
+                "status": "PASS",
             }
-            for number in range(1, 26)
+            for case_id in native_case_ids
         ],
-        "counts": {"PASS": 18, "FAIL": 0, "BLOCKED": 7, "NOT_RUN": 0},
+        "counts": {"PASS": 25, "FAIL": 0, "BLOCKED": 0, "NOT_RUN": 0},
         "supporting_tests": [
-            {"test": f"support-{index}", "status": "PASS"}
-            for index in range(3)
+            {"test": test, "status": "PASS"}
+            for test in native_module.EXPECTED_SUPPORT_TESTS
         ],
         "unknown_or_duplicate_tests": [],
         "discovery_error": None,
         "development_exclusions": {
-            "enabled": True,
-            "case_ids": blocked_ids,
-            "reason": "test fixture",
+            "enabled": False,
+            "case_ids": [],
+            "reason": None,
         },
-        "s2_native_development_gate": "FAIL",
+        "s2_native_development_gate": "PASS",
     }
     native_authority_ref = put(
         "ordinary-authority/native-result.json",
@@ -368,24 +378,86 @@ def _fixture(
         legacy_authority_document,
     )
     native_raw = [row for row in raw_rows if row["phase"] == "native"]
-    service_names = [".coverage.fixture.pid1000.native_service"]
-    worker_names = [
-        f".coverage.fixture.pid{1001 + index}.native_worker"
-        for index in range(12)
+    native_role_counts = {
+        "runner_parent": 1,
+        "service": 1,
+        "preflight_support": 1,
+        "cli_support": 1,
+        "worker": 19,
+    }
+    native_operation_counts = {
+        "tokenizer_train": 4,
+        "tiny_train": 5,
+        "tiny_resume": 2,
+        "evaluate": 1,
+        "context_preview": 4,
+        "generate": 3,
+    }
+    role_raw_files = {
+        "runner_parent": [".coverage.fixture.pid1020.native_runner_parent"],
+        "service": [".coverage.fixture.pid1000.native_service"],
+        "preflight_support": [
+            ".coverage.fixture.pid1021.native_preflight_support"
+        ],
+        "cli_support": [".coverage.fixture.pid1022.native_cli_support"],
+        "worker": [
+            f".coverage.fixture.pid{1001 + index}.native_worker"
+            for index in range(19)
+        ],
+    }
+    role_by_raw_name = {
+        name: role
+        for role, names in role_raw_files.items()
+        for name in names
+    }
+    operation_roster = [
+        operation
+        for operation, count in native_operation_counts.items()
+        for _ in range(count)
     ]
-    support_names = [
-        f".coverage.fixture.pid{1013 + index}.native_support"
-        for index in range(2)
-    ]
+    native_job_rows = []
+    native_snapshot_refs = []
+    for index, operation in enumerate(operation_roster, start=1):
+        job_id = str(uuid.UUID(int=index))
+        snapshot_ref = put(
+            f"native-inputs/{job_id}.json",
+            {
+                "format": "llm-foundations-worker-input-v1",
+                "job_id": job_id,
+                "operation": operation,
+            },
+        )
+        native_snapshot_refs.append(snapshot_ref)
+        native_job_rows.append(
+            {
+                "job_id": job_id,
+                "operation": operation,
+                "input_snapshot": snapshot_ref,
+            }
+        )
     native_audit = {
-        "format": "s2-native-raw-process-audit-v3",
+        "format": "s2-native-raw-process-audit-v4",
         "status": "PASS",
-        "new_raw_file_count": 15,
-        "service_raw_files": service_names,
-        "worker_raw_files": worker_names,
-        "parent_or_support_raw_files": support_names,
+        "expected_process_count": 23,
+        "new_raw_file_count": 23,
+        "expected_role_counts": native_role_counts,
+        "observed_role_counts": native_role_counts,
+        "role_raw_files": {
+            role: sorted(names) for role, names in role_raw_files.items()
+        },
+        "job_roster": {
+            "status": "PASS",
+            "expected_job_count": 19,
+            "observed_job_count": 19,
+            "expected_operation_counts": native_operation_counts,
+            "observed_operation_counts": native_operation_counts,
+            "jobs": native_job_rows,
+        },
         "binding_failures": [],
         "contexts_ok": True,
+        "pid_binding_ok": True,
+        "distinct_parsed_pid_count": 23,
+        "complete_disjoint_role_roster": True,
         "roots": {
             "source": str(package.resolve()),
             "installed": str(installed_package.resolve()),
@@ -395,13 +467,7 @@ def _fixture(
         "files": [
             audit_row(
                 row,
-                role=(
-                    "service"
-                    if row["name"] in service_names
-                    else "worker"
-                    if row["name"] in worker_names
-                    else "parent_or_support"
-                ),
+                role=role_by_raw_name[row["name"]],
                 root_name="source",
                 pid=1000 + index,
             )
@@ -409,7 +475,7 @@ def _fixture(
         ],
     }
     if native_ghost:
-        native_audit["service_raw_files"] = [".coverage.ghost"]
+        native_audit["role_raw_files"]["service"] = [".coverage.ghost"]
     if wrong_executed_root:
         native_audit["files"][0]["executed_path_bindings"][0]["root"] = (
             "installed"
@@ -470,43 +536,58 @@ def _fixture(
             child_names[:-1]
         )
     legacy_audit_ref = put("legacy-raw-path-audit.json", legacy_audit)
+    instrumented_case_ids = [
+        case_id
+        for case_id in native_case_ids
+        if case_id not in {"S2-NATIVE-001", "S2-NATIVE-002", "S2-NATIVE-024"}
+    ]
     native_instrumented_document = {
-        "format": "s2-instrumented-native-unittest-v1",
+        "format": "s2-native-instrumented-v2",
         "qualification": "coverage_only_modified_runtime",
         "started_at": "2026-10-01T00:00:00Z",
         "ended_at": "2026-10-01T00:00:01Z",
-        "tests_run": 3,
         "successful": True,
-        "known_app009_cases": [
-            {"case_id": case_id, "status": "BLOCKED", "executed": False}
-            for case_id in blocked_ids
+        "tests_run": 54,
+        "case_count": 22,
+        "supporting_test_count": 32,
+        "case_results": [
+            {
+                "case_id": case_id,
+                "test": f"instrumented.native.TestCase.test_{case_id.lower().replace('-', '_')}",
+                "status": "PASS",
+                "started_at": "2026-10-01T00:00:00Z",
+                "ended_at": "2026-10-01T00:00:01Z",
+            }
+            for case_id in instrumented_case_ids
         ],
-        "known_app009_blocked_count": 7,
+        "supporting_test_results": [
+            {
+                "test": test,
+                "status": "PASS",
+                "started_at": "2026-10-01T00:00:00Z",
+                "ended_at": "2026-10-01T00:00:01Z",
+            }
+            for test in native_module.EXPECTED_SUPPORT_TESTS
+        ],
+        "excluded_case_ids": [],
         "failures": 0,
         "errors": 0,
         "skipped": 0,
         "expected_failures": 0,
         "unexpected_successes": 0,
-        "tests": [
-            {
-                "test": f"instrumented.native.TestCase.test_{index}",
-                "status": "PASS",
-                "started_at": "2026-10-01T00:00:00Z",
-                "ended_at": "2026-10-01T00:00:01Z",
-            }
-            for index in range(3)
-        ],
     }
     native_instrumented_ref = put(
         "native-unittest-result.json",
         native_instrumented_document,
     )
     native_instrumented = {
-        "format": "s2-instrumented-native-unittest-v1",
+        "format": "s2-native-instrumented-v2",
         "qualification": "coverage_only_modified_runtime",
         "successful": True,
-        "tests_run": 3,
-        "known_app009_blocked_count": 7,
+        "tests_run": 54,
+        "case_count": 22,
+        "supporting_test_count": 32,
+        "excluded_case_ids": [],
         "failures": 0,
         "errors": 0,
         "skipped": 0,
@@ -584,6 +665,7 @@ def _fixture(
                 native_audit_ref,
                 native_authority_ref,
                 native_instrumented_ref,
+                *native_snapshot_refs,
             ]
         if phase == "legacy":
             members += [
@@ -744,12 +826,12 @@ def _fixture(
                     "size_bytes": native_authority_ref["size_bytes"],
                     "sha256": native_authority_ref["sha256"],
                     "wheel_sha256": _sha(wheel.read_bytes()),
-                    "aggregate": "FAIL_WITH_7_KNOWN_APP009_BLOCKED",
-                    "counts": {"PASS": 18, "FAIL": 0, "BLOCKED": 7, "NOT_RUN": 0},
+                    "aggregate": "PASS",
+                    "counts": {"PASS": 25, "FAIL": 0, "BLOCKED": 0, "NOT_RUN": 0},
                     "supporting_tests": len(
                         native_authority_document["supporting_tests"]
                     ),
-                    "excluded_case_ids": sorted(gate_module.CAPABILITY_BLOCKED_IDS),
+                    "excluded_case_ids": [],
                 },
                 process_audit_status="PASS",
             )
@@ -771,7 +853,11 @@ def _fixture(
         phases[phase] = phase_row
 
     result = {
-        "format": "s2-combined-coverage-result-v3",
+        "format": (
+            "s2-combined-coverage-result-v3"
+            if stale_result_format
+            else "s2-combined-coverage-result-v4"
+        ),
         "status": "PASS",
         "threshold_percent": 95,
         "combine_exit_code": 0,
@@ -805,9 +891,16 @@ def _fixture(
         "phases": phases,
         "native_process_audit": {
             "status": "PASS",
-            "service_raw_file_count": 1,
-            "worker_raw_file_count": 12,
-            "parent_or_support_raw_file_count": 2,
+            "expected_process_count": 23,
+            "observed_process_count": 23,
+            "expected_role_counts": native_role_counts,
+            "observed_role_counts": native_role_counts,
+            "complete_disjoint_role_roster": True,
+            "job_roster_status": "PASS",
+            "expected_job_count": 19,
+            "observed_job_count": 19,
+            "expected_operation_counts": native_operation_counts,
+            "observed_operation_counts": native_operation_counts,
             "artifact": native_audit_ref,
         },
         "legacy_path_audit": {
@@ -899,6 +992,80 @@ def test_complete_source_coverage_accepts_exact_sealed_candidate(
     assert observed["coverage_percent"] >= 95.0
 
 
+def test_stale_v3_coverage_result_is_rejected(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    repo, wheel, result = _fixture(tmp_path, stale_result_format=True)
+    with pytest.raises(ValueError, match="Coverage result schema differs"):
+        _verify(monkeypatch, repo, wheel, result)
+
+
+def test_native_denominator_rejects_retired_18_plus_7_profile(
+    tmp_path: Path,
+) -> None:
+    blocked_ids = {
+        "S2-NATIVE-002",
+        "S2-NATIVE-011",
+        "S2-NATIVE-012",
+        "S2-NATIVE-013",
+        "S2-NATIVE-014",
+        "S2-NATIVE-015",
+        "S2-NATIVE-025",
+    }
+    result = tmp_path / "stale-native-result.json"
+    result.write_bytes(
+        _raw(
+            {
+                "format": "llm-foundations-s2-native-development-v1",
+                "s2_native_development_gate": "FAIL",
+                "profile": "wsl-cpu",
+                "denominator": 25,
+                "counts": {
+                    "PASS": 18,
+                    "FAIL": 0,
+                    "BLOCKED": 7,
+                    "NOT_RUN": 0,
+                },
+                "cases": [
+                    {
+                        "case_id": f"S2-NATIVE-{number:03d}",
+                        "status": (
+                            "BLOCKED"
+                            if f"S2-NATIVE-{number:03d}" in blocked_ids
+                            else "PASS"
+                        ),
+                    }
+                    for number in range(1, 26)
+                ],
+                "supporting_tests": [
+                    {"test": test, "status": "PASS"}
+                    for test in native_module.EXPECTED_SUPPORT_TESTS
+                ],
+                "unknown_or_duplicate_tests": [],
+                "discovery_error": None,
+                "development_exclusions": {
+                    "enabled": True,
+                    "case_ids": sorted(blocked_ids),
+                    "reason": "retired APP-009 capability exclusion",
+                },
+                "canonical_acceptance": {
+                    "execution_units": 605,
+                    "passed": 0,
+                    "not_run": 605,
+                    "product_qualification": "NOT_RUN",
+                },
+                "mapped_s2_acceptance": {
+                    "execution_units": 20,
+                    "passed": 0,
+                    "not_run": 20,
+                },
+            }
+        )
+    )
+    with pytest.raises(ValueError, match="Native S2 denominator is not exactly 25 PASS"):
+        gate_module.native_denominator(result)
+
+
 def test_missing_coverage_receipt_is_explicitly_blocked(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
@@ -984,7 +1151,7 @@ def test_stale_source_and_wheel_identities_fail(
         ("wrong_executed_root", "outside its declared root"),
         ("unrelated_combined", "exact raw-data union"),
         ("pid_mismatch", "PID differs from its filename"),
-        ("copied_native_raw", "raw identities are not distinct"),
+        ("copied_native_raw", "raw identities or derived roles differ"),
     ],
 )
 def test_raw_database_and_process_audit_forgeries_fail(
