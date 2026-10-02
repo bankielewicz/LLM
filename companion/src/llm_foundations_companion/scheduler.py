@@ -915,6 +915,34 @@ class Scheduler:
     def _now(self) -> str:
         return self._clock_value().isoformat(timespec="milliseconds").replace("+00:00", "Z")
 
+    def _durable_now(
+        self, row: sqlite3.Row, record: Mapping[str, Any]
+    ) -> str:
+        """Return one wall-clock sample floored by this job's durable history."""
+
+        value = self._clock_value()
+        for persisted in (
+            row["created_at"],
+            row["updated_at"],
+            row["cancel_requested_at"],
+            record.get("created_at"),
+            record.get("updated_at"),
+            record.get("started_at"),
+            record.get("finished_at"),
+        ):
+            if persisted is not None:
+                value = max(value, _parse_time(str(persisted)))
+        return value.isoformat(timespec="milliseconds").replace("+00:00", "Z")
+
+    def _terminal_now(self, job_id: str) -> str:
+        with self.database.read() as connection:
+            row = connection.execute(
+                "SELECT * FROM jobs WHERE job_id = ?", (job_id,)
+            ).fetchone()
+            if row is None:
+                return self._now()
+            return self._durable_now(row, self._decode_record(row))
+
     def _new_uuid(self) -> str:
         value = self._uuid_factory()
         return _canonical_uuid(str(value), "generated identifier")
@@ -1341,7 +1369,7 @@ class Scheduler:
                 if row is None:
                     raise ApiError("NOT_FOUND")
                 record = self._public(connection, row)
-                state, now = str(row["state"]), self._now()
+                state, now = str(row["state"]), self._durable_now(row, record)
                 if state in {"interrupted", "cancelling"}:
                     return record
                 if state in {"completed", "failed"}:
@@ -1387,17 +1415,19 @@ class Scheduler:
                 return 0
             try:
                 with self.database.read() as connection:
-                    active_job_ids = tuple(
-                        str(row[0])
-                        for row in connection.execute(
-                            "SELECT job_id FROM jobs "
+                    active_rows = tuple(
+                        connection.execute(
+                            "SELECT * FROM jobs "
                             "WHERE state IN ('starting','running','cancelling') "
                             "ORDER BY created_at, job_id"
                         )
                     )
                 prepared_terminals = {}
-                for job_id in active_job_ids:
-                    finished_at = self._now()
+                for row in active_rows:
+                    job_id = str(row["job_id"])
+                    finished_at = self._durable_now(
+                        row, self._decode_record(row)
+                    )
                     prepared_terminals[job_id] = (
                         finished_at,
                         self._prepare_terminal_record(
@@ -1484,7 +1514,7 @@ class Scheduler:
                             "STORAGE_UNAVAILABLE", reason_code="STORAGE_CORRUPT"
                         )
                     record["requested_final_step"] = requested_final
-                now = self._now()
+                now = self._durable_now(row, record)
                 record["started_at"] = now
                 self._transition(connection, row, record, "starting", now)
                 self._save(connection, row, record, state="starting", updated_at=now)
@@ -1564,7 +1594,8 @@ class Scheduler:
                             "step": parent_step,
                         }
                         rec["step"] = parent_step
-                        now = self._now()
+                        now = self._durable_now(live, rec)
+                        rec["updated_at"] = now
                         self._save(connection, live, rec, updated_at=now)
                         self.database.bump_revision(connection)
                 worker = self.worker_controller.launch(
@@ -1597,6 +1628,7 @@ class Scheduler:
                 with self.database.transaction() as connection:
                     live = connection.execute("SELECT * FROM jobs WHERE job_id = ?", (job_id,)).fetchone()
                     rec = self._decode_record(live)
+                    now = self._durable_now(live, rec)
                     error = self._job_error(
                         "WORKER_PROTOCOL_ERROR", "The fixed worker could not be started."
                     )
@@ -1606,7 +1638,7 @@ class Scheduler:
                         rec,
                         state="failed",
                         reason=error["code"],
-                        now=self._now(),
+                        now=now,
                         error=error,
                     )
                 self._clear_active()
@@ -1678,7 +1710,7 @@ class Scheduler:
             if row is None:
                 raise WorkerProtocolError("active job record is missing")
             record = self._decode_record(row)
-            now = self._now()
+            now = self._durable_now(row, record)
             if kind == "ready":
                 if row["state"] == "cancelling":
                     return
@@ -1701,7 +1733,7 @@ class Scheduler:
                     record["phase"] = payload["phase"]
                     record["phase_started_at"] = now
                     record["hold_deadline_at"] = (
-                        (self._clock_value() + timedelta(seconds=600)).isoformat(timespec="milliseconds").replace("+00:00", "Z")
+                        (_parse_time(now) + timedelta(seconds=600)).isoformat(timespec="milliseconds").replace("+00:00", "Z")
                         if payload["phase"] == "cancellable_hold"
                         else None
                     )
@@ -1746,6 +1778,7 @@ class Scheduler:
                         record["warnings"].append(payload)
                     else:
                         record["warning_suppressed_count"] += 1
+                        record["updated_at"] = now
                         self._save(connection, row, record, updated_at=now)
                         return
                 elif event_type == "checkpoint_committed":
@@ -1828,7 +1861,7 @@ class Scheduler:
                 raise WorkerProtocolError(
                     "worker interruption boundary does not match committed state"
                 )
-        finished_at = self._now()
+        finished_at = self._durable_now(row, current)
         prepared = self._prepare_terminal_record(
             job_id,
             state=state,
@@ -1950,7 +1983,7 @@ class Scheduler:
                         (job_id,),
                     ).fetchone()[0]
                 )
-                now = self._now()
+                now = self._durable_now(row, record)
                 self._event(
                     connection,
                     row,
@@ -1963,6 +1996,7 @@ class Scheduler:
                     },
                     now,
                 )
+                record["updated_at"] = now
                 self._save(connection, row, record, updated_at=now)
                 self.database.bump_revision(connection)
         except WorkerProtocolError:
@@ -2000,7 +2034,7 @@ class Scheduler:
                 return False
             if row["state"] != "cancelling":
                 record = self._decode_record(row)
-                now = self._now()
+                now = self._durable_now(row, record)
                 self._transition(connection, row, record, "cancelling", now)
                 self._save(
                     connection,
@@ -2090,7 +2124,7 @@ class Scheduler:
                 return self.get(job_id)
 
     def _finish_interrupted(self, job_id: str, reason: str) -> None:
-        finished_at = self._now()
+        finished_at = self._terminal_now(job_id)
         prepared = self._prepare_terminal_record(
             job_id,
             state="interrupted",
@@ -2114,7 +2148,7 @@ class Scheduler:
         self._complete_terminal_record(prepared)
 
     def _finish_failed(self, job_id: str, code: str, message: str) -> None:
-        finished_at = self._now()
+        finished_at = self._terminal_now(job_id)
         prepared = self._prepare_terminal_record(
             job_id,
             state="failed",
@@ -2140,7 +2174,7 @@ class Scheduler:
         self._complete_terminal_record(prepared)
 
     def _ownership_unknown(self, job_id: str) -> None:
-        finished_at = self._now()
+        finished_at = self._terminal_now(job_id)
         prepared = self._prepare_terminal_record(
             job_id,
             state="interrupted",

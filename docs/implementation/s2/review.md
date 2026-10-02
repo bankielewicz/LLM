@@ -117,6 +117,22 @@ remains pending until that complete inventory is measured on the final source
 candidate. The later candidate-specific gate result is the authority for its
 final disposition.
 
+A later retained instrumented attempt exposed a job-read failure when the host
+wall clock moved backward by 537 milliseconds between starting and running.
+The resulting update time preceded the job creation time, so the public
+response correctly failed its contract check. That failed attempt remains
+retained; subsequent completion of the same job does not turn it into a pass.
+
+The scheduler repair floors each existing job mutation against its persisted
+SQL and job-document timestamps. The same chosen time binds the job update,
+event, and transition; terminal preparation and publication reuse that time
+for job and run-result metadata. Recovery obtains the floor from persisted
+state. Deterministic regressions reproduce the original rollback and cover
+terminal consistency, cancellation, and restart with newer SQL timestamps than
+the job document. Queue selection retains the approved ordering by
+`created_at` then `job_id`. The rebuilt candidate requires fresh native and
+coverage evidence; earlier wheel results do not qualify this repair.
+
 ## Qualification boundary
 
 No installed-native PASS is claimed by this source review. Installed execution
