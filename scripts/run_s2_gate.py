@@ -1284,7 +1284,7 @@ def verify_complete_source_coverage(
         cumulative_raw += len(phase_raw)
         _required(
             isinstance(phase_result, dict)
-            and phase_result.get("format") == "s2-coverage-measurement-v3"
+            and phase_result.get("format") == "s2-coverage-measurement-v4"
             and phase_result.get("phase") == phase
             and phase_result.get("qualification") == qualifications[phase]
             and phase_result.get("exit_code") == 0
@@ -1504,9 +1504,11 @@ def verify_complete_source_coverage(
     _required(
         isinstance(native_authority, dict)
         and native_authority.get("artifact_path") == "ordinary-authority/native-result.json"
-        and native_authority.get("aggregate") == "PASS"
+        and native_authority.get("aggregate") == "PASS_25_OF_25"
         and native_authority.get("counts") == {"PASS": 25, "FAIL": 0, "BLOCKED": 0, "NOT_RUN": 0}
         and native_authority.get("supporting_tests") == len(EXPECTED_SUPPORT_TESTS)
+        and native_authority.get("supporting_test_ids")
+        == list(EXPECTED_SUPPORT_TESTS)
         and native_authority.get("excluded_case_ids") == []
         and native_authority.get("wheel_sha256") == wheel_value["sha256"],
         "Ordinary native authority differs",

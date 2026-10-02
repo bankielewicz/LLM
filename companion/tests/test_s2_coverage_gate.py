@@ -57,6 +57,9 @@ def _fixture(
     pid_mismatch: bool = False,
     copied_native_raw: bool = False,
     stale_result_format: bool = False,
+    stale_phase_format: bool = False,
+    native_authority_aggregate: str = "PASS_25_OF_25",
+    native_supporting_test_ids: list[str] | None = None,
 ) -> tuple[Path, Path, Path]:
     repo = tmp_path / "repo"
     package = repo / "companion/src/llm_foundations_companion"
@@ -626,7 +629,11 @@ def _fixture(
         phase_raw = [row for row in raw_rows if row["phase"] == phase]
         cumulative_raw += len(phase_raw)
         phase_result = {
-            "format": "s2-coverage-measurement-v3",
+            "format": (
+                "s2-coverage-measurement-v3"
+                if stale_phase_format
+                else "s2-coverage-measurement-v4"
+            ),
             "phase": phase,
             "qualification": {
                 "unit": "development_source_coverage_only",
@@ -826,10 +833,15 @@ def _fixture(
                     "size_bytes": native_authority_ref["size_bytes"],
                     "sha256": native_authority_ref["sha256"],
                     "wheel_sha256": _sha(wheel.read_bytes()),
-                    "aggregate": "PASS",
+                    "aggregate": native_authority_aggregate,
                     "counts": {"PASS": 25, "FAIL": 0, "BLOCKED": 0, "NOT_RUN": 0},
                     "supporting_tests": len(
                         native_authority_document["supporting_tests"]
+                    ),
+                    "supporting_test_ids": (
+                        list(native_module.EXPECTED_SUPPORT_TESTS)
+                        if native_supporting_test_ids is None
+                        else native_supporting_test_ids
                     ),
                     "excluded_case_ids": [],
                 },
@@ -997,6 +1009,40 @@ def test_stale_v3_coverage_result_is_rejected(
 ) -> None:
     repo, wheel, result = _fixture(tmp_path, stale_result_format=True)
     with pytest.raises(ValueError, match="Coverage result schema differs"):
+        _verify(monkeypatch, repo, wheel, result)
+
+
+def test_stale_v3_phase_receipt_is_rejected(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    repo, wheel, result = _fixture(tmp_path, stale_phase_format=True)
+    with pytest.raises(ValueError, match="unit measurement result differs"):
+        _verify(monkeypatch, repo, wheel, result)
+
+
+@pytest.mark.parametrize("aggregate", ["PASS", "PASS_24_OF_25"])
+def test_native_authority_rejects_wrong_aggregate(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    aggregate: str,
+) -> None:
+    repo, wheel, result = _fixture(
+        tmp_path, native_authority_aggregate=aggregate
+    )
+    with pytest.raises(ValueError, match="Ordinary native authority differs"):
+        _verify(monkeypatch, repo, wheel, result)
+
+
+def test_native_authority_rejects_wrong_supporting_test_roster(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    repo, wheel, result = _fixture(
+        tmp_path,
+        native_supporting_test_ids=list(
+            native_module.EXPECTED_SUPPORT_TESTS[:-1]
+        ),
+    )
+    with pytest.raises(ValueError, match="Ordinary native authority differs"):
         _verify(monkeypatch, repo, wheel, result)
 
 
