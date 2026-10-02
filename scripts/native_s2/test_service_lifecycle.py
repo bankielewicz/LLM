@@ -1092,8 +1092,18 @@ class ServiceLifecycle(unittest.TestCase):
         self.assertEqual(digest(preview_raw), result["context_preview_digest"])
         self.assertEqual(result["backend"], "tiny")
         self.assertEqual(result["device"], "cpu")
-        self.assertEqual(result["input_token_count"], len(result["input_token_ids"]))
-        self.assertEqual(result["serialized_text"], request["prompt"])
+        self.assertEqual(result["tokenizer_sha256"], BYTE_TOKENIZER_SHA256)
+        expected_preview = {
+            "original_input_token_count": 11,
+            "input_token_ids": [108, 111, 10, 119, 111, 114, 108, 100],
+            "input_token_count": 8,
+            "serialized_text": "lo\nworld",
+            "cropped_input_tokens": 3,
+            "effective_context_budget": 8,
+        }
+        self.assertEqual(
+            {key: result[key] for key in expected_preview}, expected_preview
+        )
         after = {
             name: digest(path.read_bytes())
             for name, path in self.service.checkpoint_files(
@@ -1109,7 +1119,12 @@ class ServiceLifecycle(unittest.TestCase):
             "states": states,
             "preview_artifact_id": result["preview_artifact_id"],
             "context_preview_digest": result["context_preview_digest"],
+            "original_input_token_count": result[
+                "original_input_token_count"
+            ],
             "input_token_ids": result["input_token_ids"],
+            "cropped_input_tokens": result["cropped_input_tokens"],
+            "serialized_text": result["serialized_text"],
             "checkpoint_files_unchanged": before,
             "checkpoint_count_unchanged": before_checkpoints,
         }
@@ -1151,7 +1166,7 @@ class ServiceLifecycle(unittest.TestCase):
         self.assertEqual(result["generated_text"], direct.generated_text)
         self.assertEqual(result["generated_token_count"], direct.generated_token_count)
         self.assertEqual(result["stop_reason"], direct.stop_reason)
-        self.assertEqual(result["serialized_input"], direct.preview.serialized_text)
+        self.assertEqual(result["serialized_input"], "lo\nworld")
         after = {
             name: digest(path.read_bytes())
             for name, path in self.service.checkpoint_files(
@@ -1468,7 +1483,22 @@ class ServiceLifecycle(unittest.TestCase):
         preview = json.loads(
             self.service.artifact_bytes(str(result["preview_artifact_id"]))
         )
-        self.assertEqual(preview["serialized_text"], prompt)
+        self.assertEqual(preview["tokenizer_sha256"], BYTE_TOKENIZER_SHA256)
+        self.assertEqual(prompt.encode("utf-8")[-8:], b"execute)")
+        expected_preview = {
+            "original_input_token_count": len(prompt.encode("utf-8")),
+            "input_token_ids": [101, 120, 101, 99, 117, 116, 101, 41],
+            "input_token_count": 8,
+            "serialized_text": "execute)",
+            "cropped_input_tokens": len(prompt.encode("utf-8")) - 8,
+            "effective_context_budget": 8,
+        }
+        self.assertEqual(
+            {key: preview[key] for key in expected_preview}, expected_preview
+        )
+        self.assertEqual(
+            {key: result[key] for key in expected_preview}, expected_preview
+        )
         self.assertFalse(sentinel.exists())
         self.assertTrue(all(prompt not in argument for argument in argv))
         self.assertEqual(
