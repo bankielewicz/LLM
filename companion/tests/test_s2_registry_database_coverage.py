@@ -38,9 +38,30 @@ def _api_error(call: Any, code: str, reason_code: str | None = None) -> ApiError
     return caught.value
 
 
-def _signed_cursor(key: bytes, value: Any) -> str:
-    payload = canonical_json(value)
-    signature = hmac.digest(key, payload, "sha256")
+def _signed_cursor(
+    key: bytes,
+    value: Any,
+    *,
+    instance_id: str,
+    schema: str,
+    order: str,
+    filters: dict[str, Any],
+) -> str:
+    payload = value if isinstance(value, bytes) else canonical_json(value)
+    context = canonical_json(
+        {
+            "filters": filters,
+            "instance_id": instance_id,
+            "order": order,
+            "schema": schema,
+            "version": 2,
+        }
+    )
+    signature = hmac.digest(
+        key,
+        b"llm-foundations-cursor-v2\0" + context + b"\0" + payload,
+        "sha256",
+    )
     return base64.urlsafe_b64encode(payload + signature).rstrip(b"=").decode("ascii")
 
 
@@ -332,42 +353,106 @@ def test_cursor_decoder_rejects_structural_signature_and_binding_failures() -> N
         "order": "created_at_desc,item_id_desc",
         "filters": {"origin": "imported"},
     }
+    created_at = "2026-10-01T00:00:00.000Z"
+    item_id = str(uuid.uuid4())
     valid = codec.encode(
         **arguments,
-        created_at="2026-10-01T00:00:00.000Z",
-        item_id=str(uuid.uuid4()),
+        created_at=created_at,
+        item_id=item_id,
     )
+    assert len(valid) <= 200
+    assert codec.decode(valid, **arguments) == (created_at, item_id)
     decoded = base64.urlsafe_b64decode(valid + "=" * (-len(valid) % 4))
     tampered = base64.urlsafe_b64encode(
         decoded[:-1] + bytes([decoded[-1] ^ 1])
     ).rstrip(b"=").decode("ascii")
-    wrong_shape = _signed_cursor(key, ["not", "an", "object"])
-    wrong_binding = _signed_cursor(
+    signing = {
+        "instance_id": instance_id,
+        "schema": arguments["schema"],
+        "order": arguments["order"],
+        "filters": arguments["filters"],
+    }
+    wrong_shape = _signed_cursor(key, ["not", "an", "object"], **signing)
+    wrong_keys = _signed_cursor(
         key,
         {
-            "created_at": "2026-10-01T00:00:00.000Z",
-            "filters": arguments["filters"],
-            "instance_id": instance_id,
-            "item_id": str(uuid.uuid4()),
-            "order": arguments["order"],
-            "schema": arguments["schema"],
+            "created_at": created_at,
+            "extra": "closed",
+            "item_id": item_id,
             "version": 2,
         },
+        **signing,
     )
+    wrong_version = _signed_cursor(
+        key,
+        {"created_at": created_at, "item_id": item_id, "version": 1},
+        **signing,
+    )
+    wrong_created_at_type = _signed_cursor(
+        key,
+        {"created_at": 1, "item_id": item_id, "version": 2},
+        **signing,
+    )
+    wrong_item_id_type = _signed_cursor(
+        key,
+        {"created_at": created_at, "item_id": None, "version": 2},
+        **signing,
+    )
+    noncanonical_payload = json.dumps(
+        {"version": 2, "item_id": item_id, "created_at": created_at},
+        indent=2,
+    ).encode()
+    noncanonical = _signed_cursor(key, noncanonical_payload, **signing)
     for cursor in (
         None,
         "",
-        "A" * 4097,
+        "A" * 201,
         "AA",
         "Zg==",
         tampered,
         wrong_shape,
-        wrong_binding,
+        wrong_keys,
+        wrong_version,
+        wrong_created_at_type,
+        wrong_item_id_type,
+        noncanonical,
     ):
         _api_error(
             lambda cursor=cursor: codec.decode(cursor, **arguments),  # type: ignore[arg-type]
             "VALIDATION_FAILED",
             "SEMANTIC_INVALID",
+        )
+
+    for changed in (
+        {**arguments, "schema": "other-v1"},
+        {**arguments, "order": "item_id_desc"},
+        {**arguments, "filters": {"origin": "locally_created"}},
+    ):
+        _api_error(
+            lambda changed=changed: codec.decode(valid, **changed),
+            "VALIDATION_FAILED",
+            "SEMANTIC_INVALID",
+        )
+    for other in (
+        CursorCodec(str(uuid.uuid4()), key),
+        CursorCodec(instance_id, b"x" * 32),
+    ):
+        _api_error(
+            lambda other=other: other.decode(valid, **arguments),
+            "VALIDATION_FAILED",
+            "SEMANTIC_INVALID",
+        )
+    with pytest.raises(ValueError, match="anchors"):
+        codec.encode(
+            **arguments,
+            created_at=1,  # type: ignore[arg-type]
+            item_id=item_id,
+        )
+    with pytest.raises(ValueError, match="public limit"):
+        codec.encode(
+            **arguments,
+            created_at="x" * 201,
+            item_id=item_id,
         )
     with pytest.raises(ValueError, match="32 bytes"):
         CursorCodec(instance_id, b"short")

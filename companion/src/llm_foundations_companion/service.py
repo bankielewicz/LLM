@@ -278,7 +278,10 @@ class Service:
         return self._require_registry().get_artifact(artifact_id)
 
     def list_artifacts(self, params):
-        return self._require_registry().list_artifacts(**params)
+        params = dict(params)
+        limit, cursor = params.pop('limit', 50), params.pop('cursor', None)
+        return self._require_registry().list_artifacts(
+            limit=limit, cursor=cursor, filters=params)
 
     def open_artifact(self, artifact_id):
         registry = self._require_registry()

@@ -111,6 +111,29 @@ class CursorCodec:
             raise ValueError("cursor_key must contain at least 32 bytes")
         self._key = key
 
+    def _signature(
+        self,
+        payload: bytes,
+        *,
+        schema: str,
+        order: str,
+        filters: Mapping[str, Any],
+    ) -> bytes:
+        context = canonical_json(
+            {
+                "filters": dict(filters),
+                "instance_id": self._instance_id,
+                "order": order,
+                "schema": schema,
+                "version": 2,
+            }
+        )
+        return hmac.digest(
+            self._key,
+            b"llm-foundations-cursor-v2\0" + context + b"\0" + payload,
+            "sha256",
+        )
+
     def encode(
         self,
         *,
@@ -120,19 +143,24 @@ class CursorCodec:
         created_at: str,
         item_id: str,
     ) -> str:
+        if not isinstance(created_at, str) or not isinstance(item_id, str):
+            raise ValueError("cursor anchors must be strings")
         payload = canonical_json(
             {
                 "created_at": created_at,
-                "filters": dict(filters),
-                "instance_id": self._instance_id,
                 "item_id": item_id,
-                "order": order,
-                "schema": schema,
-                "version": 1,
+                "version": 2,
             }
         )
-        signature = hmac.digest(self._key, payload, "sha256")
-        return base64.urlsafe_b64encode(payload + signature).rstrip(b"=").decode("ascii")
+        signature = self._signature(
+            payload, schema=schema, order=order, filters=filters
+        )
+        cursor = base64.urlsafe_b64encode(payload + signature).rstrip(b"=").decode(
+            "ascii"
+        )
+        if len(cursor) > 200:
+            raise ValueError("cursor anchor exceeds the public limit")
+        return cursor
 
     def decode(
         self,
@@ -143,7 +171,7 @@ class CursorCodec:
         filters: Mapping[str, Any],
     ) -> tuple[str, str]:
         try:
-            if not isinstance(cursor, str) or not cursor or len(cursor) > 4_096:
+            if not isinstance(cursor, str) or not cursor or len(cursor) > 200:
                 raise ValueError
             raw = cursor.encode("ascii")
             decoded = base64.b64decode(
@@ -154,26 +182,19 @@ class CursorCodec:
             if len(decoded) <= 32:
                 raise ValueError
             payload, signature = decoded[:-32], decoded[-32:]
-            if not hmac.compare_digest(signature, hmac.digest(self._key, payload, "sha256")):
+            expected_signature = self._signature(
+                payload, schema=schema, order=order, filters=filters
+            )
+            if not hmac.compare_digest(signature, expected_signature):
                 raise ValueError
             value = json.loads(payload.decode("utf-8"))
-            expected = {
-                "created_at",
-                "filters",
-                "instance_id",
-                "item_id",
-                "order",
-                "schema",
-                "version",
-            }
-            if not isinstance(value, dict) or set(value) != expected:
+            if canonical_json(value) != payload:
                 raise ValueError
+            expected = {"created_at", "item_id", "version"}
             if (
-                value["version"] != 1
-                or value["instance_id"] != self._instance_id
-                or value["schema"] != schema
-                or value["order"] != order
-                or value["filters"] != dict(filters)
+                not isinstance(value, dict)
+                or set(value) != expected
+                or value["version"] != 2
                 or not isinstance(value["created_at"], str)
                 or not isinstance(value["item_id"], str)
             ):
